@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Download, CheckCircle, AlertTriangle, Box, Clock, Terminal, ChevronRight, Play, CheckSquare, Square } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Download, CheckCircle, AlertTriangle, Clock, Terminal, ChevronRight, Play, CheckSquare, Square, XCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { MOCK_DEPLOYMENTS, MOCK_PROJECTS } from '../constants';
 
@@ -216,107 +216,105 @@ const BuildExecution: React.FC = () => {
             </button>
             <div>
                <h1 className="text-lg font-bold text-slate-800">{t.buildExecution.title}: {deployment?.name}</h1>
-               <div className="text-xs text-slate-500 mt-0.5">{t.buildExecution.startedAt}: {new Date().toLocaleTimeString()}</div>
+               <div className="flex items-center mt-1">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                     overallStatus === 'building' ? 'bg-blue-100 text-blue-800' :
+                     overallStatus === 'success' ? 'bg-green-100 text-green-800' :
+                     'bg-red-100 text-red-800'
+                  }`}>
+                     {overallStatus === 'building' && <RefreshCw className="w-3 h-3 mr-1 animate-spin" />}
+                     {overallStatus === 'success' && <CheckCircle className="w-3 h-3 mr-1" />}
+                     {overallStatus === 'failed' && <AlertTriangle className="w-3 h-3 mr-1" />}
+                     {overallStatus === 'building' ? t.buildExecution.building : overallStatus === 'success' ? t.buildExecution.success : t.buildExecution.failed}
+                  </span>
+                  <span className="text-slate-400 text-xs ml-2 flex items-center">
+                     <Clock className="w-3 h-3 mr-1" /> {t.buildExecution.startedAt} {new Date().toLocaleTimeString()}
+                  </span>
+               </div>
             </div>
          </div>
-         <div className="flex items-center space-x-4">
-            {overallStatus === 'building' && (
-              <span className="flex items-center text-blue-600 font-medium px-3 py-1 bg-blue-50 rounded-full animate-pulse">
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> {t.buildExecution.building}
-              </span>
-            )}
-            {overallStatus === 'success' && (
-              <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 shadow-sm transition-colors">
-                <Download className="w-4 h-4 mr-2" /> {t.buildExecution.downloadArtifact}
-              </button>
-            )}
-            {overallStatus === 'failed' && (
-              <span className="flex items-center text-red-600 font-medium px-3 py-1 bg-red-50 rounded-full">
-                <AlertTriangle className="w-4 h-4 mr-2" /> {t.buildExecution.failed}
-              </span>
-            )}
-         </div>
+         {overallStatus === 'success' && (
+            <button className="flex items-center px-4 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+               <Download className="w-4 h-4 mr-2" />
+               {t.buildExecution.downloadArtifact}
+            </button>
+         )}
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        
-        {/* Sidebar: Project List */}
-        <div className="w-80 bg-slate-50 border-r border-slate-200 flex flex-col">
-            <div className="p-4 border-b border-slate-200">
+      <div className="flex-1 flex overflow-hidden">
+         {/* Sidebar - Project List */}
+         <div className="w-80 bg-slate-50 border-r border-slate-200 overflow-y-auto">
+            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 sticky top-0 z-10">
                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.buildExecution.projectList}</h3>
             </div>
-            <div className="flex-1 overflow-y-auto p-2 space-y-2">
-               {projectsToBuild.map(projectId => {
-                  const project = deployProjects.find(p => p.id === projectId);
-                  const state = buildStates[projectId] || { status: 'pending' };
-                  
-                  if (!project) return null;
+            <div className="divide-y divide-slate-100">
+               {projectsToBuild.map(pid => {
+                  const p = deployProjects.find(dp => dp.id === pid);
+                  if (!p) return null;
+                  const state = buildStates[pid] || { status: 'pending', logs: [] };
+                  const isSelected = selectedProjectId === pid;
 
                   return (
-                    <button
-                       key={project.id}
-                       onClick={() => setSelectedProjectId(project.id)}
-                       className={`w-full text-left p-3 rounded-md flex items-center justify-between transition-all ${
-                          selectedProjectId === project.id 
-                             ? 'bg-white shadow-sm ring-1 ring-blue-500/20' 
-                             : 'hover:bg-slate-100'
-                       }`}
-                    >
-                       <div className="flex items-center min-w-0">
-                          <Box className={`w-5 h-5 mr-3 flex-shrink-0 ${selectedProjectId === project.id ? 'text-blue-600' : 'text-slate-400'}`} />
-                          <div className="truncate">
-                             <div className={`text-sm font-medium ${selectedProjectId === project.id ? 'text-blue-700' : 'text-slate-700'}`}>{project.name}</div>
-                             <div className="text-xs text-slate-500">{project.latestVersion}</div>
-                          </div>
-                       </div>
-                       
-                       <div className="flex items-center ml-2">
-                          {state.status === 'pending' && <div className="w-2 h-2 rounded-full bg-slate-300" />}
-                          {state.status === 'building' && <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />}
-                          {state.status === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
-                          {state.status === 'error' && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                       </div>
-                    </button>
+                     <div 
+                        key={pid}
+                        onClick={() => setSelectedProjectId(pid)}
+                        className={`px-4 py-3 cursor-pointer transition-colors border-l-4 ${
+                           isSelected 
+                              ? 'bg-white border-blue-500 shadow-sm' 
+                              : 'border-transparent hover:bg-white hover:border-slate-300'
+                        }`}
+                     >
+                        <div className="flex justify-between items-start mb-1">
+                           <span className={`font-medium text-sm ${isSelected ? 'text-blue-700' : 'text-slate-700'}`}>{p.name}</span>
+                           <span className="text-xs text-slate-400">{state.duration}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                           <span className={`inline-flex items-center text-xs ${
+                              state.status === 'pending' ? 'text-slate-400' :
+                              state.status === 'building' ? 'text-blue-600' :
+                              state.status === 'success' ? 'text-green-600' :
+                              'text-red-600'
+                           }`}>
+                              {state.status === 'building' && <RefreshCw className="w-3 h-3 mr-1 animate-spin" />}
+                              {state.status === 'success' && <CheckCircle className="w-3 h-3 mr-1" />}
+                              {state.status === 'error' && <XCircle className="w-3 h-3 mr-1" />}
+                              {state.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                              {state.status === 'pending' ? t.buildExecution.pending : 
+                               state.status === 'building' ? t.buildExecution.building :
+                               state.status === 'success' ? t.buildExecution.success : 
+                               t.buildExecution.failed}
+                           </span>
+                           {isSelected && <ChevronRight className="w-4 h-4 text-slate-300" />}
+                        </div>
+                     </div>
                   );
                })}
             </div>
-        </div>
+         </div>
 
-        {/* Main Content: Logs */}
-        <div className="flex-1 flex flex-col bg-[#1e1e1e] min-w-0">
-            {/* Log Header */}
-            <div className="bg-[#252526] px-4 py-2 border-b border-black flex justify-between items-center text-slate-300">
-                <div className="flex items-center text-sm font-mono">
-                   <Terminal className="w-4 h-4 mr-2 text-slate-400" />
-                   <span>{t.buildExecution.logsFor}: </span>
-                   <span className="text-white font-bold ml-2">{deployProjects.find(p => p.id === selectedProjectId)?.name}</span>
-                </div>
-                {buildStates[selectedProjectId]?.duration && (
-                   <div className="flex items-center text-xs text-slate-500">
-                      <Clock className="w-3 h-3 mr-1" /> {t.buildExecution.duration}: {buildStates[selectedProjectId].duration}
-                   </div>
-                )}
+         {/* Main Content - Console Logs */}
+         <div className="flex-1 bg-[#1e1e1e] flex flex-col min-w-0">
+            <div className="px-4 py-2 bg-[#2d2d2d] border-b border-[#3d3d3d] flex justify-between items-center">
+               <span className="text-xs font-mono text-slate-400 flex items-center">
+                  <Terminal className="w-3 h-3 mr-2" />
+                  {t.buildExecution.logsFor}: <span className="text-slate-200 ml-1 font-bold">{deployProjects.find(p => p.id === selectedProjectId)?.name}</span>
+               </span>
             </div>
-
-            {/* Log Output */}
             <div className="flex-1 p-4 overflow-auto code-scroll font-mono text-sm">
                {currentLogs.length === 0 ? (
-                  <div className="text-slate-500 italic px-2">{t.buildExecution.pending}...</div>
+                  <div className="text-slate-500 italic">Waiting for logs...</div>
                ) : (
-                  <div className="space-y-1">
-                     {currentLogs.map((log, idx) => (
-                        <div key={idx} className="text-slate-300 whitespace-pre-wrap break-all hover:bg-[#2a2d2e] px-2 py-0.5 rounded-sm">
-                           <span className="text-slate-500 mr-2">$</span>
-                           {log}
-                        </div>
-                     ))}
-                     {buildStates[selectedProjectId]?.status === 'building' && (
-                        <div className="animate-pulse text-blue-400 px-2">_</div>
-                     )}
-                  </div>
+                  currentLogs.map((log, i) => (
+                     <div key={i} className="mb-1 text-slate-300 whitespace-pre-wrap break-all hover:bg-white/5 px-1 rounded">
+                        <span className="text-slate-500 mr-2 opacity-50">{i + 1}</span>
+                        {log}
+                     </div>
+                  ))
                )}
+               {/* Auto-scroll anchor */}
+               <div /> 
             </div>
-        </div>
+         </div>
       </div>
     </div>
   );

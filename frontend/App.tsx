@@ -1,94 +1,68 @@
-import React, { useState, useEffect } from "react";
-import {
-  HashRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-  useLocation,
-} from "react-router-dom";
-import Layout from "./components/Layout";
-import { TabView } from "./types";
-import { LanguageProvider } from "./contexts/LanguageContext";
+import React, { useState, useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import Layout from './components/Layout';
+import { TabView } from './types';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Page Components
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import CompileList from "./pages/CompileList";
-import ProjectDetail from "./pages/ProjectDetail";
-import ManageList from "./pages/ManageList";
-import DeploymentDetail from "./pages/DeploymentDetail";
-import BuildExecution from "./pages/BuildExecution";
-import BuildHistory from "./pages/BuildHistory";
-import SettingsPage from "./pages/SettingsPage";
-import TemplateList from "./pages/TemplateList";
-import TemplateDetail from "./pages/TemplateDetail";
-import CustomerList from "./pages/CustomerList";
-import CustomerDetail from "./pages/CustomerDetail";
-import MemberList from "./pages/MemberList";
-import MemberDetail from "./pages/MemberDetail";
-import RoleList from "./pages/RoleList";
-import RoleDetail from "./pages/RoleDetail";
+import Login from './pages/Login';
+import Register from './pages/Register';
+import CompileList from './pages/CompileList';
+import ProjectDetail from './pages/ProjectDetail';
+import ManageList from './pages/ManageList';
+import DeploymentDetail from './pages/DeploymentDetail';
+import BuildExecution from './pages/BuildExecution';
+import BuildHistory from './pages/BuildHistory';
+import SettingsPage from './pages/SettingsPage';
+import TemplateList from './pages/TemplateList';
+import TemplateDetail from './pages/TemplateDetail';
+import CustomerList from './pages/CustomerList';
+import CustomerDetail from './pages/CustomerDetail';
+import MemberList from './pages/MemberList';
+import MemberDetail from './pages/MemberDetail';
+import RoleList from './pages/RoleList';
+import RoleDetail from './pages/RoleDetail';
 
 const AppContent: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState("zhuge@zhugeio.com");
+  const [currentUser, setCurrentUser] = useState('zhuge@zhugeio.com');
   const [activeTab, setActiveTab] = useState<TabView>(TabView.COMPILE);
-
+  
   const navigate = useNavigate();
   const location = useLocation();
 
   // Sync tab state with route
   useEffect(() => {
-    if (location.pathname.includes("/compile")) setActiveTab(TabView.COMPILE);
-    else if (location.pathname.includes("/templates"))
-      setActiveTab(TabView.TEMPLATES);
-    else if (location.pathname.includes("/manage"))
-      setActiveTab(TabView.MANAGE);
-    else if (location.pathname.includes("/customers"))
-      setActiveTab(TabView.CUSTOMERS);
-    else if (location.pathname.includes("/members"))
-      setActiveTab(TabView.MEMBERS);
-    else if (location.pathname.includes("/roles")) setActiveTab(TabView.ROLES);
-    else if (location.pathname.includes("/settings"))
-      setActiveTab(TabView.SETTINGS);
+    if (location.pathname.includes('/compile')) setActiveTab(TabView.COMPILE);
+    else if (location.pathname.includes('/templates')) setActiveTab(TabView.TEMPLATES);
+    else if (location.pathname.includes('/manage')) setActiveTab(TabView.MANAGE);
+    else if (location.pathname.includes('/customers')) setActiveTab(TabView.CUSTOMERS);
+    else if (location.pathname.includes('/members')) setActiveTab(TabView.MEMBERS);
+    else if (location.pathname.includes('/roles')) setActiveTab(TabView.ROLES);
+    else if (location.pathname.includes('/settings')) setActiveTab(TabView.SETTINGS);
   }, [location]);
 
   const handleLogin = (email: string) => {
     setCurrentUser(email);
     setIsAuthenticated(true);
-    navigate("/compile");
+    navigate('/compile');
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    navigate("/login");
+    navigate('/login');
   };
 
   const handleTabChange = (tab: TabView) => {
     setActiveTab(tab);
     switch (tab) {
-      case TabView.COMPILE:
-        navigate("/compile");
-        break;
-      case TabView.TEMPLATES:
-        navigate("/templates");
-        break;
-      case TabView.MANAGE:
-        navigate("/manage");
-        break;
-      case TabView.CUSTOMERS:
-        navigate("/customers");
-        break;
-      case TabView.MEMBERS:
-        navigate("/members");
-        break;
-      case TabView.ROLES:
-        navigate("/roles");
-        break;
-      case TabView.SETTINGS:
-        navigate("/settings");
-        break;
+      case TabView.COMPILE: navigate('/compile'); break;
+      case TabView.TEMPLATES: navigate('/templates'); break;
+      case TabView.MANAGE: navigate('/manage'); break;
+      case TabView.CUSTOMERS: navigate('/customers'); break;
+      case TabView.MEMBERS: navigate('/members'); break;
+      case TabView.ROLES: navigate('/roles'); break;
+      case TabView.SETTINGS: navigate('/settings'); break;
     }
   };
 
@@ -103,10 +77,10 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <Layout
-      activeTab={activeTab}
-      onTabChange={handleTabChange}
-      userEmail={currentUser}
+    <Layout 
+      activeTab={activeTab} 
+      onTabChange={handleTabChange} 
+      userEmail={currentUser} 
       onLogout={handleLogout}
     >
       <Routes>
