@@ -5,6 +5,17 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              react: ['react', 'react-dom'],
+              router: ['react-router-dom'],
+              antd: ['antd', '@ant-design/icons']
+            }
+          }
+        }
+      },
       server: {
         port: 3000,
         host: '0.0.0.0',
