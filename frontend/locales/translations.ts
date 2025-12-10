@@ -1,4 +1,3 @@
-
 export const translations = {
   en: {
     login: {
@@ -9,7 +8,25 @@ export const translations = {
       autoLogin: "Auto login next time",
       forgotPassword: "Forgot password?",
       noAccount: "Don't have an account?",
-      register: "Register now"
+      register: "Register now",
+    },
+    register: {
+      title: "Register Account",
+      emailPlaceholder: "Email",
+      usernamePlaceholder: "Username",
+      passwordPlaceholder: "Password",
+      confirmPasswordPlaceholder: "Confirm Password",
+      registerBtn: "Register",
+      hasAccount: "Already have an account?",
+      loginNow: "Login now",
+      emailRequired: "Please input your Email!",
+      emailInvalid: "The input is not valid E-mail!",
+      usernameRequired: "Please input your Username!",
+      passwordRequired: "Please input your Password!",
+      confirmPasswordRequired: "Please confirm your password!",
+      passwordMismatch: "The two passwords that you entered do not match!",
+      successMessage: "Registration successful! Please login.",
+      failMessage: "Registration failed",
     },
     layout: {
       compile: "Compile",
@@ -21,7 +38,7 @@ export const translations = {
       roles: "Roles",
       settings: "Settings",
       logout: "Logout",
-      footer: "© 2023 ZhugeIO. All rights reserved."
+      footer: "© 2023 ZhugeIO. All rights reserved.",
     },
     compileList: {
       searchPlaceholder: "Search projects...",
@@ -41,7 +58,7 @@ export const translations = {
       initialVersion: "Initial Version",
       createBtn: "Create Project",
       projectPlaceholder: "e.g. web-analytics",
-      versionPlaceholder: "e.g. 1.0.0"
+      versionPlaceholder: "e.g. 1.0.0",
     },
     projectDetail: {
       back: "Back",
@@ -60,7 +77,7 @@ export const translations = {
       configTypes: {
         text: "Text: Text content replacement (supports RegEx).",
         file: "File: File replacement (e.g. logo).",
-        json: "JSON: JSON content modification (merge strategy)."
+        json: "JSON: JSON content modification (merge strategy).",
       },
       versionHistory: "Version History",
       deprecated: "Deprecated",
@@ -69,8 +86,10 @@ export const translations = {
       build: "BUILD",
       update: "UPDATE",
       docsTitle: "Project Documentation",
-      docsDesc1: "The timeline above allows switching between different versions.",
-      docsDesc2: "Documentation below will update automatically based on the selected version.",
+      docsDesc1:
+        "The timeline above allows switching between different versions.",
+      docsDesc2:
+        "Documentation below will update automatically based on the selected version.",
       addVersionTitle: "Add Version / Branch",
       versionNo: "Version Name",
       source: "Source Version",
@@ -96,8 +115,8 @@ export const translations = {
       configDesc: {
         domain: "Platform main domain",
         logo: "Logo replacement",
-        package: "Dependency updates"
-      }
+        package: "Dependency updates",
+      },
     },
     manageList: {
       newDeployment: "New Deployment",
@@ -124,8 +143,8 @@ export const translations = {
       types: {
         Private: "Private",
         Public: "Public",
-        Hybrid: "Hybrid"
-      }
+        Hybrid: "Hybrid",
+      },
     },
     deploymentDetail: {
       newConfig: "New Deployment Config",
@@ -154,7 +173,7 @@ export const translations = {
       cancel: "Cancel",
       detail: "Detail",
       val: "Value",
-      desc: "Description"
+      desc: "Description",
     },
     buildHistory: {
       title: "Build History",
@@ -169,7 +188,7 @@ export const translations = {
       viewLog: "View Logs",
       statusSuccess: "Success",
       statusFailed: "Failed",
-      noHistory: "No build history found for this deployment."
+      noHistory: "No build history found for this deployment.",
     },
     buildExecution: {
       title: "Build Execution",
@@ -185,7 +204,7 @@ export const translations = {
       logsFor: "Logs for",
       selectProjects: "Select Projects",
       startBuild: "Start Build",
-      ready: "Ready"
+      ready: "Ready",
     },
     settings: {
       title: "Settings",
@@ -204,7 +223,7 @@ export const translations = {
       enableEmail: "Enable Email Notifications",
       enableSms: "Enable SMS Notifications",
       enableWechat: "Enable WeChat Notifications",
-      saveAll: "Save All Changes"
+      saveAll: "Save All Changes",
     },
     templateList: {
       title: "Project Templates",
@@ -216,7 +235,7 @@ export const translations = {
       action: "ACTION",
       edit: "Edit",
       delete: "Delete",
-      searchPlaceholder: "Search templates..."
+      searchPlaceholder: "Search templates...",
     },
     templateDetail: {
       back: "Back",
@@ -245,7 +264,8 @@ export const translations = {
       addBranch: "Add Branch Version",
       timelineNote: "Click markers to select version source",
       branchNoteTitle: "Branching Rules",
-      branchNote: "After adding a sub-branch, it can be modified. Rebase to main branch is supported.",
+      branchNote:
+        "After adding a sub-branch, it can be modified. Rebase to main branch is supported.",
       addModuleTitle: "Add Module Project",
       selectProject: "Select Project",
       selectVersion: "Select Version",
@@ -254,7 +274,7 @@ export const translations = {
       cancel: "Cancel",
       mapToGlobal: "Global Config",
       fixedValue: "Fixed Value",
-      manualInput: "User Input"
+      manualInput: "User Input",
     },
     customerList: {
       searchPlaceholder: "Search customers...",
@@ -267,7 +287,7 @@ export const translations = {
       contractDate: "CONTRACT DATE",
       action: "ACTION",
       edit: "Edit",
-      delete: "Delete"
+      delete: "Delete",
     },
     customerDetail: {
       back: "Back",
@@ -285,7 +305,7 @@ export const translations = {
       statusInactive: "Inactive",
       deployments: "Associated Deployments",
       save: "Save Customer",
-      cancel: "Cancel"
+      cancel: "Cancel",
     },
     memberList: {
       searchPlaceholder: "Search team members...",
@@ -297,7 +317,7 @@ export const translations = {
       joinDate: "JOIN DATE",
       action: "ACTION",
       edit: "Edit",
-      delete: "Delete"
+      delete: "Delete",
     },
     memberDetail: {
       back: "Back",
@@ -310,14 +330,14 @@ export const translations = {
       roles: {
         admin: "Admin",
         developer: "Developer",
-        viewer: "Viewer"
+        viewer: "Viewer",
       },
       status: "Status",
       statusActive: "Active",
       statusInactive: "Inactive",
       joinDate: "Join Date",
       save: "Save Member",
-      cancel: "Cancel"
+      cancel: "Cancel",
     },
     roleList: {
       searchPlaceholder: "Search roles...",
@@ -328,7 +348,7 @@ export const translations = {
       action: "ACTION",
       edit: "Edit",
       delete: "Delete",
-      systemRole: "System Role"
+      systemRole: "System Role",
     },
     roleDetail: {
       back: "Back",
@@ -341,8 +361,8 @@ export const translations = {
       save: "Save Role",
       cancel: "Cancel",
       selectAll: "Select All",
-      deselectAll: "Deselect All"
-    }
+      deselectAll: "Deselect All",
+    },
   },
   zh: {
     login: {
@@ -353,7 +373,25 @@ export const translations = {
       autoLogin: "下次自动登录",
       forgotPassword: "忘记密码？",
       noAccount: "还没有账号？",
-      register: "立即注册"
+      register: "立即注册",
+    },
+    register: {
+      title: "注册账号",
+      emailPlaceholder: "邮箱",
+      usernamePlaceholder: "用户名",
+      passwordPlaceholder: "密码",
+      confirmPasswordPlaceholder: "确认密码",
+      registerBtn: "注册",
+      hasAccount: "已有账号？",
+      loginNow: "立即登录",
+      emailRequired: "请输入您的邮箱！",
+      emailInvalid: "输入的邮箱格式不正确！",
+      usernameRequired: "请输入您的用户名！",
+      passwordRequired: "请输入您的密码！",
+      confirmPasswordRequired: "请确认您的密码！",
+      passwordMismatch: "两次输入的密码不一致！",
+      successMessage: "注册成功！请登录。",
+      failMessage: "注册失败",
     },
     layout: {
       compile: "元项目",
@@ -365,7 +403,7 @@ export const translations = {
       roles: "角色",
       settings: "设置",
       logout: "退出",
-      footer: "© 2023 诸葛io. 保留所有权利."
+      footer: "© 2023 诸葛io. 保留所有权利.",
     },
     compileList: {
       searchPlaceholder: "搜索项目...",
@@ -385,7 +423,7 @@ export const translations = {
       initialVersion: "初始版本",
       createBtn: "创建项目",
       projectPlaceholder: "例如：web-analytics",
-      versionPlaceholder: "例如：1.0.0"
+      versionPlaceholder: "例如：1.0.0",
     },
     projectDetail: {
       back: "返回",
@@ -404,7 +442,7 @@ export const translations = {
       configTypes: {
         text: "文本：文本内容替换（支持正则）。",
         file: "文件：文件替换，如logo替换。",
-        json: "json：json文件内容替换，使用类似sublime修改配置信息的方式。"
+        json: "json：json文件内容替换，使用类似sublime修改配置信息的方式。",
       },
       versionHistory: "版本记录",
       deprecated: "废弃",
@@ -440,8 +478,8 @@ export const translations = {
       configDesc: {
         domain: "平台主域名",
         logo: "Logo文件替换",
-        package: "依赖更新"
-      }
+        package: "依赖更新",
+      },
     },
     manageList: {
       newDeployment: "新建部署",
@@ -468,8 +506,8 @@ export const translations = {
       types: {
         Private: "私有部署",
         Public: "公有云",
-        Hybrid: "混合云"
-      }
+        Hybrid: "混合云",
+      },
     },
     deploymentDetail: {
       newConfig: "新建配置",
@@ -498,7 +536,7 @@ export const translations = {
       cancel: "取消",
       detail: "查看详情",
       val: "值",
-      desc: "描述"
+      desc: "描述",
     },
     buildHistory: {
       title: "编译记录",
@@ -513,7 +551,7 @@ export const translations = {
       viewLog: "查看日志",
       statusSuccess: "成功",
       statusFailed: "失败",
-      noHistory: "该部署暂无编译记录。"
+      noHistory: "该部署暂无编译记录。",
     },
     buildExecution: {
       title: "编译执行",
@@ -529,7 +567,7 @@ export const translations = {
       logsFor: "构建日志",
       selectProjects: "选择编译项目",
       startBuild: "开始编译",
-      ready: "就绪"
+      ready: "就绪",
     },
     settings: {
       title: "设置",
@@ -548,7 +586,7 @@ export const translations = {
       enableEmail: "开启邮件通知",
       enableSms: "开启短信通知",
       enableWechat: "开启微信通知",
-      saveAll: "保存所有更改"
+      saveAll: "保存所有更改",
     },
     templateList: {
       title: "项目模板",
@@ -560,7 +598,7 @@ export const translations = {
       action: "操作",
       edit: "编辑",
       delete: "删除",
-      searchPlaceholder: "搜索模板..."
+      searchPlaceholder: "搜索模板...",
     },
     templateDetail: {
       back: "返回",
@@ -589,7 +627,8 @@ export const translations = {
       addBranch: "增加分支版本",
       timelineNote: "点击标签，可以选择源对应的版本",
       branchNoteTitle: "说明文档",
-      branchNote: "增加子分支后，子分支可以修改、增加配置项。后继子分支可以rebase到主分支。更新或者合并后的配置项，标记出来变动的部分。",
+      branchNote:
+        "增加子分支后，子分支可以修改、增加配置项。后继子分支可以rebase到主分支。更新或者合并后的配置项，标记出来变动的部分。",
       addModuleTitle: "添加模块项目",
       selectProject: "选择项目",
       selectVersion: "选择版本",
@@ -598,7 +637,7 @@ export const translations = {
       cancel: "取消",
       mapToGlobal: "全局配置",
       fixedValue: "固定值",
-      manualInput: "用户输入"
+      manualInput: "用户输入",
     },
     customerList: {
       searchPlaceholder: "搜索客户...",
@@ -611,7 +650,7 @@ export const translations = {
       contractDate: "签约日期",
       action: "操作",
       edit: "编辑",
-      delete: "删除"
+      delete: "删除",
     },
     customerDetail: {
       back: "返回",
@@ -629,7 +668,7 @@ export const translations = {
       statusInactive: "停用",
       deployments: "关联部署",
       save: "保存客户",
-      cancel: "取消"
+      cancel: "取消",
     },
     memberList: {
       searchPlaceholder: "搜索团队成员...",
@@ -641,7 +680,7 @@ export const translations = {
       joinDate: "加入时间",
       action: "操作",
       edit: "编辑",
-      delete: "删除"
+      delete: "删除",
     },
     memberDetail: {
       back: "返回",
@@ -654,14 +693,14 @@ export const translations = {
       roles: {
         admin: "管理员",
         developer: "开发者",
-        viewer: "访客"
+        viewer: "访客",
       },
       status: "状态",
       statusActive: "活跃",
       statusInactive: "停用",
       joinDate: "加入时间",
       save: "保存成员",
-      cancel: "取消"
+      cancel: "取消",
     },
     roleList: {
       searchPlaceholder: "搜索角色...",
@@ -672,7 +711,7 @@ export const translations = {
       action: "操作",
       edit: "编辑",
       delete: "删除",
-      systemRole: "系统角色"
+      systemRole: "系统角色",
     },
     roleDetail: {
       back: "返回",
@@ -685,7 +724,7 @@ export const translations = {
       save: "保存角色",
       cancel: "取消",
       selectAll: "全选",
-      deselectAll: "取消全选"
-    }
-  }
+      deselectAll: "取消全选",
+    },
+  },
 };

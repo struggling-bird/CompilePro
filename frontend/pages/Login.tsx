@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { MessageCircle, Globe } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { MessageCircle, Globe } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface LoginProps {
   onLogin: (email: string) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState('zhuge@zhugeio.com');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("zhuge@zhugeio.com");
+  const [password, setPassword] = useState("");
   const [autoLogin, setAutoLogin] = useState(true);
   const { t, language, setLanguage } = useLanguage();
 
@@ -20,24 +21,28 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'zh' : 'en');
+    setLanguage(language === "en" ? "zh" : "en");
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center relative">
-      
       {/* Top right lang switch */}
       <div className="absolute top-4 right-4">
-         <button onClick={toggleLanguage} className="flex items-center text-slate-500 hover:text-slate-800">
-           <Globe className="w-4 h-4 mr-1" />
-           {language === 'en' ? 'EN' : '中文'}
-         </button>
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center text-slate-500 hover:text-slate-800"
+        >
+          <Globe className="w-4 h-4 mr-1" />
+          {language === "en" ? "EN" : "中文"}
+        </button>
       </div>
 
       <div className="w-full max-w-md px-8 py-12">
         <div className="text-center mb-10">
-           {/* Logo Text */}
-           <h1 className="text-3xl font-light text-slate-800 mb-2">{t.login.title}</h1>
+          {/* Logo Text */}
+          <h1 className="text-3xl font-light text-slate-800 mb-2">
+            {t.login.title}
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -79,17 +84,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 onChange={(e) => setAutoLogin(e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-slate-500">
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-slate-500"
+              >
                 {t.login.autoLogin}
               </label>
             </div>
-            <div className="text-slate-400">
-              {t.login.forgotPassword}
-            </div>
+            <div className="text-slate-400">{t.login.forgotPassword}</div>
           </div>
 
           <div className="text-center text-xs text-slate-400 mt-8">
-            {t.login.noAccount} <a href="#" className="text-blue-500 hover:text-blue-600">{t.login.register}</a>
+            {t.login.noAccount}{" "}
+            <Link to="/register" className="text-blue-500 hover:text-blue-600">
+              {t.login.register}
+            </Link>
           </div>
         </form>
       </div>
