@@ -10,11 +10,14 @@ export const MOCK_PROJECTS: Project[] = [
     domain: 'https://zhugeio.com',
     logo: '/assets/images/logo.png',
     versions: [
-      { id: 'v1', version: '10.0', date: '2019.02.18' },
-      { id: 'v2', version: '10.1', date: '2019.02.18' },
-      { id: 'v3', version: '10.9', date: '2019.02.18', isDeprecated: true },
-      { id: 'v4', version: '11.0', date: '2019.02.18' },
-      { id: 'v5', version: '12.0', date: 'Today' },
+      { id: 'v1', version: '10.0', date: '2019.02.18', type: 'tag' },
+      { id: 'v2', version: '10.1', date: '2019.03.01', type: 'tag' },
+      { id: 'v2-b1', version: '10.1-fix-login', date: '2019.03.05', type: 'branch', sourceVersion: '10.1' },
+      { id: 'v2-b2', version: '10.1-customer-a', date: '2019.03.10', type: 'branch', sourceVersion: '10.1' },
+      { id: 'v3', version: '10.9', date: '2019.06.15', type: 'tag', isDeprecated: true },
+      { id: 'v4', version: '11.0', date: '2020.01.20', type: 'tag' },
+      { id: 'v5', version: '12.0', date: 'Today', type: 'tag' },
+      { id: 'v5-b1', version: 'feat-dashboard-v2', date: 'Today', type: 'branch', sourceVersion: '12.0' },
     ]
   },
   {
@@ -24,9 +27,9 @@ export const MOCK_PROJECTS: Project[] = [
     readmeUrl: '#',
     buildDocUrl: '#',
     versions: [
-      { id: 'v1', version: '4.0.0', date: '2023.01.10' },
-      { id: 'v2', version: '4.5.0', date: '2023.05.20' },
-      { id: 'v3', version: '4.5.1', date: '2023.06.01' },
+      { id: 'v1', version: '4.0.0', date: '2023.01.10', type: 'tag' },
+      { id: 'v2', version: '4.5.0', date: '2023.05.20', type: 'tag' },
+      { id: 'v3', version: '4.5.1', date: '2023.06.01', type: 'tag' },
     ]
   }
 ];
@@ -67,30 +70,85 @@ export const MOCK_DEPLOYMENTS: DeploymentConfig[] = [
 export const MOCK_TEMPLATES: ProjectTemplate[] = [
   {
     id: 't1',
-    name: 'React SPA Template',
-    type: 'Frontend',
-    description: 'A standard React Single Page Application template with Webpack, TypeScript, and Tailwind CSS pre-configured.',
-    defaultBuildScripts: ['npm install', 'npm run build'],
-    createdDate: '2023-01-15',
-    author: 'Admin'
+    name: 'Private Deployment Standard',
+    latestVersion: '2.1.0',
+    updateTime: '2023-06-15',
+    description: 'Standard suite for private cloud deployments including Webapp and SDK.',
+    versions: [
+      {
+        id: 'tv1',
+        version: '1.0.0',
+        date: '2022.01.01',
+        status: 'Active',
+        globalConfigs: [
+          { id: 'g1', name: 'Domain', defaultValue: 'https://zhugeio.com/', description: 'Main Platform Domain', isHidden: false },
+          { id: 'g2', name: 'Logo', defaultValue: 'images/logo.png', description: 'Logo File', isHidden: true }
+        ],
+        modules: [
+          {
+            id: 'm1',
+            projectId: '1',
+            projectName: 'webapp',
+            projectVersion: '10.0',
+            publishMethod: 'GIT',
+            configs: [
+               { id: 'c1', name: 'Domain', fileLocation: '/config.js', mappingType: 'GLOBAL', mappingValue: 'g1', regex: '/origin/', description: 'Platform Domain', isHidden: true, isSelected: true },
+               { id: 'c2', name: 'Logo', fileLocation: '/assets/images/logo.png', mappingType: 'GLOBAL', mappingValue: 'g2', regex: '-', description: 'Logo Replace', isHidden: true, isSelected: true }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'tv2',
+        version: '2.1.0',
+        date: 'Today',
+        status: 'Active',
+        globalConfigs: [
+          { id: 'g1', name: 'Domain', defaultValue: 'https://zhugeio.com/', description: 'Main Platform Domain', isHidden: false },
+          { id: 'g2', name: 'Logo', defaultValue: 'images/logo.png', description: 'Logo File', isHidden: true }
+        ],
+        modules: [
+          {
+            id: 'm1',
+            projectId: '1',
+            projectName: 'webapp',
+            projectVersion: '12.0',
+            publishMethod: 'GIT',
+            configs: [
+               { id: 'c1', name: 'Domain', fileLocation: '/config.js', mappingType: 'GLOBAL', mappingValue: 'g1', regex: '/origin/', description: 'Platform Domain', isHidden: true, isSelected: true },
+               { id: 'c2', name: 'Logo', fileLocation: '/assets/images/logo.png', mappingType: 'GLOBAL', mappingValue: 'g2', regex: '-', description: 'Logo Replace', isHidden: true, isSelected: true }
+            ]
+          },
+          {
+            id: 'm2',
+            projectId: '2',
+            projectName: 'mobile-sdk',
+            projectVersion: '4.5.1',
+            publishMethod: 'DOWNLOAD',
+            configs: [
+              { id: 'c3', name: 'API Endpoint', fileLocation: 'src/constants.ts', mappingType: 'GLOBAL', mappingValue: 'g1', regex: 'API_URL', description: 'API Server', isHidden: false, isSelected: true }
+            ]
+          }
+        ]
+      }
+    ]
   },
   {
     id: 't2',
-    name: 'Node.js Microservice',
-    type: 'Backend',
-    description: 'Express.js based microservice template suitable for Docker containerization.',
-    defaultBuildScripts: ['npm install', 'npm run build'],
-    createdDate: '2023-02-20',
-    author: 'Admin'
-  },
-  {
-    id: 't3',
-    name: 'Flutter Mobile App',
-    type: 'Mobile',
-    description: 'Cross-platform mobile application template using Flutter.',
-    defaultBuildScripts: ['flutter pub get', 'flutter build apk'],
-    createdDate: '2023-03-10',
-    author: 'DevOps'
+    name: 'SaaS Standard Suite',
+    latestVersion: '1.5.0',
+    updateTime: '2023-05-20',
+    description: 'Suite for SaaS environment updates.',
+    versions: [
+       {
+        id: 'tv1',
+        version: '1.5.0',
+        date: '2023.05.20',
+        status: 'Active',
+        globalConfigs: [],
+        modules: []
+       }
+    ]
   }
 ];
 

@@ -42,7 +42,7 @@ const CompileList: React.FC = () => {
       readmeUrl: '#',
       buildDocUrl: '#',
       versions: [
-        { id: `v-${Date.now()}`, version: newProjectVersion, date: 'Today' }
+        { id: `v-${Date.now()}`, version: newProjectVersion, date: 'Today', type: 'tag' }
       ]
     };
     

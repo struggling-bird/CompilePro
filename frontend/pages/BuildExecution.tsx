@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, Download, CheckCircle, AlertTriangle, Box, Clock, Terminal, ChevronRight, Play, CheckSquare, Square } from 'lucide-react';
@@ -39,7 +38,7 @@ const BuildExecution: React.FC = () => {
   // Update overall status based on individual builds (Execution Phase)
   useEffect(() => {
     if (!isStarted) return;
-    const states = Object.values(buildStates);
+    const states: BuildState[] = Object.values(buildStates);
     if (states.length === 0) return;
 
     const allFinished = states.every(s => s.status === 'success' || s.status === 'error');

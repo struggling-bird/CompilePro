@@ -24,7 +24,9 @@ export interface Version {
   id: string;
   version: string;
   date: string;
+  type: 'tag' | 'branch'; // 'tag' for release, 'branch' for dev branch
   isDeprecated?: boolean;
+  sourceVersion?: string; // The version this was branched from
 }
 
 export interface DeploymentConfig {
@@ -53,14 +55,55 @@ export interface GitConfig {
   pushWechat?: boolean;
 }
 
+// --- Template / Suite System Definitions ---
+
+export interface TemplateGlobalConfig {
+  id: string;
+  name: string;
+  defaultValue: string;
+  description: string;
+  isHidden: boolean;
+}
+
+export interface TemplateModuleConfig {
+  id: string;
+  name: string;
+  fileLocation: string;
+  mappingType: 'GLOBAL' | 'FIXED' | 'MANUAL';
+  mappingValue: string; // If GLOBAL, holds globalConfig ID. If FIXED, holds string value.
+  regex: string;
+  description: string;
+  isHidden: boolean;
+  isSelected: boolean;
+}
+
+export interface TemplateModule {
+  id: string;
+  projectId: string; // Reference to Project.id
+  projectName: string;
+  projectVersion: string;
+  publishMethod: 'GIT' | 'DOWNLOAD';
+  configs: TemplateModuleConfig[];
+}
+
+export interface TemplateVersion {
+  id: string;
+  version: string;
+  date: string;
+  isBranch?: boolean;
+  baseVersion?: string;
+  status: 'Active' | 'Deprecated';
+  globalConfigs: TemplateGlobalConfig[];
+  modules: TemplateModule[];
+}
+
 export interface ProjectTemplate {
   id: string;
   name: string;
-  type: 'Frontend' | 'Backend' | 'Mobile' | 'Other';
-  description: string;
-  defaultBuildScripts: string[];
-  createdDate: string;
-  author: string;
+  latestVersion: string;
+  description?: string;
+  updateTime?: string;
+  versions: TemplateVersion[];
 }
 
 export interface Customer {
