@@ -1,5 +1,5 @@
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
@@ -8,19 +8,26 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            manualChunks: {
-              react: ['react', 'react-dom'],
-              router: ['react-router-dom'],
-              antd: ['antd', '@ant-design/icons']
-            }
-          }
-        }
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('react')) return 'react';
+                if (id.includes('react-router')) return 'router';
+                if (id.includes('@ant-design/icons')) return 'antd-icons';
+                if (id.includes('@ant-design/cssinjs')) return 'antd-cssinjs';
+                if (id.includes('@rc-component')) return 'rc-components';
+                if (id.includes('antd')) return 'antd-core';
+                return 'vendor';
+              }
+            },
+          },
+        },
+        chunkSizeWarningLimit: 600,
       },
       server: {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [react()],
+      plugins: [react(), splitVendorChunkPlugin()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
