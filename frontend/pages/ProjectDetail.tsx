@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, FileText, Play, Terminal, Save, X, Folder, File, Upload, Image, CheckSquare, Square, FileCode, GitBranch, Tag, MoreHorizontal } from 'lucide-react';
+import { ArrowLeftOutlined, CloseOutlined, TagOutlined, BranchesOutlined, SaveOutlined, FolderOutlined, FileOutlined, PictureOutlined, CodeOutlined as CodeFileOutlined, PlusOutlined } from '@ant-design/icons';
 import { MOCK_PROJECTS, MOCK_JSON_DEFAULT, MOCK_JSON_CUSTOM } from '../constants';
 import { Project, Version } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -50,7 +50,7 @@ const ProjectDetail: React.FC = () => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200">
           <h3 className="text-lg font-bold text-slate-800">{t.projectDetail.addVersionTitle}</h3>
-          <button onClick={() => setShowAddVersionModal(false)}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
+          <button onClick={() => setShowAddVersionModal(false)}><CloseOutlined className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
         </div>
         <div className="p-6 space-y-5">
           <div>
@@ -74,7 +74,7 @@ const ProjectDetail: React.FC = () => {
                      checked={newVersionType === 'tag'} 
                      onChange={() => setNewVersionType('tag')} 
                   /> 
-                  <Tag className="w-4 h-4 mr-2" />
+                  <TagOutlined className="w-4 h-4 mr-2" />
                   {t.projectDetail.tag}
                </label>
                <label className={`flex items-center px-3 py-2 border rounded-md cursor-pointer transition-colors ${newVersionType === 'branch' ? 'bg-purple-50 border-purple-500 text-purple-700' : 'border-slate-200 hover:bg-slate-50'}`}>
@@ -85,7 +85,7 @@ const ProjectDetail: React.FC = () => {
                      checked={newVersionType === 'branch'} 
                      onChange={() => setNewVersionType('branch')} 
                   /> 
-                  <GitBranch className="w-4 h-4 mr-2" />
+                  <BranchesOutlined className="w-4 h-4 mr-2" />
                   {t.projectDetail.branch}
                </label>
              </div>
@@ -138,7 +138,7 @@ const ProjectDetail: React.FC = () => {
            </button>
         </div>
         <div className="flex space-x-2">
-           <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm flex items-center hover:bg-blue-700" onClick={() => setShowEditor(false)}><Save className="w-3 h-3 mr-1"/> {t.projectDetail.save}</button>
+           <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm flex items-center hover:bg-blue-700" onClick={() => setShowEditor(false)}><SaveOutlined className="w-3 h-3 mr-1"/> {t.projectDetail.save}</button>
            <button className="px-3 py-1 border border-slate-300 text-slate-600 rounded text-sm hover:bg-slate-50" onClick={() => setShowEditor(false)}>{t.projectDetail.cancel}</button>
         </div>
       </div>
@@ -148,13 +148,13 @@ const ProjectDetail: React.FC = () => {
          {/* Sidebar - File Tree */}
          <div className="w-64 border-r border-slate-200 bg-slate-50 p-4 overflow-y-auto hidden md:block">
             <div className="space-y-2 text-sm">
-               <div className="flex items-center text-slate-700 font-medium cursor-pointer"><Folder className="w-4 h-4 mr-2 text-yellow-500" /> src</div>
-               <div className="flex items-center text-slate-700 pl-4 cursor-pointer"><Folder className="w-4 h-4 mr-2 text-yellow-500" /> components</div>
-               <div className="flex items-center text-slate-700 pl-8 cursor-pointer hover:text-blue-600"><FileCode className="w-4 h-4 mr-2 text-blue-400" /> Button.tsx</div>
-               <div className="flex items-center text-slate-700 pl-8 cursor-pointer hover:text-blue-600"><FileCode className="w-4 h-4 mr-2 text-blue-400" /> Header.tsx</div>
-               <div className="flex items-center text-slate-700 pl-4 cursor-pointer"><Folder className="w-4 h-4 mr-2 text-yellow-500" /> assets</div>
-               <div className="flex items-center text-slate-700 pl-8 cursor-pointer hover:text-blue-600"><Image className="w-4 h-4 mr-2 text-purple-400" /> logo.png</div>
-               <div className="flex items-center text-blue-600 pl-4 bg-blue-50 rounded py-1 cursor-pointer font-medium"><File className="w-4 h-4 mr-2" /> package.json</div>
+               <div className="flex items-center text-slate-700 font-medium cursor-pointer"><FolderOutlined className="w-4 h-4 mr-2 text-yellow-500" /> src</div>
+               <div className="flex items-center text-slate-700 pl-4 cursor-pointer"><FolderOutlined className="w-4 h-4 mr-2 text-yellow-500" /> components</div>
+               <div className="flex items-center text-slate-700 pl-8 cursor-pointer hover:text-blue-600"><CodeFileOutlined className="w-4 h-4 mr-2 text-blue-400" /> Button.tsx</div>
+               <div className="flex items-center text-slate-700 pl-8 cursor-pointer hover:text-blue-600"><CodeFileOutlined className="w-4 h-4 mr-2 text-blue-400" /> Header.tsx</div>
+               <div className="flex items-center text-slate-700 pl-4 cursor-pointer"><FolderOutlined className="w-4 h-4 mr-2 text-yellow-500" /> assets</div>
+               <div className="flex items-center text-slate-700 pl-8 cursor-pointer hover:text-blue-600"><PictureOutlined className="w-4 h-4 mr-2 text-purple-400" /> logo.png</div>
+               <div className="flex items-center text-blue-600 pl-4 bg-blue-50 rounded py-1 cursor-pointer font-medium"><FileOutlined className="w-4 h-4 mr-2" /> package.json</div>
             </div>
          </div>
 
@@ -200,14 +200,14 @@ const ProjectDetail: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
         <button onClick={() => navigate('/compile')} className="flex items-center text-slate-500 hover:text-slate-800 transition-colors">
-           <ArrowLeft className="w-5 h-5 mr-2" />
+           <ArrowLeftOutlined className="w-5 h-5 mr-2" />
            {t.projectDetail.back}
         </button>
         <div className="flex items-center space-x-4 text-sm text-slate-600">
            <span className="font-bold text-slate-900 text-lg">{project.name}</span>
            <span className="text-slate-300">|</span>
            <a href="#" className="text-blue-500 hover:underline flex items-center">
-             <GitBranch className="w-4 h-4 mr-1" /> http://git.zhugeio.com/frontend/webapp
+             <BranchesOutlined className="w-4 h-4 mr-1" /> http://git.zhugeio.com/frontend/webapp
            </a>
         </div>
       </div>
@@ -224,11 +224,11 @@ const ProjectDetail: React.FC = () => {
                  {['yarn', 'npm run build'].map((cmd, idx) => (
                     <div key={idx} className="flex items-center justify-between bg-blue-50 border border-blue-100 px-4 py-2.5 rounded text-blue-700 text-sm font-mono group hover:border-blue-200 transition-colors">
                        <span>{cmd}</span>
-                       <button className="opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3 text-blue-400 hover:text-red-500" /></button>
+                       <button className="opacity-0 group-hover:opacity-100 transition-opacity"><CloseOutlined className="w-3 h-3 text-blue-400 hover:text-red-500" /></button>
                     </div>
                  ))}
                  <button className="w-full border border-dashed border-slate-300 py-2 text-slate-500 text-sm rounded hover:bg-slate-50 hover:border-slate-400 hover:text-slate-600 flex items-center justify-center transition-all">
-                    <Plus className="w-4 h-4 mr-1" /> {t.projectDetail.newCmd}
+                    <PlusOutlined className="w-4 h-4 mr-1" /> {t.projectDetail.newCmd}
                  </button>
               </div>
            </div>
@@ -279,7 +279,7 @@ const ProjectDetail: React.FC = () => {
                           {/* Type Badge */}
                           {v.type === 'branch' && (
                              <div className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700 mt-1 border border-purple-200">
-                                <GitBranch className="w-3 h-3 mr-1" /> Branch
+                             <BranchesOutlined className="w-3 h-3 mr-1" /> Branch
                              </div>
                           )}
                        </div>
@@ -299,7 +299,7 @@ const ProjectDetail: React.FC = () => {
                     className="flex flex-col items-center group relative top-[-2px]"
                  >
                     <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-400 bg-white flex items-center justify-center text-slate-400 group-hover:border-blue-500 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
-                       <Plus className="w-5 h-5" />
+                       <PlusOutlined className="w-5 h-5" />
                     </div>
                     <div className="mt-3 text-xs font-medium text-slate-400 group-hover:text-blue-600 transition-colors">{t.projectDetail.new}</div>
                  </button>

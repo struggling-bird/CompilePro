@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Github, Bell } from 'lucide-react';
+import { SaveOutlined, GithubOutlined, BellOutlined } from '@ant-design/icons';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const SettingsPage: React.FC = () => {
@@ -90,7 +90,7 @@ const SettingsPage: React.FC = () => {
              {/* Git Binding */}
              <section>
                 <h2 className="text-lg font-bold text-slate-800 mb-6 pb-2 border-b border-slate-100 flex items-center">
-                   <Github className="w-5 h-5 mr-2 text-slate-700" /> {t.settings.gitBinding}
+                   <GithubOutlined className="w-5 h-5 mr-2 text-slate-700" /> {t.settings.gitBinding}
                 </h2>
                 <div className="space-y-5">
                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
@@ -137,7 +137,7 @@ const SettingsPage: React.FC = () => {
              {/* Push Settings */}
              <section>
                 <h2 className="text-lg font-bold text-slate-800 mb-6 pb-2 border-b border-slate-100 flex items-center">
-                   <Bell className="w-5 h-5 mr-2 text-slate-700" /> {t.settings.pushSettings}
+                   <BellOutlined className="w-5 h-5 mr-2 text-slate-700" /> {t.settings.pushSettings}
                 </h2>
                 <div className="space-y-4 pl-1">
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
@@ -181,7 +181,7 @@ const SettingsPage: React.FC = () => {
                   onClick={handleSave}
                   className="flex items-center px-8 py-2.5 bg-blue-600 text-white rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-700 font-semibold transition-all transform hover:-translate-y-0.5 active:translate-y-0"
                 >
-                   <Save className="w-4 h-4 mr-2" /> {t.settings.saveAll}
+                   <SaveOutlined className="w-4 h-4 mr-2" /> {t.settings.saveAll}
                 </button>
              </div>
 

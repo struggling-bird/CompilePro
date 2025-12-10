@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, LayoutTemplate } from 'lucide-react';
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, LayoutOutlined } from '@ant-design/icons';
 import { MOCK_TEMPLATES } from '../constants';
 import { ProjectTemplate } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -23,7 +23,7 @@ const TemplateList: React.FC = () => {
         <div className="flex items-center space-x-4">
            <div className="relative">
              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
+                <SearchOutlined className="h-4 w-4 text-slate-400" />
              </div>
              <input 
                 type="text" 
@@ -37,7 +37,7 @@ const TemplateList: React.FC = () => {
              onClick={() => navigate('/templates/new')}
              className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center hover:bg-blue-700 transition shadow-sm"
           >
-             <Plus className="w-4 h-4 mr-1.5" />
+             <PlusOutlined className="w-4 h-4 mr-1.5" />
              {t.templateList.newTemplate}
           </button>
         </div>
@@ -47,7 +47,7 @@ const TemplateList: React.FC = () => {
       <div className="flex-1 overflow-auto p-6 bg-white">
         {templates.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-             <LayoutTemplate className="w-12 h-12 mb-2" />
+             <LayoutOutlined className="w-12 h-12 mb-2" />
              <p>No templates found.</p>
           </div>
         ) : (
@@ -76,13 +76,13 @@ const TemplateList: React.FC = () => {
                         onClick={() => navigate(`/templates/${template.id}`)}
                         className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
                      >
-                        <Edit className="w-4 h-4" />
+                        <EditOutlined className="w-4 h-4" />
                      </button>
                      <button 
                         onClick={() => handleDelete(template.id)}
                         className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
                      >
-                        <Trash2 className="w-4 h-4" />
+                        <DeleteOutlined className="w-4 h-4" />
                      </button>
                   </div>
                </div>

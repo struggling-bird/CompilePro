@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Shield, ShieldCheck, Trash2, Edit } from 'lucide-react';
+import { SearchOutlined, PlusOutlined, SafetyOutlined, SafetyCertificateOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { MOCK_ROLES } from '../constants';
 import { Role } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -23,7 +23,7 @@ const RoleList: React.FC = () => {
         <div className="flex items-center space-x-4">
            <div className="relative">
              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
+                <SearchOutlined className="h-4 w-4 text-slate-400" />
              </div>
              <input 
                 type="text" 
@@ -37,7 +37,7 @@ const RoleList: React.FC = () => {
              onClick={() => navigate('/roles/new')}
              className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center hover:bg-blue-700 transition shadow-sm"
           >
-             <Plus className="w-4 h-4 mr-1.5" />
+             <PlusOutlined className="w-4 h-4 mr-1.5" />
              {t.roleList.newRole}
           </button>
         </div>
@@ -59,7 +59,7 @@ const RoleList: React.FC = () => {
                <tr key={role.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800 flex items-center">
                      <div className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${role.isSystem ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
-                        {role.isSystem ? <Shield className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+                        {role.isSystem ? <SafetyOutlined className="w-4 h-4" /> : <SafetyCertificateOutlined className="w-4 h-4" />}
                      </div>
                      {role.name}
                      {role.isSystem && <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded border border-slate-200">{t.roleList.systemRole}</span>}
@@ -77,14 +77,14 @@ const RoleList: React.FC = () => {
                         onClick={() => navigate(`/roles/${role.id}`)}
                         className="text-blue-600 hover:text-blue-900 mr-3"
                      >
-                        <Edit className="w-4 h-4" />
+                        <EditOutlined className="w-4 h-4" />
                      </button>
                      {!role.isSystem && (
                         <button 
                            onClick={() => handleDelete(role.id)}
                            className="text-red-600 hover:text-red-900"
                         >
-                           <Trash2 className="w-4 h-4" />
+                           <DeleteOutlined className="w-4 h-4" />
                         </button>
                      )}
                   </td>

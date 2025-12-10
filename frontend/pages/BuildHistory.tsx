@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Terminal, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeftOutlined, CodeOutlined, ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { MOCK_BUILD_HISTORY, MOCK_DEPLOYMENTS } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -18,7 +18,7 @@ const BuildHistory: React.FC = () => {
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
         <div className="flex items-center">
            <button onClick={() => navigate('/manage')} className="text-slate-500 hover:text-slate-800 mr-4">
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeftOutlined className="w-5 h-5" />
            </button>
            <div>
               <h1 className="text-lg font-bold text-slate-800">{t.buildHistory.title}</h1>
@@ -56,13 +56,13 @@ const BuildHistory: React.FC = () => {
                            record.status === 'Failed' ? 'bg-red-100 text-red-800' : 
                            'bg-yellow-100 text-yellow-800'
                         }`}>
-                           {record.status === 'Success' && <CheckCircle className="w-3 h-3 mr-1" />}
-                           {record.status === 'Failed' && <XCircle className="w-3 h-3 mr-1" />}
+                           {record.status === 'Success' && <CheckCircleOutlined className="w-3 h-3 mr-1" />}
+                           {record.status === 'Failed' && <CloseCircleOutlined className="w-3 h-3 mr-1" />}
                            {record.status}
                         </span>
                      </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 flex items-center">
-                        <Clock className="w-3 h-3 mr-1 text-slate-400" /> {record.duration}
+                        <ClockCircleOutlined className="w-3 h-3 mr-1 text-slate-400" /> {record.duration}
                      </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                         {record.triggerBy}
@@ -75,7 +75,7 @@ const BuildHistory: React.FC = () => {
                            onClick={() => navigate(`/build/${deployId}`)} 
                            className="text-slate-600 hover:text-blue-600 flex items-center ml-auto"
                         >
-                           <Terminal className="w-4 h-4 mr-1" />
+                           <CodeOutlined className="w-4 h-4 mr-1" />
                            {t.buildHistory.viewLog}
                         </button>
                      </td>

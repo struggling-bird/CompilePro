@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { TabView } from './types';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
+import enUS from 'antd/locale/en_US';
 
 // Page Components
 import Login from './pages/Login';
@@ -111,11 +114,20 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const AntdWrapper: React.FC = () => {
+    const { language } = useLanguage();
+    return (
+      <ConfigProvider locale={language === 'zh' ? zhCN : enUS}>
+        <Router>
+          <AppContent />
+        </Router>
+      </ConfigProvider>
+    );
+  };
+
   return (
     <LanguageProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <AntdWrapper />
     </LanguageProvider>
   );
 };

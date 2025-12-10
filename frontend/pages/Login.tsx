@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageCircle, Globe, LogIn } from 'lucide-react';
+import { MessageOutlined, GlobalOutlined, LoginOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -36,7 +36,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       {/* Top Controls */}
       <div className="absolute top-6 right-6 z-20">
          <button onClick={toggleLanguage} className="flex items-center text-slate-300 hover:text-white transition-colors text-sm font-medium border border-white/10 rounded-full px-3 py-1 bg-white/5 backdrop-blur-sm">
-           <Globe className="w-4 h-4 mr-1.5" />
+           <GlobalOutlined className="w-4 h-4 mr-1.5" />
            {language === 'en' ? 'EN' : '中文'}
          </button>
       </div>
@@ -99,7 +99,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             type="submit"
             className="w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5"
           >
-            <LogIn className="w-4 h-4 mr-2" />
+            <LoginOutlined className="w-4 h-4 mr-2" />
             {t.login.loginBtn}
           </button>
 
@@ -119,7 +119,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       {/* Floating Chat Bubble */}
       <div className="absolute bottom-8 right-8 z-20">
         <button className="bg-white p-3.5 rounded-full text-blue-600 shadow-lg hover:shadow-xl hover:bg-blue-50 transition-all transform hover:scale-110">
-          <MessageCircle className="w-6 h-6" />
+          <MessageOutlined className="w-6 h-6" />
         </button>
       </div>
     </div>

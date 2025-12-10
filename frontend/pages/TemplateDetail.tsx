@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, X, Square, CheckSquare, Info, Save, Trash2, Edit, GitBranch, Download, UploadCloud } from 'lucide-react';
+import { ArrowLeftOutlined, PlusOutlined, CloseOutlined, BorderOutlined, CheckSquareOutlined, InfoCircleOutlined, SaveOutlined, DeleteOutlined, EditOutlined, BranchesOutlined, DownloadOutlined, CloudUploadOutlined } from '@ant-design/icons';
 import { MOCK_TEMPLATES, MOCK_PROJECTS } from '../constants';
 import { TemplateVersion, TemplateModule, TemplateGlobalConfig, TemplateModuleConfig } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -109,7 +109,7 @@ const TemplateDetail: React.FC = () => {
            <div className="bg-white rounded-lg shadow-xl w-96 p-6">
               <div className="flex justify-between items-center mb-6">
                  <h3 className="text-lg font-bold text-slate-800">{t.templateDetail.addModuleTitle}</h3>
-                 <button onClick={() => setShowAddModuleModal(false)}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
+                 <button onClick={() => setShowAddModuleModal(false)}><CloseOutlined className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
               </div>
               <div className="space-y-4">
                  <div>
@@ -157,7 +157,7 @@ const TemplateDetail: React.FC = () => {
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm z-10">
          <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/templates')} className="text-slate-500 hover:text-slate-800 transition-colors">
-               <ArrowLeft className="w-5 h-5" />
+               <ArrowLeftOutlined className="w-5 h-5" />
             </button>
             <div className="flex items-baseline space-x-3">
                <span className="text-sm font-bold text-slate-500">{t.templateDetail.name}:</span>
@@ -171,7 +171,7 @@ const TemplateDetail: React.FC = () => {
             </div>
          </div>
          <button onClick={handleSave} className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 shadow-sm">
-            <Save className="w-4 h-4 mr-2" /> {t.templateDetail.save}
+            <SaveOutlined className="w-4 h-4 mr-2" /> {t.templateDetail.save}
          </button>
       </div>
 
@@ -213,7 +213,7 @@ const TemplateDetail: React.FC = () => {
                </table>
                <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
                   <button className="flex items-center text-xs font-bold text-slate-700 hover:text-blue-600 bg-white border border-slate-300 px-3 py-1.5 rounded hover:shadow-sm transition-all">
-                     <Plus className="w-3 h-3 mr-1.5" /> {t.templateDetail.addGlobalConfig}
+                     <PlusOutlined className="w-3 h-3 mr-1.5" /> {t.templateDetail.addGlobalConfig}
                   </button>
                </div>
             </div>
@@ -240,7 +240,7 @@ const TemplateDetail: React.FC = () => {
                         className={`ml-2 p-0.5 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors ${activeModuleId === module.id ? 'text-slate-400' : 'text-slate-400'}`}
                         onClick={(e) => { e.stopPropagation(); /* delete logic */ }}
                      >
-                        <X className="w-3 h-3"/>
+                        <CloseOutlined className="w-3 h-3"/>
                      </span>
                   </button>
                ))}
@@ -248,7 +248,7 @@ const TemplateDetail: React.FC = () => {
                   onClick={() => setShowAddModuleModal(true)}
                   className="px-3 py-2 text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 rounded-t-md mb-1 ml-1 transition-colors"
                >
-                  <Plus className="w-5 h-5" />
+                  <PlusOutlined className="w-5 h-5" />
                </button>
             </div>
 
@@ -260,7 +260,7 @@ const TemplateDetail: React.FC = () => {
                         <table className="min-w-full divide-y divide-slate-200">
                            <thead className="bg-slate-50 text-slate-500">
                               <tr>
-                                 <th className="px-6 py-3 text-left w-12"><Square className="w-4 h-4 text-slate-300"/></th>
+                                 <th className="px-6 py-3 text-left w-12"><BorderOutlined className="w-4 h-4 text-slate-300"/></th>
                                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">{t.templateDetail.name}</th>
                                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">{t.templateDetail.fileLocation}</th>
                                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider w-56">{t.templateDetail.mapping}</th>
@@ -274,7 +274,7 @@ const TemplateDetail: React.FC = () => {
                               {currentModule.configs.map(config => (
                                  <tr key={config.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4">
-                                       {config.isSelected ? <CheckSquare className="w-4 h-4 text-blue-600"/> : <Square className="w-4 h-4 text-slate-300"/>}
+                                       {config.isSelected ? <CheckSquareOutlined className="w-4 h-4 text-blue-600"/> : <BorderOutlined className="w-4 h-4 text-slate-300"/>}
                                     </td>
                                     <td className="px-6 py-4 text-sm font-medium text-slate-900">{config.name}</td>
                                     <td className="px-6 py-4 text-sm text-slate-500 font-mono bg-slate-50 rounded px-2 py-1 inline-block my-2 mx-4 w-fit">{config.fileLocation}</td>
@@ -313,11 +313,11 @@ const TemplateDetail: React.FC = () => {
                         <span className="text-sm font-bold text-slate-700">{t.templateDetail.publishMethod}:</span>
                         <label className="flex items-center text-sm text-slate-700 cursor-pointer group">
                            <input type="radio" name="publish" className="mr-2 text-blue-600 focus:ring-blue-500" checked={currentModule.publishMethod === 'GIT'} /> 
-                           <span className="group-hover:text-blue-600 flex items-center"><UploadCloud className="w-4 h-4 mr-1.5 text-slate-400 group-hover:text-blue-500"/> {t.templateDetail.gitPush}</span>
+                           <span className="group-hover:text-blue-600 flex items-center"><CloudUploadOutlined className="w-4 h-4 mr-1.5 text-slate-400 group-hover:text-blue-500"/> {t.templateDetail.gitPush}</span>
                         </label>
                         <label className="flex items-center text-sm text-slate-700 cursor-pointer group">
                            <input type="radio" name="publish" className="mr-2 text-blue-600 focus:ring-blue-500" checked={currentModule.publishMethod === 'DOWNLOAD'} /> 
-                           <span className="group-hover:text-blue-600 flex items-center"><Download className="w-4 h-4 mr-1.5 text-slate-400 group-hover:text-blue-500"/> {t.templateDetail.download}</span>
+                           <span className="group-hover:text-blue-600 flex items-center"><DownloadOutlined className="w-4 h-4 mr-1.5 text-slate-400 group-hover:text-blue-500"/> {t.templateDetail.download}</span>
                         </label>
                      </div>
                   </>
@@ -374,7 +374,7 @@ const TemplateDetail: React.FC = () => {
                   {/* Add Branch Button */}
                   <button className="relative flex flex-col items-center group z-10 mt-[19px]">
                      <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-blue-500 hover:text-blue-500 bg-white transition-all">
-                        <Plus className="w-4 h-4" />
+                        <PlusOutlined className="w-4 h-4" />
                      </div>
                      <div className="mt-2 text-[10px] text-slate-400 group-hover:text-blue-500 transition-colors">{t.templateDetail.addBranch}</div>
                   </button>
@@ -412,7 +412,7 @@ const TemplateDetail: React.FC = () => {
                 <div className="w-72 bg-[#fff9c4] border border-[#fbc02d] p-4 shadow-md transform rotate-1 hover:rotate-0 transition-transform duration-300 relative">
                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-red-500/20 transform -rotate-2"></div>
                    <h5 className="text-xs font-bold text-yellow-900 mb-2 uppercase tracking-wide flex items-center">
-                      <Info className="w-3 h-3 mr-1" /> {t.templateDetail.branchNoteTitle}
+                      <InfoCircleOutlined className="w-3 h-3 mr-1" /> {t.templateDetail.branchNoteTitle}
                    </h5>
                    <p className="text-xs text-yellow-800 leading-relaxed font-medium">
                       {t.templateDetail.branchNote}

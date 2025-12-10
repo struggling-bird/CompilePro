@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, UserPlus, ArrowLeft } from "lucide-react";
+import { GlobalOutlined, UserAddOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const Register: React.FC = () => {
@@ -42,7 +42,7 @@ const Register: React.FC = () => {
           onClick={toggleLanguage}
           className="flex items-center text-slate-300 hover:text-white transition-colors text-sm font-medium"
         >
-          <Globe className="w-4 h-4 mr-1.5" />
+          <GlobalOutlined className="w-4 h-4 mr-1.5" />
           {language === "en" ? "EN" : "中文"}
         </button>
       </div>
@@ -126,7 +126,7 @@ const Register: React.FC = () => {
             type="submit"
             className="w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5"
           >
-            <UserPlus className="w-4 h-4 mr-2" />
+            <UserAddOutlined className="w-4 h-4 mr-2" />
             {t.register.registerBtn}
           </button>
 
@@ -136,7 +136,7 @@ const Register: React.FC = () => {
               onClick={() => navigate("/login")}
               className="text-sm text-slate-500 hover:text-blue-600 font-medium flex items-center justify-center mx-auto transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 mr-1" /> {t.register.hasAccount}{" "}
+              <ArrowLeftOutlined className="w-4 h-4 mr-1" /> {t.register.hasAccount}{" "}
               <span className="ml-1 text-blue-600">{t.register.login}</span>
             </button>
           </div>

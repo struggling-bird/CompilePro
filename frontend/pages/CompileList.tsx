@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Settings2, CheckSquare, Square, Plus, X } from 'lucide-react';
+import { SearchOutlined, SettingOutlined, CheckSquareOutlined, BorderOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { MOCK_PROJECTS } from '../constants';
 import { Project } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -102,7 +102,7 @@ const CompileList: React.FC = () => {
         <div className="flex items-center space-x-4">
            <div className="relative">
              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
+                <SearchOutlined className="h-4 w-4 text-slate-400" />
              </div>
              <input 
                 type="text" 
@@ -116,14 +116,14 @@ const CompileList: React.FC = () => {
              onClick={() => setIsModalOpen(true)}
              className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center hover:bg-blue-700 transition shadow-sm"
           >
-             <Plus className="w-4 h-4 mr-1.5" />
+             <PlusOutlined className="w-4 h-4 mr-1.5" />
              {t.compileList.newProject}
           </button>
           <button 
             onClick={() => navigate('/settings')}
             className="text-slate-600 hover:text-blue-600 font-medium flex items-center px-3 py-2 rounded-md hover:bg-slate-100 transition"
           >
-             <Settings2 className="w-5 h-5 mr-1.5" />
+             <SettingOutlined className="w-5 h-5 mr-1.5" />
              {t.compileList.settings}
           </button>
         </div>
@@ -160,9 +160,9 @@ const CompileList: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button onClick={() => toggleSelect(project.id)} className="text-slate-400 hover:text-blue-500">
                     {selectedIds.includes(project.id) ? (
-                      <CheckSquare className="w-5 h-5 text-blue-500" />
+                      <CheckSquareOutlined className="w-5 h-5 text-blue-500" />
                     ) : (
-                      <Square className="w-5 h-5" />
+                      <BorderOutlined className="w-5 h-5" />
                     )}
                   </button>
                 </td>

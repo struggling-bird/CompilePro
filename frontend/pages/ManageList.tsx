@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Play, Filter, X, Clock } from 'lucide-react';
+import { PlusOutlined, PlayCircleOutlined, FilterOutlined, CloseOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { MOCK_DEPLOYMENTS, MOCK_CUSTOMERS } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -47,11 +47,11 @@ const ManageList: React.FC = () => {
                 onClick={() => navigate('/manage/new')}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
              >
-               <Plus className="w-4 h-4 mr-2" />
+               <PlusOutlined className="w-4 h-4 mr-2" />
                {t.manageList.newDeployment}
              </button>
              <div className="flex items-center text-slate-500 text-sm">
-                <Filter className="w-4 h-4 mr-2" />
+                <FilterOutlined className="w-4 h-4 mr-2" />
                 <span>{filteredDeployments.length} items</span>
              </div>
          </div>
@@ -117,7 +117,7 @@ const ManageList: React.FC = () => {
                    onClick={resetFilters}
                    className="flex items-center text-sm text-slate-500 hover:text-red-500 transition-colors"
                 >
-                   <X className="w-4 h-4 mr-1" /> {t.manageList.resetBtn}
+                   <CloseOutlined className="w-4 h-4 mr-1" /> {t.manageList.resetBtn}
                 </button>
              )}
          </div>
@@ -172,14 +172,14 @@ const ManageList: React.FC = () => {
                      className="text-blue-600 hover:text-blue-900 flex-inline flex items-center"
                      title={t.manageList.build}
                   >
-                    <Play className="w-4 h-4" />
+                    <PlayCircleOutlined className="w-4 h-4" />
                   </button>
                   <button 
                      onClick={() => navigate(`/manage/${deploy.id}/history`)}
                      className="text-slate-600 hover:text-blue-600 flex-inline flex items-center"
                      title={t.manageList.history}
                   >
-                    <Clock className="w-4 h-4" />
+                    <ClockCircleOutlined className="w-4 h-4" />
                   </button>
                   <button 
                      onClick={() => navigate(`/manage/${deploy.id}`)}

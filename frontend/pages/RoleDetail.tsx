@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { MOCK_ROLES, MOCK_PERMISSIONS } from '../constants';
 import { Role, Permission } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -65,7 +65,7 @@ const RoleDetail: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
         <button onClick={() => navigate('/roles')} className="flex items-center text-slate-500 hover:text-slate-800">
-           <ArrowLeft className="w-5 h-5 mr-2" />
+           <ArrowLeftOutlined className="w-5 h-5 mr-2" />
            {t.roleDetail.back}
         </button>
         <h1 className="text-lg font-bold text-slate-800">{isNew ? t.roleDetail.newTitle : t.roleDetail.editTitle}</h1>
@@ -159,7 +159,7 @@ const RoleDetail: React.FC = () => {
                   {t.roleDetail.cancel}
                </button>
                <button onClick={handleSave} className="flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-                  <Save className="w-4 h-4 mr-2" /> {t.roleDetail.save}
+                  <SaveOutlined className="w-4 h-4 mr-2" /> {t.roleDetail.save}
                </button>
             </div>
 

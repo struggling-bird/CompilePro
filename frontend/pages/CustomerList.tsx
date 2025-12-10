@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, Users } from 'lucide-react';
+import { SearchOutlined, PlusOutlined, TeamOutlined } from '@ant-design/icons';
 import { MOCK_CUSTOMERS } from '../constants';
 import { Customer } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -23,7 +23,7 @@ const CustomerList: React.FC = () => {
         <div className="flex items-center space-x-4">
            <div className="relative">
              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
+                <SearchOutlined className="h-4 w-4 text-slate-400" />
              </div>
              <input 
                 type="text" 
@@ -37,7 +37,7 @@ const CustomerList: React.FC = () => {
              onClick={() => navigate('/customers/new')}
              className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center hover:bg-blue-700 transition shadow-sm"
           >
-             <Plus className="w-4 h-4 mr-1.5" />
+             <PlusOutlined className="w-4 h-4 mr-1.5" />
              {t.customerList.newCustomer}
           </button>
         </div>
@@ -97,7 +97,7 @@ const CustomerList: React.FC = () => {
              {customers.length === 0 && (
                 <tr>
                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                      <Users className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                      <TeamOutlined className="w-12 h-12 mx-auto mb-2 text-slate-300" />
                       <p>No customers found.</p>
                    </td>
                 </tr>
