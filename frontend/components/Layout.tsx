@@ -289,7 +289,10 @@ const Layout: React.FC<LayoutProps> = ({
         collapsible
         collapsed={isCollapsed}
         onCollapse={(c) => setIsCollapsed(c)}
+        collapsedWidth={64}
+        breakpoint="lg"
         trigger={null}
+        className="relative"
       >
         <div
           className={`flex items-center h-16 px-4 border-b border-slate-800/50`}
@@ -304,12 +307,15 @@ const Layout: React.FC<LayoutProps> = ({
           >
             ZhugeIO
           </span>
-          <Button
-            type="text"
-            className="ml-auto"
+        </div>
+        <div className="absolute right-0 top-0 h-full w-4 z-20 opacity-0 hover:opacity-100 transition">
+          <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            icon={isCollapsed ? <RightOutlined /> : <LeftOutlined />}
-          />
+            aria-label="Toggle sidebar"
+            className="w-full h-full flex items-center justify-center text-slate-400 hover:text-slate-600"
+          >
+            {isCollapsed ? <RightOutlined /> : <LeftOutlined />}
+          </button>
         </div>
         <Menu
           mode="inline"
@@ -321,6 +327,7 @@ const Layout: React.FC<LayoutProps> = ({
             const k = key as TabView;
             if (Object.values(TabView).includes(k)) onTabChange(k);
           }}
+          inlineCollapsed={isCollapsed}
           style={{ height: "calc(100% - 64px)" }}
         />
       </AntLayout.Sider>
@@ -355,9 +362,18 @@ const Layout: React.FC<LayoutProps> = ({
             <Dropdown
               menu={{
                 items: [
-                  { key: "settings", label: t.layout.settings, icon: <SettingOutlined /> },
+                  {
+                    key: "settings",
+                    label: t.layout.settings,
+                    icon: <SettingOutlined />,
+                  },
                   { type: "divider" },
-                  { key: "logout", label: t.layout.logout, icon: <LogoutOutlined />, danger: true },
+                  {
+                    key: "logout",
+                    label: t.layout.logout,
+                    icon: <LogoutOutlined />,
+                    danger: true,
+                  },
                 ],
                 onClick: ({ key }) => {
                   if (key === "settings") onTabChange(TabView.SETTINGS);
