@@ -30,6 +30,7 @@ const Pages = {
   MemberDetail: lazy(() => import("../pages/MemberDetail")),
   RoleList: lazy(() => import("../pages/RoleList")),
   RoleDetail: lazy(() => import("../pages/RoleDetail")),
+  SettingsPage: lazy(() => import("../pages/SettingsPage")),
 };
 
 export const routes: RouteItem[] = [
