@@ -333,24 +333,7 @@ const Layout: React.FC<LayoutProps> = ({
       </AntLayout.Sider>
       <AntLayout>
         <AntLayout.Header className="bg白/80 backdrop-blur-md border-b border-slate-200 h-16 flex items-center justify-between px-6">
-          <div className="flex items-center">
-            <Button
-              type="text"
-              className="mr-2 md:hidden"
-              onClick={() => setIsCollapsed(false)}
-              icon={<MenuOutlined />}
-            />
-            <h2 className="text-xl font-bold text-slate-800 hidden sm:block tracking-tight">
-              {activeTab === TabView.COMPILE && t.layout.compile}
-              {activeTab === TabView.MANAGE && t.layout.manage}
-              {activeTab === TabView.TEMPLATES && t.layout.templates}
-              {activeTab === TabView.CUSTOMERS && t.layout.customers}
-              {(activeTab === TabView.MEMBERS || activeTab === TabView.ROLES) &&
-                t.layout.team}
-              {activeTab === TabView.SETTINGS && t.layout.settings}
-            </h2>
-          </div>
-          <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="flex items-center space-x-3 sm:space-x-4 ml-auto">
             <Button
               size="small"
               onClick={toggleLanguage}
