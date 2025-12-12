@@ -8,11 +8,15 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
 import { RedisModule } from './redis/redis.module';
+import * as path from 'path';
 import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'production' ? '.env' : '.env.dev',
+    }),
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
@@ -48,7 +52,13 @@ import { LoggerModule } from './logger/logger.module';
           undefined,
         database: config.get<string>('MYSQL_DB') ?? 'compilepro',
         entities: [User],
-        synchronize: true,
+        synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
+        migrationsRun:
+          (config.get<string>('DB_MIGRATIONS_RUN') ??
+            ((config.get<string>('DB_SYNC') ?? 'false') === 'true'
+              ? 'false'
+              : 'true')) === 'true',
+        migrations: [path.join(__dirname, 'migrations/*{.ts,.js}')],
       }),
     }),
     UsersModule,

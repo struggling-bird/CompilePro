@@ -1,98 +1,70 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# CompilePro 后端服务
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 概述
+NestJS + TypeScript + MySQL + Redis 的后端服务，支持统一响应结构、DTO 校验、Swagger 文档、全局缓存与日志滚动，提供生产构建的代码混淆与产物压缩。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 技术栈
+- NestJS 11（依赖注入、模块化、拦截器、管道、守卫）
+- TypeORM（MySQL）
+- Redis（ioredis + cache-manager-redis-yet）
+- Swagger（@nestjs/swagger）
+- ESLint + Prettier
+- Jest 单元测试
+- Winston + 日志每日滚动
 
-## Description
+## 快速开始
+1. 安装依赖：`npm install`
+2. 配置环境：复制 `.env.example` 为 `.env` 并按需修改
+3. 开发构建：`npm run build`
+4. 启动开发：`npm run start:dev`
+5. 文档地址：`http://localhost:3000/api`
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 环境变量
+详见 `.env.example`，包含数据库连接、Redis 配置、日志参数、产物构建控制项等。
 
-## Project setup
+## 模块结构
+- `src/app.module.ts`：全局模块注册（Config、TypeORM、Cache、Logger、业务模块）
+- `src/users/*`：示例用户模块（Controller/Service/Entity/DTO）
+- `src/shared/api-response.interceptor.ts`：统一响应拦截器
+- `src/shared/request-logging.interceptor.ts`：请求日志拦截器
+- `src/redis/*`：Redis 服务封装
+- `src/logger/*`：Winston 日志适配器
 
-```bash
-$ npm install
+## 统一响应结构
+通过拦截器统一输出：
+```
+{
+  code: number,
+  message: string,
+  data?: any,
+  timestamp: number
+}
 ```
 
-## Compile and run the project
+## Swagger 规范
+- 使用 `@ApiTags`、`@ApiOperation`、`@ApiParam`、`@ApiQuery`、`@ApiBody`、`@ApiResponse`
+- 文档路由：`/api`
 
-```bash
-# development
-$ npm run start
+## 缓存策略
+- 全局缓存启用，默认 TTL 30 秒
+- 可在控制器方法上通过 `@CacheTTL` 与 `@CacheKey` 覆盖
 
-# watch mode
-$ npm run start:dev
+## 构建与部署
+- 开发构建：`npm run build`
+- 生产构建（混淆+压缩）：`npm run build:prod`
+  - 受 `.env` 的 `OBFUSCATE_ENABLED/ARCHIVE_ENABLED/ARCHIVE_NAME` 控制
+  - 产物位置：`artifacts/dist.tar.gz`
 
-# production mode
-$ npm run start:prod
-```
+## 测试与质量
+- 代码检查：`npm run lint`
+- 单元测试：`npm run test`
 
-## Run tests
+## 参考代码位置
+- `src/main.ts:9` 引导应用、全局管道与拦截器、Swagger 初始化
+- `src/app.module.ts:12` 注册 Config/Cache/TypeORM/Logger 模块
+- `src/users/users.controller.ts:9` 用户详情接口，启用缓存与 Swagger 注解
 
-```bash
-# unit tests
-$ npm run test
+## 安全与配置管理
+- 严禁在代码或日志中输出敏感信息（例如数据库密码、令牌）
+- `.env` 不应提交到仓库，使用 `.env.example` 作为参考
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
