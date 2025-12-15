@@ -1,11 +1,11 @@
 export enum TabView {
-  COMPILE = 'COMPILE',
-  MANAGE = 'MANAGE',
-  TEMPLATES = 'TEMPLATES',
-  CUSTOMERS = 'CUSTOMERS',
-  MEMBERS = 'MEMBERS',
-  ROLES = 'ROLES',
-  SETTINGS = 'SETTINGS'
+  COMPILE = "COMPILE",
+  MANAGE = "MANAGE",
+  TEMPLATES = "TEMPLATES",
+  CUSTOMERS = "CUSTOMERS",
+  MEMBERS = "MEMBERS",
+  ROLES = "ROLES",
+  SETTINGS = "SETTINGS",
 }
 
 export interface Project {
@@ -24,7 +24,7 @@ export interface Version {
   id: string;
   version: string;
   date: string;
-  type: 'tag' | 'branch'; // 'tag' for release, 'branch' for dev branch
+  type: "tag" | "branch"; // 'tag' for release, 'branch' for dev branch
   isDeprecated?: boolean;
   sourceVersion?: string; // The version this was branched from
 }
@@ -32,9 +32,9 @@ export interface Version {
 export interface DeploymentConfig {
   id: string;
   name: string;
-  type: 'Private' | 'Public' | 'Hybrid';
+  type: "Private" | "Public" | "Hybrid";
   lastBuildTime: string;
-  lastBuildStatus: 'Success' | 'Failed' | 'Pending' | 'Idle';
+  lastBuildStatus: "Success" | "Failed" | "Pending" | "Idle";
   lastBuilder: string;
   projects: string[]; // IDs of projects included
   customerId?: string;
@@ -69,7 +69,7 @@ export interface TemplateModuleConfig {
   id: string;
   name: string;
   fileLocation: string;
-  mappingType: 'GLOBAL' | 'FIXED' | 'MANUAL';
+  mappingType: "GLOBAL" | "FIXED" | "MANUAL";
   mappingValue: string; // If GLOBAL, holds globalConfig ID. If FIXED, holds string value.
   regex: string;
   description: string;
@@ -82,7 +82,7 @@ export interface TemplateModule {
   projectId: string; // Reference to Project.id
   projectName: string;
   projectVersion: string;
-  publishMethod: 'GIT' | 'DOWNLOAD';
+  publishMethod: "GIT" | "DOWNLOAD";
   configs: TemplateModuleConfig[];
 }
 
@@ -92,9 +92,45 @@ export interface TemplateVersion {
   date: string;
   isBranch?: boolean;
   baseVersion?: string;
-  status: 'Active' | 'Deprecated';
+  status: "Active" | "Deprecated";
   globalConfigs: TemplateGlobalConfig[];
   modules: TemplateModule[];
+}
+
+export interface NodeCredential {
+  id?: string;
+  type: string;
+  username: string;
+  password: string;
+  description?: string;
+}
+
+export interface EnvironmentNode {
+  id: string;
+  ip: string;
+  host: string;
+  domain?: string;
+  memory: string;
+  cpu: string;
+  chip: string;
+  os: string;
+  diskType: string;
+  diskSize: string;
+  remark?: string;
+  credentials: NodeCredential[];
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  url: string;
+  account?: string;
+  password?: string;
+  supportRemote: boolean;
+  remoteMethod?: string;
+  remark?: string;
+  customerId: string;
+  nodes?: EnvironmentNode[];
 }
 
 export interface ProjectTemplate {
@@ -112,7 +148,7 @@ export interface Customer {
   contactPerson: string;
   phone: string;
   email: string;
-  status: 'Active' | 'Inactive';
+  status: "Active" | "Inactive";
   address: string;
   contractDate: string;
   deployments: string[]; // IDs of associated deployments
@@ -123,7 +159,7 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string; // Changed from enum to string to support dynamic roles
-  status: 'Active' | 'Inactive';
+  status: "Active" | "Inactive";
   avatar?: string;
   joinDate: string;
 }
@@ -134,7 +170,7 @@ export interface BuildRecord {
   buildNumber: number;
   startTime: string;
   endTime?: string;
-  status: 'Success' | 'Failed' | 'Aborted';
+  status: "Success" | "Failed" | "Aborted";
   triggerBy: string;
   duration: string;
   commitHash?: string;
@@ -145,7 +181,7 @@ export interface Permission {
   key: string;
   name: string;
   description: string;
-  group: 'Project' | 'Deployment' | 'Team' | 'System';
+  group: "Project" | "Deployment" | "Team" | "System";
 }
 
 export interface Role {

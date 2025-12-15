@@ -8,6 +8,7 @@ type Props = {
   loading?: boolean;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onManageEnvironments: (id: string) => void;
 };
 
 const CustomerTable: React.FC<Props> = ({
@@ -15,6 +16,7 @@ const CustomerTable: React.FC<Props> = ({
   loading,
   onEdit,
   onDelete,
+  onManageEnvironments,
 }) => {
   const { t } = useLanguage();
   const columns = [
@@ -43,6 +45,9 @@ const CustomerTable: React.FC<Props> = ({
       key: "action",
       render: (_: any, record: Customer) => (
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button type="link" onClick={() => onManageEnvironments(record.id)}>
+            {t.customerList.environments}
+          </Button>
           <Button type="link" onClick={() => onEdit(record.id)}>
             {t.customerList.edit}
           </Button>

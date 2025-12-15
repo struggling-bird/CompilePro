@@ -26,6 +26,10 @@ const Pages = {
   BuildExecution: lazy(() => import("../pages/Manage/BuildExecution")),
   CustomerList: lazy(() => import("../pages/Customers/List")),
   CustomerDetail: lazy(() => import("../pages/Customers/Detail")),
+  EnvironmentList: lazy(() => import("../pages/Customers/Environments/List")),
+  EnvironmentDetail: lazy(
+    () => import("../pages/Customers/Environments/Detail")
+  ),
   MemberList: lazy(() => import("../pages/Members/List")),
   MemberDetail: lazy(() => import("../pages/Members/Detail")),
   RoleList: lazy(() => import("../pages/Roles/List")),
@@ -98,6 +102,21 @@ export const routes: RouteItem[] = [
   {
     path: "/customers/:customerId",
     component: Pages.CustomerDetail,
+    meta: { auth: "private", tab: TabView.CUSTOMERS },
+  },
+  {
+    path: "/customers/:customerId/environments",
+    component: Pages.EnvironmentList,
+    meta: { auth: "private", tab: TabView.CUSTOMERS },
+  },
+  {
+    path: "/customers/:customerId/environments/new",
+    component: Pages.EnvironmentDetail,
+    meta: { auth: "private", tab: TabView.CUSTOMERS },
+  },
+  {
+    path: "/customers/:customerId/environments/:envId",
+    component: Pages.EnvironmentDetail,
     meta: { auth: "private", tab: TabView.CUSTOMERS },
   },
 
