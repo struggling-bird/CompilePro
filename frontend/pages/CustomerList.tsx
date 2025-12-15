@@ -1,20 +1,56 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, PlusOutlined, TeamOutlined } from '@ant-design/icons';
-import { MOCK_CUSTOMERS } from '../constants';
 import { Customer } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { listCustomers, deleteCustomer } from '../services/customers';
+import { message } from 'antd';
 
 const CustomerList: React.FC = () => {
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
-  const { t } = useLanguage();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [keyword, setKeyword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      setCustomers(customers.filter(c => c.id !== id));
+  const fetchList = async () => {
+    try {
+      setLoading(true);
+      const list = await listCustomers();
+      setCustomers(list);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '加载失败';
+      message.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
+  const { t } = useLanguage();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('确定删除该客户吗？')) return;
+    try {
+      await deleteCustomer(id);
+      message.success('删除成功');
+      setCustomers((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '删除失败';
+      message.error(msg);
+    }
+  };
+
+  const filtered = useMemo(() => {
+    const k = keyword.trim().toLowerCase();
+    if (!k) return customers;
+    return customers.filter((c) =>
+      [c.name, c.contactPerson, c.email, c.phone].some((f) =>
+        (f || '').toLowerCase().includes(k),
+      ),
+    );
+  }, [customers, keyword]);
 
   return (
     <div className="flex flex-col h-full">
@@ -29,9 +65,11 @@ const CustomerList: React.FC = () => {
                 type="text" 
                 className="block w-64 pl-10 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
                 placeholder={t.customerList.searchPlaceholder}
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
              />
            </div>
-        </div>
+         </div>
         <div>
           <button 
              onClick={() => navigate('/customers/new')}
@@ -57,7 +95,7 @@ const CustomerList: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-slate-200">
-             {customers.map(customer => (
+             {filtered.map(customer => (
                <tr key={customer.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800">
                      {customer.name}
@@ -94,13 +132,18 @@ const CustomerList: React.FC = () => {
                   </td>
                </tr>
              ))}
-             {customers.length === 0 && (
+             {filtered.length === 0 && !loading && (
                 <tr>
-                   <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                      <TeamOutlined className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                      <p>No customers found.</p>
-                   </td>
-                </tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                     <TeamOutlined className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                     <p>No customers found.</p>
+                  </td>
+               </tr>
+             )}
+             {loading && (
+               <tr>
+                 <td colSpan={6} className="px-6 py-6 text-center text-slate-500">Loading...</td>
+               </tr>
              )}
           </tbody>
         </table>
