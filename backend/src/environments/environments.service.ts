@@ -182,26 +182,50 @@ export class EnvironmentsService {
     };
   }
 
-  async upsertCredentials(
-    nodeId: string,
-    items: Array<Partial<NodeCredential>>,
-  ) {
+  async createCredential(nodeId: string, payload: Partial<NodeCredential>) {
     const node = await this.nodeRepo.findOne({ where: { id: nodeId } });
     if (!node) throw new HttpException('节点不存在', 404);
-    await this.credRepo.delete({
+    const cred = this.credRepo.create({
+      type: payload.type!,
+      username: payload.username!,
+      password: payload.password!,
+      description: payload.description,
       node: { id: nodeId } as unknown as NodeCredential['node'],
     });
-    const rows = items.map((i) =>
-      this.credRepo.create({
-        type: i.type!,
-        username: i.username!,
-        password: i.password!,
-        description: i.description,
+    const saved = await this.credRepo.save(cred);
+    return { id: saved.id };
+  }
+
+  async updateCredential(
+    nodeId: string,
+    credId: string,
+    payload: Partial<NodeCredential>,
+  ) {
+    const cred = await this.credRepo.findOne({
+      where: {
+        id: credId,
         node: { id: nodeId } as unknown as NodeCredential['node'],
-      }),
-    );
-    await this.credRepo.save(rows);
-    return { count: rows.length };
+      },
+    });
+    if (!cred) throw new HttpException('凭据不存在', 404);
+    cred.type = payload.type ?? cred.type;
+    cred.username = payload.username ?? cred.username;
+    cred.password = payload.password ?? cred.password;
+    cred.description = payload.description ?? cred.description;
+    await this.credRepo.save(cred);
+    return { id: cred.id };
+  }
+
+  async deleteCredential(nodeId: string, credId: string) {
+    const cred = await this.credRepo.findOne({
+      where: {
+        id: credId,
+        node: { id: nodeId } as unknown as NodeCredential['node'],
+      },
+    });
+    if (!cred) throw new HttpException('凭据不存在', 404);
+    await this.credRepo.remove(cred);
+    return { id: credId };
   }
 
   async listCredentials(nodeId: string) {

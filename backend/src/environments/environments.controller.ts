@@ -20,7 +20,7 @@ import { CreateEnvironmentDto } from './dto/create-environment.dto';
 import { UpdateEnvironmentDto } from './dto/update-environment.dto';
 import { CreateNodeDto } from './dto/create-node.dto';
 import { UpdateNodeDto } from './dto/update-node.dto';
-import { UpdateCredentialsDto } from './dto/update-credentials.dto';
+import { UpsertCredentialDto } from './dto/update-credentials.dto';
 import { AuthenticatedGuard } from '../auth/authenticated.guard';
 import { EnvironmentResponseDto } from './dto/environment-response.dto';
 import { NodeResponseDto } from './dto/node-response.dto';
@@ -147,16 +147,16 @@ export class EnvironmentsController {
     return this.envs.deleteNode(envId, nodeId);
   }
 
-  @Put(':envId/nodes/:nodeId/credentials')
-  @ApiOperation({ summary: '批量更新节点凭据' })
+  @Post(':envId/nodes/:nodeId/credentials')
+  @ApiOperation({ summary: '新建节点凭据' })
   @ApiParam({ name: 'nodeId', description: '节点ID' })
-  @ApiBody({ type: UpdateCredentialsDto })
+  @ApiBody({ type: UpsertCredentialDto })
   @ApiResponse({ status: 200, description: '成功' })
-  async updateCreds(
+  async createCred(
     @Param('nodeId') nodeId: string,
-    @Body() dto: UpdateCredentialsDto,
+    @Body() dto: UpsertCredentialDto,
   ) {
-    return this.envs.upsertCredentials(nodeId, dto.credentials);
+    return this.envs.createCredential(nodeId, dto);
   }
 
   @Get(':envId/nodes/:nodeId/credentials')
@@ -170,5 +170,31 @@ export class EnvironmentsController {
   async listCreds(@Param('nodeId') nodeId: string) {
     const list = await this.envs.listCredentials(nodeId);
     return { list };
+  }
+
+  @Put(':envId/nodes/:nodeId/credentials/:credId')
+  @ApiOperation({ summary: '修改节点凭据' })
+  @ApiParam({ name: 'nodeId', description: '节点ID' })
+  @ApiParam({ name: 'credId', description: '凭据ID' })
+  @ApiBody({ type: UpsertCredentialDto })
+  @ApiResponse({ status: 200, description: '成功' })
+  async updateCred(
+    @Param('nodeId') nodeId: string,
+    @Param('credId') credId: string,
+    @Body() dto: UpsertCredentialDto,
+  ) {
+    return this.envs.updateCredential(nodeId, credId, dto);
+  }
+
+  @Delete(':envId/nodes/:nodeId/credentials/:credId')
+  @ApiOperation({ summary: '删除节点凭据' })
+  @ApiParam({ name: 'nodeId', description: '节点ID' })
+  @ApiParam({ name: 'credId', description: '凭据ID' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async deleteCred(
+    @Param('nodeId') nodeId: string,
+    @Param('credId') credId: string,
+  ) {
+    return this.envs.deleteCredential(nodeId, credId);
   }
 }
