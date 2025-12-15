@@ -22,7 +22,7 @@ import {
   deleteNode,
 } from "../../../../services/environments";
 import NodeModal from "../components/NodeModal";
-import CredentialModal from "../components/CredentialModal";
+import NodeCredentialsList from "../components/NodeCredentialsList";
 
 const EnvironmentDetail: React.FC = () => {
   const { customerId, envId } = useParams<{
@@ -43,13 +43,10 @@ const EnvironmentDetail: React.FC = () => {
   const [nodesLoading, setNodesLoading] = useState(false);
   const [nodeSearch, setNodeSearch] = useState("");
   const [nodeModalVisible, setNodeModalVisible] = useState(false);
-  const [credModalVisible, setCredModalVisible] = useState(false);
   const [currentNode, setCurrentNode] = useState<
     Partial<EnvironmentNode> | undefined
   >(undefined);
-
-  // Removed loadingCredentials as it is handled in CredentialModal now
-  // const [loadingCredentials, setLoadingCredentials] = useState(false);
+  const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
   const fetchEnv = async () => {
     if (isNew || !customerId || !envId) return;
@@ -143,11 +140,6 @@ const EnvironmentDetail: React.FC = () => {
     setNodeModalVisible(true);
   };
 
-  const onManageCreds = (node: EnvironmentNode) => {
-    setCurrentNode(node);
-    setCredModalVisible(true);
-  };
-
   const onDeleteNode = async (nodeId: string) => {
     if (!customerId || !envId) return;
     Modal.confirm({
@@ -177,9 +169,6 @@ const EnvironmentDetail: React.FC = () => {
         <div className="space-x-2">
           <Button type="link" onClick={() => onEditNode(r)}>
             {t.environment.edit}
-          </Button>
-          <Button type="link" onClick={() => onManageCreds(r)}>
-            {t.environment.credentials}
           </Button>
           <Button type="link" danger onClick={() => onDeleteNode(r.id)}>
             {t.customerList.delete}
@@ -295,6 +284,25 @@ const EnvironmentDetail: React.FC = () => {
             dataSource={filteredNodes}
             loading={nodesLoading}
             pagination={false}
+            expandable={{
+              expandedRowRender: (record) => (
+                <div style={{ padding: "0 16px" }}>
+                  <NodeCredentialsList
+                    customerId={customerId!}
+                    envId={envId!}
+                    nodeId={record.id}
+                  />
+                </div>
+              ),
+              expandedRowKeys,
+              onExpand: (expanded, record) => {
+                setExpandedRowKeys(
+                  expanded
+                    ? [...expandedRowKeys, record.id]
+                    : expandedRowKeys.filter((k) => k !== record.id)
+                );
+              },
+            }}
           />
         </div>
       )}
@@ -305,16 +313,6 @@ const EnvironmentDetail: React.FC = () => {
         onOk={onSaveNode}
         initialValues={currentNode}
       />
-
-      {currentNode && customerId && envId && (
-        <CredentialModal
-          visible={credModalVisible}
-          onCancel={() => setCredModalVisible(false)}
-          customerId={customerId}
-          envId={envId}
-          nodeId={currentNode.id!}
-        />
-      )}
     </div>
   );
 };

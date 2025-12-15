@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Table, message, Popconfirm } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { Table, Button, message, Popconfirm, Tooltip, Card } from "antd";
+import { PlusOutlined, DeleteOutlined, EditOutlined, KeyOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../../contexts/LanguageContext";
 import { NodeCredential } from "../../../../types";
 import {
@@ -12,16 +12,12 @@ import {
 import CredentialEditModal from "./CredentialEditModal";
 
 interface Props {
-  visible: boolean;
-  onCancel: () => void;
   customerId: string;
   envId: string;
   nodeId: string;
 }
 
-const CredentialModal: React.FC<Props> = ({
-  visible,
-  onCancel,
+const NodeCredentialsList: React.FC<Props> = ({
   customerId,
   envId,
   nodeId,
@@ -35,7 +31,6 @@ const CredentialModal: React.FC<Props> = ({
   const [currentCred, setCurrentCred] = useState<Partial<NodeCredential> | undefined>(undefined);
 
   const fetchList = async () => {
-    if (!visible) return;
     try {
       setLoading(true);
       const data = await listNodeCredentials(customerId, envId, nodeId);
@@ -48,10 +43,8 @@ const CredentialModal: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (visible) {
-      fetchList();
-    }
-  }, [visible, customerId, envId, nodeId]);
+    fetchList();
+  }, [customerId, envId, nodeId]);
 
   const handleDelete = async (credId: string) => {
     try {
@@ -80,27 +73,44 @@ const CredentialModal: React.FC<Props> = ({
   };
 
   const columns = [
-    { title: t.environment.type, dataIndex: "type", key: "type" },
-    { title: t.environment.username, dataIndex: "username", key: "username" },
-    { title: t.environment.description, dataIndex: "description", key: "description" },
+    { 
+      title: t.environment.type, 
+      dataIndex: "type", 
+      key: "type",
+      width: 150,
+      render: (text: string) => <span className="font-medium text-slate-700">{text}</span>
+    },
+    { title: t.environment.username, dataIndex: "username", key: "username", width: 200 },
+    { 
+      title: t.environment.description, 
+      dataIndex: "description", 
+      key: "description",
+      render: (text: string) => <span className="text-slate-500">{text || '-'}</span>
+    },
     {
       title: t.customerList.action,
       key: "action",
+      width: 120,
       render: (_: any, r: NodeCredential) => (
         <div className="space-x-2">
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setCurrentCred(r);
-              setEditVisible(true);
-            }}
-          />
+          <Tooltip title={t.environment.edit}>
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setCurrentCred(r);
+                setEditVisible(true);
+              }}
+            />
+          </Tooltip>
           <Popconfirm
             title={t.environment.deleteConfirm}
             onConfirm={() => handleDelete(r.id!)}
           >
-            <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip title={t.customerList.delete}>
+              <Button type="text" danger size="small" icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </div>
       ),
@@ -108,38 +118,39 @@ const CredentialModal: React.FC<Props> = ({
   ];
 
   return (
-    <>
-      <Modal
-        title={t.environment.credentials}
-        open={visible}
-        onCancel={onCancel}
-        footer={[
-          <Button key="close" onClick={onCancel}>
-            {t.templateDetail.back}
-          </Button>,
-        ]}
-        width={800}
-      >
-        <div className="mb-4 flex justify-end">
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setCurrentCred(undefined);
-              setEditVisible(true);
-            }}
-          >
-            {t.environment.addCredential}
-          </Button>
+    <Card 
+      size="small" 
+      title={
+        <div className="flex items-center gap-2 text-slate-600">
+          <KeyOutlined />
+          <span>{t.environment.credentials}</span>
         </div>
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={list}
-          loading={loading}
-          pagination={false}
-        />
-      </Modal>
+      }
+      extra={
+        <Button
+          type="primary"
+          size="small"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            setCurrentCred(undefined);
+            setEditVisible(true);
+          }}
+        >
+          {t.environment.addCredential}
+        </Button>
+      }
+      className="bg-slate-50 border-slate-200"
+      bodyStyle={{ padding: 0 }}
+    >
+      <Table
+        rowKey="id"
+        columns={columns}
+        dataSource={list}
+        loading={loading}
+        pagination={false}
+        size="small"
+        bordered={false}
+      />
 
       <CredentialEditModal
         visible={editVisible}
@@ -147,8 +158,8 @@ const CredentialModal: React.FC<Props> = ({
         onCancel={() => setEditVisible(false)}
         onOk={handleEditSave}
       />
-    </>
+    </Card>
   );
 };
 
-export default CredentialModal;
+export default NodeCredentialsList;
