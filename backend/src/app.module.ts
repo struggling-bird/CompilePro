@@ -6,10 +6,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { User } from './users/user.entity';
+import { Role } from './roles/role.entity';
+import { AuditLog } from './audit/audit.entity';
 import { UsersModule } from './users/users.module';
 import { RedisModule } from './redis/redis.module';
 import * as path from 'path';
 import { LoggerModule } from './logger/logger.module';
+import { AuthModule } from './auth/auth.module';
+import { RolesModule } from './roles/roles.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -51,7 +56,7 @@ import { LoggerModule } from './logger/logger.module';
             config.get<string>('MYSQL_PASSWORD')) ||
           undefined,
         database: config.get<string>('MYSQL_DB') ?? 'compilepro',
-        entities: [User],
+        entities: [User, Role, AuditLog],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
           (config.get<string>('DB_MIGRATIONS_RUN') ??
@@ -64,6 +69,9 @@ import { LoggerModule } from './logger/logger.module';
     UsersModule,
     RedisModule,
     LoggerModule,
+    AuthModule,
+    RolesModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -40,7 +40,12 @@
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",
     "tar": "^7.5.2",
-    "typeorm": "^0.3.19"
+    "typeorm": "^0.3.19",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "bcrypt": "^5.1.1"
   },
   "optionalDependencies": {
     "winston": "^3.15.0",
@@ -69,7 +74,9 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/bcrypt": "^5.0.2"
   },
   "jest": {
     "moduleFileExtensions": [

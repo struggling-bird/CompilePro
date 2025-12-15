@@ -5,6 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, catchError, map, throwError } from 'rxjs';
+import { HttpException } from '@nestjs/common';
 
 interface ApiResponse<T = unknown> {
   code: number;
@@ -29,17 +30,18 @@ export class ApiResponseInterceptor implements NestInterceptor {
       catchError((error: unknown) => {
         const status =
           typeof error === 'object' && error && 'status' in error
-            ? (error as { status?: number }).status
+            ? ((error as { status?: number }).status ?? 500)
             : 500;
         const message =
           typeof error === 'object' && error && 'message' in error
-            ? (error as { message?: string }).message
+            ? ((error as { message?: string }).message ?? 'server error')
             : 'server error';
-        return throwError(() => ({
-          code: status ?? 500,
-          message: message ?? 'server error',
+        const body = {
+          code: status,
+          message,
           timestamp: Date.now(),
-        }));
+        };
+        return throwError(() => new HttpException(body, status));
       }),
     );
   }
