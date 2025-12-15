@@ -15,6 +15,8 @@ import { TypeOrmWinstonLogger } from './logger/typeorm-logger';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { AuditModule } from './audit/audit.module';
+import { Customer } from './customers/customer.entity';
+import { CustomersModule } from './customers/customers.module';
 
 @Module({
   imports: [
@@ -58,7 +60,7 @@ import { AuditModule } from './audit/audit.module';
             config.get<string>('MYSQL_PASSWORD')) ||
           undefined,
         database: config.get<string>('MYSQL_DB') ?? 'compilepro',
-        entities: [User, Role, AuditLog],
+        entities: [User, Role, AuditLog, Customer],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
           (config.get<string>('DB_MIGRATIONS_RUN') ??
@@ -80,6 +82,7 @@ import { AuditModule } from './audit/audit.module';
     AuthModule,
     RolesModule,
     AuditModule,
+    CustomersModule,
   ],
   controllers: [],
   providers: [],
