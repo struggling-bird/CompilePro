@@ -6,6 +6,7 @@ import { ApiResponseInterceptor } from '../src/shared/api-response.interceptor';
 
 describe('Auth E2E', () => {
   let app: INestApplication;
+  let server: Parameters<typeof request>[0];
   let token = '';
   let userId = '';
   const uname = `e2euser_${Date.now()}`;
@@ -25,6 +26,8 @@ describe('Auth E2E', () => {
     );
     app.useGlobalInterceptors(new ApiResponseInterceptor());
     await app.init();
+    // supertest 对入参类型有明确签名，避免直接传入 any 触发 no-unsafe-argument
+    server = app.getHttpServer() as unknown as Parameters<typeof request>[0];
   });
 
   afterAll(async () => {
@@ -32,7 +35,7 @@ describe('Auth E2E', () => {
   });
 
   it('register', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/auth/register')
       .send({ username: uname, password: 'secret123', email });
     expect([200, 201]).toContain(res.status);
@@ -47,7 +50,7 @@ describe('Auth E2E', () => {
   });
 
   it('login success', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/auth/login')
       .send({ email, password: 'secret123' });
     expect([200, 201]).toContain(res.status);
@@ -62,7 +65,7 @@ describe('Auth E2E', () => {
   });
 
   it('me success', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .get('/auth/me')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
@@ -76,7 +79,7 @@ describe('Auth E2E', () => {
   });
 
   it('login failure wrong password', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/auth/login')
       .send({ email, password: 'wrong' });
     expect([400, 401, 403, 404, 500]).toContain(res.status);
@@ -85,14 +88,14 @@ describe('Auth E2E', () => {
   });
 
   it('deactivate user then login should fail', async () => {
-    const res1 = await request(app.getHttpServer())
+    const res1 = await request(server)
       .put(`/users/${userId}/status`)
       .set('Authorization', `Bearer ${token}`)
       .send({ status: 'inactive' });
     expect([200]).toContain(res1.status);
     const body1 = res1.body as { code: number; timestamp: number };
     expect(body1.code).toBe(200);
-    const res2 = await request(app.getHttpServer())
+    const res2 = await request(server)
       .post('/auth/login')
       .send({ email, password: 'secret123' });
     expect([403]).toContain(res2.status);

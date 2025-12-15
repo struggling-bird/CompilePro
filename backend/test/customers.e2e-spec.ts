@@ -6,6 +6,7 @@ import { ApiResponseInterceptor } from '../src/shared/api-response.interceptor';
 
 describe('Customers E2E', () => {
   let app: INestApplication;
+  let server: Parameters<typeof request>[0];
   let token = '';
   let customerId = '';
   const email = `e2e_${Date.now()}@example.com`;
@@ -24,11 +25,12 @@ describe('Customers E2E', () => {
     );
     app.useGlobalInterceptors(new ApiResponseInterceptor());
     await app.init();
+    server = app.getHttpServer() as unknown as Parameters<typeof request>[0];
 
-    await request(app.getHttpServer())
+    await request(server)
       .post('/auth/register')
       .send({ username: `user_${Date.now()}`, password: 'secret123', email });
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/auth/login')
       .send({ email, password: 'secret123' });
     const bodyLogin = res.body as unknown as {
@@ -43,7 +45,7 @@ describe('Customers E2E', () => {
   });
 
   it('create customer', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/customers')
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -66,7 +68,7 @@ describe('Customers E2E', () => {
   });
 
   it('get customer exists in list', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .get('/customers')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
@@ -81,14 +83,14 @@ describe('Customers E2E', () => {
   });
 
   it('update customer', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .put(`/customers/${customerId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({ status: 'inactive', contactPerson: 'Bob' });
     expect([200]).toContain(res.status);
     const bodyUpdate = res.body as unknown as { code: number };
     expect(bodyUpdate.code).toBe(200);
-    const res2 = await request(app.getHttpServer())
+    const res2 = await request(server)
       .get(`/customers/${customerId}`)
       .set('Authorization', `Bearer ${token}`);
     expect(res2.status).toBe(200);
@@ -101,7 +103,7 @@ describe('Customers E2E', () => {
   });
 
   it('list customers', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .get('/customers')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
@@ -114,7 +116,7 @@ describe('Customers E2E', () => {
   });
 
   it('delete customer', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .delete(`/customers/${customerId}`)
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);

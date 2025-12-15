@@ -16,6 +16,10 @@ import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { AuditModule } from './audit/audit.module';
 import { Customer } from './customers/customer.entity';
+import { Environment } from './environments/environment.entity';
+import { EnvironmentNode } from './environments/node.entity';
+import { NodeCredential } from './environments/credential.entity';
+import { EnvironmentsModule } from './environments/environments.module';
 import { CustomersModule } from './customers/customers.module';
 
 @Module({
@@ -60,7 +64,15 @@ import { CustomersModule } from './customers/customers.module';
             config.get<string>('MYSQL_PASSWORD')) ||
           undefined,
         database: config.get<string>('MYSQL_DB') ?? 'compilepro',
-        entities: [User, Role, AuditLog, Customer],
+        entities: [
+          User,
+          Role,
+          AuditLog,
+          Customer,
+          Environment,
+          EnvironmentNode,
+          NodeCredential,
+        ],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
           (config.get<string>('DB_MIGRATIONS_RUN') ??
@@ -83,6 +95,7 @@ import { CustomersModule } from './customers/customers.module';
     RolesModule,
     AuditModule,
     CustomersModule,
+    EnvironmentsModule,
   ],
   controllers: [],
   providers: [],
