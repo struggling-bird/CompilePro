@@ -23,7 +23,7 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: 200, description: '成功' })
   async login(@Body() dto: LoginDto) {
-    return this.auth.login(dto.username, dto.password);
+    return this.auth.login(dto.email, dto.password);
   }
 
   @Get('me')

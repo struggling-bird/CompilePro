@@ -41,7 +41,12 @@ export class UsersService {
   }
 
   async getByEmail(email: string) {
-    return this.repo.findOne({ where: { email } });
+    return this.repo
+      .createQueryBuilder('u')
+      .addSelect('u.password')
+      .leftJoinAndSelect('u.role', 'r')
+      .where('u.email = :email', { email })
+      .getOne();
   }
 
   async createUser(payload: {

@@ -18,13 +18,13 @@ export class AuthService {
     return this.users.createUser(payload);
   }
 
-  async login(username: string, password: string) {
-    const user = await this.users.getByUsername(username);
-    if (!user) throw new HttpException('用户不存在', 404);
+  async login(email: string, password: string) {
+    const user = await this.users.getByEmail(email);
+    if (!user) throw new HttpException('用户名或密码错误', 404);
     if (user.status !== 'active') throw new HttpException('用户已停用', 403);
     const ok = await this.users.validatePassword(user, password);
-    if (!ok) throw new HttpException('密码错误', 401);
-    const payload = { sub: user.id, username: user.username };
+    if (!ok) throw new HttpException('用户名或密码错误', 401);
+    const payload = { sub: user.id, email: user.email };
     const token = await this.jwt.signAsync(payload);
     return { token };
   }

@@ -49,7 +49,7 @@ describe('Auth E2E', () => {
   it('login success', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: uname, password: 'secret123' });
+      .send({ email, password: 'secret123' });
     expect([200, 201]).toContain(res.status);
     const body = res.body as {
       code: number;
@@ -78,7 +78,7 @@ describe('Auth E2E', () => {
   it('login failure wrong password', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: uname, password: 'wrong' });
+      .send({ email, password: 'wrong' });
     expect([400, 401, 403, 404, 500]).toContain(res.status);
     const body = res.body as { code: number; timestamp: number };
     expect(body.code).toBe(res.status);
@@ -94,7 +94,7 @@ describe('Auth E2E', () => {
     expect(body1.code).toBe(200);
     const res2 = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: uname, password: 'secret123' });
+      .send({ email, password: 'secret123' });
     expect([403]).toContain(res2.status);
     const body2 = res2.body as { code: number; timestamp: number };
     expect(body2.code).toBe(res2.status);

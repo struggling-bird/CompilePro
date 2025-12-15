@@ -17,12 +17,10 @@ interface RequestOptions extends Omit<RequestInit, "body" | "method"> {
 
 class ApiError extends Error {
   code: number;
-  status: number;
   body: unknown;
-  constructor(message: string, code: number, status: number, body: unknown) {
+  constructor(message: string, code: number, body: unknown) {
     super(message);
     this.code = code;
-    this.status = status;
     this.body = body;
   }
 }
@@ -78,7 +76,6 @@ export async function request<T = unknown>(
   const finalUrl = `${BASE_URL}${url}${buildQuery(params)}`;
 
   const res = await fetch(finalUrl, config);
-  const status = res.status;
   const text = await res.text();
   const body = text ? JSON.parse(text) : {};
 
@@ -86,18 +83,12 @@ export async function request<T = unknown>(
     if (body.code === 200) {
       return (body.data as T) ?? ({} as T);
     }
-    throw new ApiError(
-      body.message || "Error",
-      body.code ?? status,
-      status,
-      body
-    );
+    throw new ApiError(body.message || "Error", body.code ?? 500, body);
   }
 
   if (!res.ok) {
-    const msg =
-      (body && (body as any).message) || `Request failed with status ${status}`;
-    throw new ApiError(msg, status, status, body);
+    const msg = (body && (body as any).message) || "Request failed";
+    throw new ApiError(msg, res.status, body);
   }
 
   return body as T;
