@@ -17,7 +17,10 @@ import enUS from "antd/locale/en_US";
 import { getCurrentUser } from "./services/auth";
 
 const AppContent: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    typeof localStorage !== "undefined" && !!localStorage.getItem("token")
+  );
+  const [initialized, setInitialized] = useState(false);
   const [currentUser, setCurrentUser] = useState("zhuge@zhugeio.com");
   const [activeTab, setActiveTab] = useState<TabView>(TabView.COMPILE);
 
@@ -88,9 +91,20 @@ const AppContent: React.FC = () => {
       setIsAuthenticated(true);
       getCurrentUser()
         .then((me) => setCurrentUser(me.email ?? me.username))
-        .catch((err) => console.error("init fetch me error:", err));
+        .catch((err) => console.error("init fetch me error:", err))
+        .finally(() => setInitialized(true));
+    } else {
+      setInitialized(true);
     }
   }, []);
+
+  if (!initialized) {
+    return (
+      <Suspense fallback={<div />}>
+        <div />
+      </Suspense>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
