@@ -48,7 +48,9 @@ export class ApiResponseInterceptor implements NestInterceptor {
             (error as Error)?.stack,
             'ApiResponse',
           );
-        } catch {}
+        } catch (e) {
+          void e;
+        }
         const body = {
           code: status,
           message,

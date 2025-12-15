@@ -10,6 +10,8 @@ import { UsersModule } from './users/users.module';
 import { RedisModule } from './redis/redis.module';
 import * as path from 'path';
 import { LoggerModule } from './logger/logger.module';
+import { WinstonLogger } from './logger/logger.provider';
+import { TypeOrmWinstonLogger } from './logger/typeorm-logger';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { AuditModule } from './audit/audit.module';
@@ -32,9 +34,11 @@ import { AuditModule } from './audit/audit.module';
         ttl: 30000,
       }),
     }),
+    LoggerModule,
     TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      imports: [LoggerModule],
+      inject: [ConfigService, WinstonLogger],
+      useFactory: (config: ConfigService, winstonLogger: WinstonLogger) => ({
         type: 'mysql',
         host:
           config.get<string>('DB_HOST') ??
@@ -68,11 +72,11 @@ import { AuditModule } from './audit/audit.module';
           if (raw === 'false') return false;
           return false;
         })(),
+        logger: new TypeOrmWinstonLogger(winstonLogger),
       }),
     }),
     UsersModule,
     RedisModule,
-    LoggerModule,
     AuthModule,
     RolesModule,
     AuditModule,

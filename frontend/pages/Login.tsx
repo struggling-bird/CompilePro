@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
-import { MessageOutlined, GlobalOutlined, LoginOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
-import { login } from '../services/auth';
+import React, { useState } from "react";
+import {
+  MessageOutlined,
+  GlobalOutlined,
+  LoginOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { login } from "../services/auth";
+import { message } from "antd";
 
 interface LoginProps {
   onLogin: (email: string) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState('zhuge@zhugeio.com');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("zhuge@zhugeio.com");
+  const [password, setPassword] = useState("");
   const [autoLogin, setAutoLogin] = useState(true);
   const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
@@ -20,21 +25,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     if (!email || !password) return;
     try {
       const res = await login({ username: email, password });
-      localStorage.setItem('token', res.token);
+      localStorage.setItem("token", res.token);
       onLogin(email);
     } catch (err) {
-      console.error('Login error:', err);
-      alert('登录失败，请检查账号或密码');
+      const msg = err instanceof Error ? err.message : "请求失败，请稍后重试";
+      console.error("Login error:", err);
+      message.error(msg);
     }
   };
 
   const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'zh' : 'en');
+    setLanguage(language === "en" ? "zh" : "en");
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden">
-      
       {/* Decorative Background */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-slate-900 skew-y-3 transform -translate-y-16 z-0"></div>
       <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
@@ -42,44 +47,53 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       {/* Top Controls */}
       <div className="absolute top-6 right-6 z-20">
-         <button onClick={toggleLanguage} className="flex items-center text-slate-300 hover:text-white transition-colors text-sm font-medium border border-white/10 rounded-full px-3 py-1 bg-white/5 backdrop-blur-sm">
-           <GlobalOutlined className="w-4 h-4 mr-1.5" />
-           {language === 'en' ? 'EN' : '中文'}
-         </button>
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center text-slate-300 hover:text-white transition-colors text-sm font-medium border border-white/10 rounded-full px-3 py-1 bg-white/5 backdrop-blur-sm"
+        >
+          <GlobalOutlined className="w-4 h-4 mr-1.5" />
+          {language === "en" ? "EN" : "中文"}
+        </button>
       </div>
 
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl relative z-10 mx-4">
         <div className="text-center mb-8">
-           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg shadow-blue-500/30">
-             Z
-           </div>
-           <h1 className="text-2xl font-bold text-slate-800">{t.login.title}</h1>
-           <p className="text-slate-500 text-sm mt-2">Welcome back, please login to your account</p>
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg shadow-blue-500/30">
+            Z
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800">{t.login.title}</h1>
+          <p className="text-slate-500 text-sm mt-2">
+            Welcome back, please login to your account
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">{t.login.emailPlaceholder}</label>
-                <input
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                {t.login.emailPlaceholder}
+              </label>
+              <input
                 type="email"
                 required
                 className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                />
+              />
             </div>
             <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">{t.login.passwordPlaceholder}</label>
-                <input
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                {t.login.passwordPlaceholder}
+              </label>
+              <input
                 type="password"
                 required
                 className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                />
+              />
             </div>
           </div>
 
@@ -97,7 +111,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 {t.login.autoLogin}
               </span>
             </label>
-            <a href="#" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+            <a
+              href="#"
+              className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            >
               {t.login.forgotPassword}
             </a>
           </div>
@@ -111,13 +128,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </button>
 
           <div className="text-center text-sm text-slate-500 mt-6 pt-6 border-t border-slate-100">
-            {t.login.noAccount} 
-            <button 
-                type="button"
-                onClick={() => navigate('/register')}
-                className="text-blue-600 hover:text-blue-700 font-semibold ml-1 hover:underline transition-all"
+            {t.login.noAccount}
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              className="text-blue-600 hover:text-blue-700 font-semibold ml-1 hover:underline transition-all"
             >
-                {t.login.register}
+              {t.login.register}
             </button>
           </div>
         </form>
