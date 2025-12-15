@@ -5,7 +5,9 @@ import { Role } from './role.entity';
 
 @Injectable()
 export class RolesService {
-  constructor(@InjectRepository(Role) private readonly repo: Repository<Role>) {}
+  constructor(
+    @InjectRepository(Role) private readonly repo: Repository<Role>,
+  ) {}
 
   async createRole(payload: { name: string; description?: string }) {
     const exists = await this.repo.findOne({ where: { name: payload.name } });

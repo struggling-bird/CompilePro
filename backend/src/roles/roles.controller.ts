@@ -1,5 +1,11 @@
 import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
@@ -24,7 +30,10 @@ export class RolesController {
   @ApiParam({ name: 'name', description: '角色名称', type: String })
   @ApiBody({ type: UpdatePermissionsDto })
   @ApiResponse({ status: 200, description: '成功' })
-  async updatePermissions(@Param('name') name: string, @Body() dto: UpdatePermissionsDto) {
+  async updatePermissions(
+    @Param('name') name: string,
+    @Body() dto: UpdatePermissionsDto,
+  ) {
     return this.roles.updatePermissions(name, dto.permissions);
   }
 }

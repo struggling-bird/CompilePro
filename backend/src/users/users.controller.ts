@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Put, Req, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -11,7 +20,10 @@ import { AuditService } from '../audit/audit.service';
 @Controller('users')
 @ApiTags('用户管理')
 export class UsersController {
-  constructor(private readonly usersService: UsersService, private readonly audit: AuditService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly audit: AuditService,
+  ) {}
 
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(30000)
@@ -29,9 +41,18 @@ export class UsersController {
   @ApiOperation({ summary: '更新用户状态（停用/启用）' })
   @ApiParam({ name: 'id', description: '用户ID', type: String })
   @ApiResponse({ status: 200, description: '成功' })
-  async updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto, @Req() req: { user: { userId: string } }) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateStatusDto,
+    @Req() req: { user: { userId: string } },
+  ) {
     const result = await this.usersService.setStatus(id, dto.status);
-    await this.audit.log({ action: 'user:status', userId: id, actorId: req.user.userId, details: { status: dto.status } });
+    await this.audit.log({
+      action: 'user:status',
+      userId: id,
+      actorId: req.user.userId,
+      details: { status: dto.status },
+    });
     return result;
   }
 
@@ -40,9 +61,18 @@ export class UsersController {
   @ApiOperation({ summary: '为用户分配角色' })
   @ApiParam({ name: 'id', description: '用户ID', type: String })
   @ApiResponse({ status: 200, description: '成功' })
-  async assignRole(@Param('id') id: string, @Body() dto: AssignRoleDto, @Req() req: { user: { userId: string } }) {
+  async assignRole(
+    @Param('id') id: string,
+    @Body() dto: AssignRoleDto,
+    @Req() req: { user: { userId: string } },
+  ) {
     const result = await this.usersService.assignRole(id, dto.roleName);
-    await this.audit.log({ action: 'user:role', userId: id, actorId: req.user.userId, details: { roleName: dto.roleName } });
+    await this.audit.log({
+      action: 'user:role',
+      userId: id,
+      actorId: req.user.userId,
+      details: { roleName: dto.roleName },
+    });
     return result;
   }
 }

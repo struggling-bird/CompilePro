@@ -1,4 +1,4 @@
-const BASE_URL = "/api";
+const BASE_URL = (import.meta as any)?.env?.VITE_API_BASE ?? "";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -61,7 +61,10 @@ export async function request<T = unknown>(
       "Content-Type": "application/json",
       ...headers,
     },
-  };
+    (config.headers as Record<string, string>)[
+      "Authorization"
+    ] = `Bearer ${token}`;
+  }
 
   if (data !== undefined && method !== "GET") {
     config.body = JSON.stringify(data);

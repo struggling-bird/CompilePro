@@ -9,6 +9,7 @@ import { WinstonLogger } from './logger/logger.provider';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('apis');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -25,13 +26,13 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('apis/docs', app, document);
 
   const winstonLogger = app.get(WinstonLogger);
   app.useLogger(winstonLogger);
   const configService = app.get(ConfigService);
   const port = Number(configService.get<string>('PORT') ?? 3000);
   await app.listen(port);
-  winstonLogger.log(`Swagger: http://localhost:${port}/api`, 'Bootstrap');
+  winstonLogger.log(`Swagger: http://localhost:${port}/apis/docs`, 'Bootstrap');
 }
 void bootstrap();
