@@ -22,7 +22,7 @@ const AppContent: React.FC = () => {
   );
   const [initialized, setInitialized] = useState(false);
   const [currentUser, setCurrentUser] = useState("zhuge@zhugeio.com");
-  const [activeTab, setActiveTab] = useState<TabView>(TabView.COMPILE);
+  const [activeTab, setActiveTab] = useState<TabView>(TabView.PROJECTS);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,7 +44,7 @@ const AppContent: React.FC = () => {
       console.error("fetch me error:", err);
       setCurrentUser(email);
     }
-    navigate("/compile");
+    navigate("/projects");
   };
 
   const handleLogout = () => {
@@ -58,8 +58,8 @@ const AppContent: React.FC = () => {
   const handleTabChange = (tab: TabView) => {
     setActiveTab(tab);
     switch (tab) {
-      case TabView.COMPILE:
-        navigate("/compile");
+      case TabView.PROJECTS:
+        navigate("/projects");
         break;
       case TabView.TEMPLATES:
         navigate("/templates");

@@ -20,7 +20,7 @@ export default {
     login: "立即登录",
   },
   layout: {
-    compile: "元项目",
+    metaProjects: "元项目",
     manage: "管理",
     templates: "模板",
     customers: "客户",
@@ -31,9 +31,9 @@ export default {
     logout: "退出",
     footer: "© 2023 诸葛io. 保留所有权利.",
   },
-  compileList: {
+  projectList: {
     searchPlaceholder: "搜索项目...",
-    newProject: "新建元项目",
+    newProject: "新建项目",
     settings: "设置",
     select: "选择",
     projectName: "项目名称",

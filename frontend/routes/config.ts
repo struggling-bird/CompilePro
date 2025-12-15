@@ -16,8 +16,8 @@ export type RouteItem = {
 const Pages = {
   Login: lazy(() => import("../pages/Login")),
   Register: lazy(() => import("../pages/Register")),
-  CompileList: lazy(() => import("../pages/CompileList")),
-  ProjectDetail: lazy(() => import("../pages/ProjectDetail")),
+  MetaProjectList: lazy(() => import("../pages/MetaProjects/List")),
+  MetaProjectDetail: lazy(() => import("../pages/MetaProjects/Detail")),
   TemplateList: lazy(() => import("../pages/Templates/List")),
   TemplateDetail: lazy(() => import("../pages/Templates/Detail")),
   ManageList: lazy(() => import("../pages/Manage/List")),
@@ -42,14 +42,14 @@ export const routes: RouteItem[] = [
   { path: "/register", component: Pages.Register, meta: { auth: "public" } },
 
   {
-    path: "/compile",
-    component: Pages.CompileList,
-    meta: { auth: "private", tab: TabView.COMPILE },
+    path: "/meta-projects",
+    component: Pages.MetaProjectList,
+    meta: { auth: "private", tab: TabView.META_PROJECTS },
   },
   {
-    path: "/compile/:projectId",
-    component: Pages.ProjectDetail,
-    meta: { auth: "private", tab: TabView.COMPILE },
+    path: "/meta-projects/:projectId",
+    component: Pages.MetaProjectDetail,
+    meta: { auth: "private", tab: TabView.META_PROJECTS },
   },
 
   {

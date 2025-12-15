@@ -19,6 +19,7 @@ import {
 import { TabView } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
 import { Layout as AntLayout, Menu, Button, Avatar, Dropdown } from "antd";
+import { useNavigate } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ const Layout: React.FC<LayoutProps> = ({
   userEmail,
   onLogout,
 }) => {
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["team"]); // Track expanded parent menus
   const { language, setLanguage, t } = useLanguage();
@@ -53,10 +55,10 @@ const Layout: React.FC<LayoutProps> = ({
 
   const navConfig: NavItemConfig[] = [
     {
-      id: "compile",
-      labelKey: "compile",
+      id: "metaProjects",
+      labelKey: "metaProjects",
       icon: AppstoreOutlined,
-      tab: TabView.COMPILE,
+      tab: TabView.META_PROJECTS,
     },
     {
       id: "templates",
@@ -325,7 +327,16 @@ const Layout: React.FC<LayoutProps> = ({
           items={menuItems}
           onClick={({ key }) => {
             const k = key as TabView;
-            if (Object.values(TabView).includes(k)) onTabChange(k);
+            if (Object.values(TabView).includes(k)) {
+              onTabChange(k);
+              if (k === TabView.META_PROJECTS) navigate("/meta-projects");
+              else if (k === TabView.TEMPLATES) navigate("/templates");
+              else if (k === TabView.MANAGE) navigate("/manage");
+              else if (k === TabView.CUSTOMERS) navigate("/customers");
+              else if (k === TabView.MEMBERS) navigate("/members");
+              else if (k === TabView.ROLES) navigate("/roles");
+              else if (k === TabView.SETTINGS) navigate("/settings");
+            }
           }}
           inlineCollapsed={isCollapsed}
           style={{ height: "calc(100% - 64px)" }}

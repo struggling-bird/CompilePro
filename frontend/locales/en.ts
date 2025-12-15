@@ -20,7 +20,7 @@ export default {
     login: "Login now",
   },
   layout: {
-    compile: "Compile",
+    metaProjects: "Meta Projects",
     manage: "Manage",
     templates: "Templates",
     customers: "Customers",
@@ -31,7 +31,7 @@ export default {
     logout: "Logout",
     footer: "© 2023 ZhugeIO. All rights reserved.",
   },
-  compileList: {
+  projectList: {
     searchPlaceholder: "Search projects...",
     newProject: "New Project",
     settings: "Settings",
