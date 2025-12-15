@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MessageOutlined, GlobalOutlined, LoginOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { login } from '../services/auth';
 
 interface LoginProps {
   onLogin: (email: string) => void;
@@ -14,10 +15,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
+    if (!email || !password) return;
+    try {
+      const res = await login({ username: email, password });
+      localStorage.setItem('token', res.token);
       onLogin(email);
+    } catch (err) {
+      console.error('Login error:', err);
+      alert('登录失败，请检查账号或密码');
     }
   };
 

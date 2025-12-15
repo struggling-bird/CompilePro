@@ -21,9 +21,28 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     const start = Date.now();
 
     return next.handle().pipe(
-      tap(() => {
-        const ms = Date.now() - start;
-        this.logger.log(`${method} ${url} ${res.statusCode} - ${ms}ms`);
+      tap({
+        next: () => {
+          const ms = Date.now() - start;
+          this.logger.log(`${method} ${url} ${res.statusCode} - ${ms}ms`);
+        },
+        error: (error: unknown) => {
+          const ms = Date.now() - start;
+          const status =
+            typeof error === 'object' && error && 'status' in error
+              ? ((error as { status?: number }).status ?? 500)
+              : 500;
+          const message =
+            typeof error === 'object' && error && 'message' in error
+              ? ((error as { message?: string }).message ?? 'error')
+              : 'error';
+          const trace = (error as Error)?.stack;
+          this.logger.error(
+            `${method} ${url} ${status} - ${ms}ms`,
+            trace,
+            message,
+          );
+        },
       }),
     );
   }

@@ -14,6 +14,7 @@ import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { ConfigProvider } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import enUS from "antd/locale/en_US";
+import { getCurrentUser } from "./services/auth";
 
 const AppContent: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,13 +32,22 @@ const AppContent: React.FC = () => {
     if (match?.meta.tab) setActiveTab(match.meta.tab);
   }, [location]);
 
-  const handleLogin = (email: string) => {
-    setCurrentUser(email);
+  const handleLogin = async (email: string) => {
     setIsAuthenticated(true);
+    try {
+      const me = await getCurrentUser();
+      setCurrentUser(me.email ?? email);
+    } catch (err) {
+      console.error("fetch me error:", err);
+      setCurrentUser(email);
+    }
     navigate("/compile");
   };
 
   const handleLogout = () => {
+    try {
+      localStorage.removeItem("token");
+    } catch {}
     setIsAuthenticated(false);
     navigate("/login");
   };
@@ -68,6 +78,19 @@ const AppContent: React.FC = () => {
         break;
     }
   };
+
+  useEffect(() => {
+    const token =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
+    if (token) {
+      setIsAuthenticated(true);
+      getCurrentUser()
+        .then((me) => setCurrentUser(me.email ?? me.username))
+        .catch((err) => console.error("init fetch me error:", err));
+    }
+  }, []);
 
   if (!isAuthenticated) {
     return (

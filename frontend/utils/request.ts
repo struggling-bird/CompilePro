@@ -61,6 +61,11 @@ export async function request<T = unknown>(
       "Content-Type": "application/json",
       ...headers,
     },
+  };
+
+  const token =
+    typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
+  if (token) {
     (config.headers as Record<string, string>)[
       "Authorization"
     ] = `Bearer ${token}`;

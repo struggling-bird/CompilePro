@@ -62,6 +62,12 @@ import { AuditModule } from './audit/audit.module';
               ? 'false'
               : 'true')) === 'true',
         migrations: [path.join(__dirname, 'migrations/*{.ts,.js}')],
+        logging: (() => {
+          const raw = config.get<string>('DB_LOGGING');
+          if (raw === 'true') return true;
+          if (raw === 'false') return false;
+          return false;
+        })(),
       }),
     }),
     UsersModule,
