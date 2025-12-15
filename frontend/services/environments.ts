@@ -19,13 +19,13 @@ export const getEnvironment = async (
   customerId: string,
   envId: string
 ): Promise<Environment> => {
-  const res = await request<{ data: Environment }>(
+  const res = await request<Environment>(
     `/apis/customers/${customerId}/environments/${envId}`,
     {
       method: "GET",
     }
   );
-  return res.data;
+  return res;
 };
 
 export const createEnvironment = async (
