@@ -20,10 +20,9 @@ import {
   createNode,
   updateNode,
   deleteNode,
-  listNodeCredentials,
-  updateNodeCredentials,
 } from "../../../../services/environments";
 import NodeModal from "../components/NodeModal";
+import CredentialModal from "../components/CredentialModal";
 
 const EnvironmentDetail: React.FC = () => {
   const { customerId, envId } = useParams<{
@@ -44,10 +43,13 @@ const EnvironmentDetail: React.FC = () => {
   const [nodesLoading, setNodesLoading] = useState(false);
   const [nodeSearch, setNodeSearch] = useState("");
   const [nodeModalVisible, setNodeModalVisible] = useState(false);
+  const [credModalVisible, setCredModalVisible] = useState(false);
   const [currentNode, setCurrentNode] = useState<
     Partial<EnvironmentNode> | undefined
   >(undefined);
-  const [loadingCredentials, setLoadingCredentials] = useState(false);
+
+  // Removed loadingCredentials as it is handled in CredentialModal now
+  // const [loadingCredentials, setLoadingCredentials] = useState(false);
 
   const fetchEnv = async () => {
     if (isNew || !customerId || !envId) return;
@@ -124,18 +126,8 @@ const EnvironmentDetail: React.FC = () => {
         await updateNode(customerId, envId, nodeId, values);
         message.success(t.environment.saveNodeSuccess);
       } else {
-        const res = await createNode(customerId, envId, values);
-        nodeId = res.id;
+        await createNode(customerId, envId, values);
         message.success(t.environment.saveNodeSuccess);
-      }
-
-      if (nodeId && values.credentials) {
-        await updateNodeCredentials(
-          customerId,
-          envId,
-          nodeId,
-          values.credentials
-        );
       }
 
       setNodeModalVisible(false);
@@ -146,19 +138,14 @@ const EnvironmentDetail: React.FC = () => {
     }
   };
 
-  const onEditNode = async (node: EnvironmentNode) => {
-    if (!customerId || !envId) return;
-    try {
-      setCurrentNode(node);
-      setLoadingCredentials(true);
-      const creds = await listNodeCredentials(customerId, envId, node.id);
-      setCurrentNode({ ...node, credentials: creds });
-      setNodeModalVisible(true);
-    } catch (err) {
-      message.error("Failed");
-    } finally {
-      setLoadingCredentials(false);
-    }
+  const onEditNode = (node: EnvironmentNode) => {
+    setCurrentNode(node);
+    setNodeModalVisible(true);
+  };
+
+  const onManageCreds = (node: EnvironmentNode) => {
+    setCurrentNode(node);
+    setCredModalVisible(true);
   };
 
   const onDeleteNode = async (nodeId: string) => {
@@ -188,12 +175,11 @@ const EnvironmentDetail: React.FC = () => {
       key: "action",
       render: (_: any, r: EnvironmentNode) => (
         <div className="space-x-2">
-          <Button
-            type="link"
-            loading={loadingCredentials && currentNode?.id === r.id}
-            onClick={() => onEditNode(r)}
-          >
+          <Button type="link" onClick={() => onEditNode(r)}>
             {t.environment.edit}
+          </Button>
+          <Button type="link" onClick={() => onManageCreds(r)}>
+            {t.environment.credentials}
           </Button>
           <Button type="link" danger onClick={() => onDeleteNode(r.id)}>
             {t.customerList.delete}
@@ -319,6 +305,16 @@ const EnvironmentDetail: React.FC = () => {
         onOk={onSaveNode}
         initialValues={currentNode}
       />
+
+      {currentNode && customerId && envId && (
+        <CredentialModal
+          visible={credModalVisible}
+          onCancel={() => setCredModalVisible(false)}
+          customerId={customerId}
+          envId={envId}
+          nodeId={currentNode.id!}
+        />
+      )}
     </div>
   );
 };

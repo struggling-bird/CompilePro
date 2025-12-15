@@ -72,13 +72,13 @@ export const listNodes = async (
   customerId: string,
   envId: string
 ): Promise<EnvironmentNode[]> => {
-  const res = await request<{ data: EnvironmentNode[] }>(
+  const res = await request<{ list: EnvironmentNode[] }>(
     `/apis/customers/${customerId}/environments/${envId}/nodes`,
     {
       method: "GET",
     }
   );
-  return res.data || [];
+  return res.list || [];
 };
 
 export const getNode = async (
@@ -139,18 +139,50 @@ export const deleteNode = async (
   );
 };
 
-// Credential APIs (if needed separately, otherwise handled via Node update if backend supports it, but instruction says separate APIs available)
-export const updateNodeCredentials = async (
+// Credential APIs
+export const createNodeCredential = async (
   customerId: string,
   envId: string,
   nodeId: string,
-  credentials: NodeCredential[]
-): Promise<void> => {
-  await request(
+  data: Partial<NodeCredential>
+): Promise<NodeCredential> => {
+  const res = await request<{ id: string }>(
     `/apis/customers/${customerId}/environments/${envId}/nodes/${nodeId}/credentials`,
     {
+      method: "POST",
+      data,
+    }
+  );
+  return { ...data, id: res.id } as NodeCredential;
+};
+
+export const updateNodeCredential = async (
+  customerId: string,
+  envId: string,
+  nodeId: string,
+  credId: string,
+  data: Partial<NodeCredential>
+): Promise<NodeCredential> => {
+  const res = await request<{ id: string }>(
+    `/apis/customers/${customerId}/environments/${envId}/nodes/${nodeId}/credentials/${credId}`,
+    {
       method: "PUT",
-      data: { credentials },
+      data,
+    }
+  );
+  return { ...data, id: res.id } as NodeCredential;
+};
+
+export const deleteNodeCredential = async (
+  customerId: string,
+  envId: string,
+  nodeId: string,
+  credId: string
+): Promise<void> => {
+  await request(
+    `/apis/customers/${customerId}/environments/${envId}/nodes/${nodeId}/credentials/${credId}`,
+    {
+      method: "DELETE",
     }
   );
 };

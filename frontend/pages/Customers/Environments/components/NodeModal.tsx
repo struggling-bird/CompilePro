@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
-import { Modal, Form, Input, Select, Button, Space } from "antd";
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { Modal, Form, Input, Select } from "antd";
 import { useLanguage } from "../../../../contexts/LanguageContext";
 import { EnvironmentNode } from "../../../../types";
 
@@ -27,8 +26,6 @@ const NodeModal: React.FC<Props> = ({
       form.resetFields();
       if (initialValues) {
         form.setFieldsValue(initialValues);
-      } else {
-        form.setFieldsValue({ credentials: [] });
       }
     }
   }, [visible, initialValues, form]);
@@ -131,62 +128,6 @@ const NodeModal: React.FC<Props> = ({
         <Form.Item name="remark" label={t.environment.remark}>
           <Input.TextArea />
         </Form.Item>
-
-        <Form.List name="credentials">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <Space
-                  key={key}
-                  style={{ display: "flex", marginBottom: 8 }}
-                  align="baseline"
-                >
-                  <Form.Item
-                    {...restField}
-                    name={[name, "type"]}
-                    rules={[
-                      { required: true, message: t.environment.required },
-                    ]}
-                  >
-                    <Input placeholder={t.environment.type + " (e.g. root)"} />
-                  </Form.Item>
-                  <Form.Item
-                    {...restField}
-                    name={[name, "username"]}
-                    rules={[
-                      { required: true, message: t.environment.required },
-                    ]}
-                  >
-                    <Input placeholder={t.environment.username} />
-                  </Form.Item>
-                  <Form.Item
-                    {...restField}
-                    name={[name, "password"]}
-                    rules={[
-                      { required: true, message: t.environment.required },
-                    ]}
-                  >
-                    <Input.Password placeholder={t.environment.password} />
-                  </Form.Item>
-                  <Form.Item {...restField} name={[name, "description"]}>
-                    <Input placeholder={t.environment.description} />
-                  </Form.Item>
-                  <MinusCircleOutlined onClick={() => remove(name)} />
-                </Space>
-              ))}
-              <Form.Item>
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
-                >
-                  {t.environment.addCredential}
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
       </Form>
     </Modal>
   );
