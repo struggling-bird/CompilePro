@@ -47,6 +47,43 @@ export const createProject = async (payload: {
   });
 };
 
+export const getProjectDetail = async (
+  projectId: string
+): Promise<{
+  id: string;
+  name: string;
+  gitUrl: string;
+  description?: string | null;
+  versions: Array<{
+    id: string;
+    version: string;
+    createdAt: string;
+    sourceType: "branch" | "tag";
+    sourceValue: string;
+    status: "enabled" | "disabled";
+  }>;
+}> => {
+  return request(`/apis/metaprojects/${projectId}`, {
+    method: "GET",
+  });
+};
+
+export const getCloneStatus = async (
+  projectId: string
+): Promise<{ status: string; message?: string }> => {
+  return request(`/apis/metaprojects/${projectId}/clone/status`, {
+    method: "GET",
+  });
+};
+
+export const retryClone = async (
+  projectId: string
+): Promise<{ ok: boolean }> => {
+  return request(`/apis/metaprojects/${projectId}/clone/retry`, {
+    method: "POST",
+  });
+};
+
 export const createVersion = async (
   projectId: string,
   payload: {

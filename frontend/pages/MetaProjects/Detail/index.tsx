@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeftOutlined,
@@ -19,11 +19,16 @@ import {
   Col,
   Alert,
 } from "antd";
-import { MOCK_PROJECTS } from "@/constants";
 import { Project } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AddVersionModal from "../components/AddVersionModal";
 import FileEditorDrawer from "../components/FileEditorDrawer";
+import {
+  getProjectDetail,
+  getCloneStatus,
+  retryClone,
+} from "@/services/metaprojects";
+import { message } from "antd";
 
 const { Title, Text, Link } = Typography;
 
@@ -31,13 +36,74 @@ const ProjectDetail: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const project = MOCK_PROJECTS.find((p) => p.id === projectId) as Project;
-
-  const [activeVersion, setActiveVersion] = useState(project?.latestVersion);
+  const [project, setProject] = useState<Project | null>(null);
+  const [activeVersion, setActiveVersion] = useState<string>("");
   const [showAddVersionModal, setShowAddVersionModal] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [cloneStatus, setCloneStatus] = useState<string>("idle");
+  const [cloneMessage, setCloneMessage] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  if (!project) return <div>Project not found</div>;
+  useEffect(() => {
+    let mounted = true;
+    const fetchDetail = async () => {
+      if (!projectId) return;
+      try {
+        setLoading(true);
+        const res = await getProjectDetail(projectId);
+        const versions = (res.versions ?? []).map((v) => ({
+          id: v.id,
+          version: v.version,
+          date: v.createdAt,
+          type: v.sourceType,
+          isDeprecated: v.status === "disabled",
+          ref: v.sourceValue,
+        }));
+        const latest = versions[0]?.version ?? "";
+        const proj: Project = {
+          id: res.id,
+          name: res.name,
+          latestVersion: latest,
+          readmeUrl: "",
+          buildDocUrl: "",
+          versions,
+          gitRepo: res.gitUrl,
+          description: res.description ?? undefined,
+        } as Project;
+        if (mounted) {
+          setProject(proj);
+          setActiveVersion(latest);
+        }
+      } catch (err: any) {
+        message.error(err?.message || "加载详情失败");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetail();
+    return () => {
+      mounted = false;
+    };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    const tick = async () => {
+      try {
+        const s = await getCloneStatus(projectId);
+        setCloneStatus(s.status);
+        setCloneMessage(s.message || "");
+      } catch (err: any) {
+        setCloneStatus("idle");
+        setCloneMessage(err?.message || "");
+      }
+    };
+    tick();
+    const timer = setInterval(tick, 3000);
+    return () => clearInterval(timer);
+  }, [projectId]);
+
+  if (!project) return <div style={{ padding: 24 }}>项目不存在或加载中...</div>;
 
   const handleAddVersion = (values: any) => {
     console.log("Adding version:", values);
@@ -94,7 +160,7 @@ const ProjectDetail: React.FC = () => {
           <Button
             type="text"
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/projects")}
+            onClick={() => navigate("/meta-projects")}
           >
             {t.projectDetail.back}
           </Button>
@@ -102,17 +168,59 @@ const ProjectDetail: React.FC = () => {
             {project.name}
           </Title>
           <Text type="secondary">|</Text>
-          <Link href="#" target="_blank">
-            <BranchesOutlined /> http://git.zhugeio.com/frontend/webapp
+          <Link href={project.gitRepo || "#"} target="_blank">
+            <BranchesOutlined /> {project.gitRepo || "Git仓库"}
           </Link>
         </Space>
       </div>
 
       <div style={{ flex: 1, overflow: "auto", padding: 24 }}>
+        {/* Clone Status */}
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Space style={{ width: "100%", justifyContent: "space-between" }}>
+            <div>
+              <Text>克隆进度：</Text>
+              <Tag
+                color={
+                  cloneStatus === "success"
+                    ? "green"
+                    : cloneStatus === "error"
+                    ? "red"
+                    : "blue"
+                }
+              >
+                {cloneStatus}
+              </Tag>
+              {cloneMessage ? (
+                <Text type="secondary" style={{ marginLeft: 8 }}>
+                  {cloneMessage}
+                </Text>
+              ) : null}
+            </div>
+            <Button
+              onClick={async () => {
+                if (!projectId) return;
+                try {
+                  await retryClone(projectId);
+                  message.success("已重新发起克隆");
+                } catch (err: any) {
+                  message.error(err?.message || "重试失败");
+                }
+              }}
+              disabled={cloneStatus === "running"}
+            >
+              重新尝试
+            </Button>
+          </Space>
+        </Card>
         {/* Config & Build */}
         <Row gutter={24}>
           <Col span={8}>
-            <Card title={t.projectDetail.compilationCommands} size="small">
+            <Card
+              title={t.projectDetail.compilationCommands}
+              size="small"
+              loading={loading}
+            >
               <Space orientation="vertical" style={{ width: "100%" }}>
                 {["yarn", "npm run build"].map((cmd, idx) => (
                   <Alert

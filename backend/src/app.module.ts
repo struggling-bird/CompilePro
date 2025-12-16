@@ -26,6 +26,7 @@ import { EnvironmentsModule } from './environments/environments.module';
 import { CustomersModule } from './customers/customers.module';
 import { SystemModule } from './system/system.module';
 import { MetaprojectsModule } from './metaprojects/metaprojects.module';
+import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
   imports: [
@@ -106,6 +107,7 @@ import { MetaprojectsModule } from './metaprojects/metaprojects.module';
     EnvironmentsModule,
     SystemModule,
     MetaprojectsModule,
+    WorkspaceModule,
   ],
   controllers: [],
   providers: [],

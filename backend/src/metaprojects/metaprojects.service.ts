@@ -13,6 +13,7 @@ import { UpdateCommandsDto } from './dto/commands.dto';
 import { AuditService } from '../audit/audit.service';
 import { RedisService } from '../redis/redis.service';
 import { GitlabService } from '../gitlab/gitlab.service';
+import { WorkspaceService } from '../workspace/workspace.service';
 
 @Injectable()
 export class MetaprojectsService {
@@ -26,6 +27,7 @@ export class MetaprojectsService {
     private readonly audit: AuditService,
     private readonly redis: RedisService,
     private readonly gitlab: GitlabService,
+    private readonly workspace: WorkspaceService,
   ) {}
 
   async createProject(userId: string, dto: CreateProjectDto) {
@@ -50,6 +52,15 @@ export class MetaprojectsService {
       } as Partial<ProjectVersion>);
       await this.versions.save(v);
     }
+    this.workspace
+      .cloneProject(
+        userId,
+        saved.id,
+        dto.gitUrl,
+        dto.sourceType,
+        dto.sourceValue,
+      )
+      .catch(() => undefined);
     return saved;
   }
 
@@ -106,6 +117,20 @@ export class MetaprojectsService {
       createdAt: p.createdAt,
       versions,
     };
+  }
+
+  async retryClone(userId: string, projectId: string) {
+    const p = await this.projects.findOne({ where: { id: projectId } });
+    if (!p) throw new HttpException('项目不存在', 404);
+    const v = await this.VLatestOfProject(projectId);
+    await this.workspace
+      .cloneProject(userId, projectId, p.gitUrl, v?.sourceType, v?.sourceValue)
+      .catch(() => undefined);
+    return { ok: true };
+  }
+
+  async cloneStatus(userId: string, projectId: string) {
+    return this.workspace.cloneStatus(userId, projectId);
   }
 
   async createVersion(
@@ -320,15 +345,17 @@ export class MetaprojectsService {
     if (!settings) throw new HttpException('未配置 Git 绑定', 400);
     const projectPath = this.parseProjectPath(gitUrl);
     const encoded = encodeURIComponent(projectPath);
-    const res = await this.gitlab.request<any[]>(
+    const res = await this.gitlab.request<unknown>(
       settings.apiEndpoint,
       settings.accessToken,
       `/projects/${encoded}/repository/branches?per_page=100`,
       'GET',
     );
-    const list = (Array.isArray(res) ? res : []).map((b: any) => ({
-      name: b?.name ?? '',
-    }));
+    const arr = Array.isArray(res) ? (res as unknown[]) : [];
+    const list = arr.map((b) => {
+      const name = (b as Record<string, unknown>)?.['name'];
+      return { name: typeof name === 'string' ? name : '' };
+    });
     return { list };
   }
 
@@ -337,15 +364,17 @@ export class MetaprojectsService {
     if (!settings) throw new HttpException('未配置 Git 绑定', 400);
     const projectPath = this.parseProjectPath(gitUrl);
     const encoded = encodeURIComponent(projectPath);
-    const res = await this.gitlab.request<any[]>(
+    const res = await this.gitlab.request<unknown>(
       settings.apiEndpoint,
       settings.accessToken,
       `/projects/${encoded}/repository/tags?per_page=100`,
       'GET',
     );
-    const list = (Array.isArray(res) ? res : []).map((t: any) => ({
-      name: t?.name ?? '',
-    }));
+    const arr = Array.isArray(res) ? (res as unknown[]) : [];
+    const list = arr.map((t) => {
+      const name = (t as Record<string, unknown>)?.['name'];
+      return { name: typeof name === 'string' ? name : '' };
+    });
     return { list };
   }
 }

@@ -8,6 +8,7 @@ import { MetaprojectsController } from './metaprojects.controller';
 import { AuditModule } from '../audit/audit.module';
 import { RedisModule } from '../redis/redis.module';
 import { GitlabModule } from '../gitlab/gitlab.module';
+import { WorkspaceModule } from '../workspace/workspace.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { GitlabModule } from '../gitlab/gitlab.module';
     AuditModule,
     RedisModule,
     GitlabModule,
+    WorkspaceModule,
   ],
   providers: [MetaprojectsService],
   controllers: [MetaprojectsController],

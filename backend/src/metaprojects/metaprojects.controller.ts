@@ -70,6 +70,28 @@ export class MetaprojectsController {
     return this.svc.getProjectDetail(projectId);
   }
 
+  @Get(':projectId/clone/status')
+  @ApiOperation({ summary: '查询克隆进度' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async cloneStatus(
+    @Param('projectId') projectId: string,
+    @Req() req: { user: { userId: string } },
+  ) {
+    return this.svc.cloneStatus(req.user.userId, projectId);
+  }
+
+  @Post(':projectId/clone/retry')
+  @ApiOperation({ summary: '重新尝试克隆仓库' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async retryClone(
+    @Param('projectId') projectId: string,
+    @Req() req: { user: { userId: string } },
+  ) {
+    return this.svc.retryClone(req.user.userId, projectId);
+  }
+
   @Post(':projectId/versions')
   @ApiOperation({ summary: '版本新增' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
