@@ -221,6 +221,7 @@ export class MetaprojectsService {
     c.type = dto.type;
     c.textOrigin = dto.textOrigin ?? undefined;
     c.textTarget = dto.textTarget ?? undefined;
+    c.matchIndex = dto.matchIndex ?? 0;
     c.fileOriginPath = dto.fileOriginPath ?? undefined;
     c.fileTargetUrl = dto.fileTargetUrl ?? undefined;
     c.description = dto.description ?? undefined;

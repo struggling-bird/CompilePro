@@ -43,12 +43,21 @@ const ConfigTable: React.FC<ConfigTableProps> = ({
       width: 200,
     },
     {
-      title: "正则表达式",
+      title: "正则表达式 / 索引",
       key: "pattern",
-      width: 200,
+      width: 250,
       render: (_: any, record: VersionConfig) => {
         if (record.type === "TEXT") {
-          return record.textOrigin;
+          return (
+            <span>
+              {record.textOrigin}
+              {record.matchIndex !== undefined && record.matchIndex > 0 && (
+                <span style={{ marginLeft: 8, color: "#faad14", fontSize: 12 }}>
+                  (Idx: {record.matchIndex})
+                </span>
+              )}
+            </span>
+          );
         }
         return "-";
       },
