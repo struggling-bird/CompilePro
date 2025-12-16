@@ -12,7 +12,11 @@ import {
 } from "antd";
 import { SaveOutlined, ReloadOutlined, ToolOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
-import { checkGit, installGitGuide } from "../../../services/system";
+import {
+  checkGit,
+  installGitGuide,
+  saveGitSettings,
+} from "../../../services/system";
 
 const { Text } = Typography;
 
@@ -67,9 +71,13 @@ const GitSettings: React.FC = () => {
     }
   };
 
-  const handleSave = (values: any) => {
-    console.log("Saving git settings:", values);
-    alert("Git settings saved successfully!");
+  const handleSave = async (values: any) => {
+    await saveGitSettings({
+      gitName: values.gitName,
+      apiEndpoint: values.apiEndpoint,
+      accessToken: values.accessToken,
+    });
+    message.success(t.settings.saveAll);
   };
 
   return (
@@ -121,20 +129,12 @@ const GitSettings: React.FC = () => {
           )}
         </Space>
       </div>
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSave}
-        initialValues={{
-          gitUsername: "zhuge-git",
-          pushEmail: true,
-        }}
-      >
+      <Form form={form} layout="vertical" onFinish={handleSave}>
         <Row gutter={24}>
           <Col span={12}>
             <Form.Item
-              name="gitUsername"
-              label={t.settings.gitUsername}
+              name="gitName"
+              label={t.settings.gitName}
               rules={[{ required: true }]}
             >
               <Input />
@@ -142,21 +142,20 @@ const GitSettings: React.FC = () => {
           </Col>
           <Col span={12}>
             <Form.Item
-              name="gitToken"
-              label={
-                <span>
-                  {t.settings.token}
-                  <a
-                    href={installGitGuide}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600"
-                    style={{ marginLeft: 4 }}
-                  >
-                    {t.settings.howToGetToken}
-                  </a>
-                </span>
-              }
+              name="apiEndpoint"
+              label={t.settings.apiEndpoint}
+              rules={[{ required: true, type: "url" }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={24}>
+          <Col span={12}>
+            <Form.Item
+              name="accessToken"
+              label={t.settings.accessToken}
+              rules={[{ required: true }]}
             >
               <Input.Password />
             </Form.Item>

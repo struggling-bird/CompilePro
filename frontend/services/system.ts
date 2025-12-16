@@ -55,3 +55,18 @@ export const installGitGuide = async (): Promise<{
     { method: "POST" }
   );
 };
+
+export type GitSettingsPayload = {
+  gitName: string;
+  apiEndpoint: string;
+  accessToken: string;
+};
+
+export const saveGitSettings = async (
+  payload: GitSettingsPayload
+): Promise<void> => {
+  await request("/apis/system/git/settings", {
+    method: "PUT",
+    data: payload,
+  });
+};
