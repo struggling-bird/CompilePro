@@ -1,27 +1,43 @@
-import React from 'react';
-import { Form, Input, Button, Row, Col } from 'antd';
-import { SaveOutlined } from '@ant-design/icons';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import React, { useState } from "react";
+import { Form, Input, Button, Row, Col, message } from "antd";
+import { SaveOutlined } from "@ant-design/icons";
+import { useLanguage } from "../../../contexts/LanguageContext";
+import { updateAccount } from "../../../services/users";
+import { getCurrentUser } from "../../../services/auth";
 
 const AccountSettings: React.FC = () => {
   const { t } = useLanguage();
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = (values: any) => {
-    console.log('Saving account settings:', values);
-    alert('Account settings saved successfully!');
+  React.useEffect(() => {
+    const load = async () => {
+      try {
+        const me = await getCurrentUser();
+        form.setFieldsValue({
+          username: me.username,
+          email: me.email,
+        });
+      } catch (err) {}
+    };
+    load();
+  }, []);
+
+  const handleSave = async (values: any) => {
+    try {
+      setLoading(true);
+      await updateAccount(values);
+      message.success(t.common?.saved ?? "保存成功");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "保存失败";
+      message.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={handleSave}
-      initialValues={{
-        username: 'zhuge',
-        email: 'zhuge@zhugeio.com',
-      }}
-    >
+    <Form form={form} layout="vertical" onFinish={handleSave}>
       <Row gutter={24}>
         <Col span={12}>
           <Form.Item
@@ -36,7 +52,7 @@ const AccountSettings: React.FC = () => {
           <Form.Item
             name="email"
             label={t.settings.email}
-            rules={[{ required: true, type: 'email' }]}
+            rules={[{ required: true, type: "email" }]}
           >
             <Input />
           </Form.Item>
@@ -53,7 +69,12 @@ const AccountSettings: React.FC = () => {
         </Col>
       </Row>
       <Form.Item className="flex justify-end">
-        <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          icon={<SaveOutlined />}
+          loading={loading}
+        >
           {t.settings.saveAll}
         </Button>
       </Form.Item>

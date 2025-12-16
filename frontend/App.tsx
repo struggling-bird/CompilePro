@@ -15,6 +15,7 @@ import { ConfigProvider } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import enUS from "antd/locale/en_US";
 import { getCurrentUser } from "./services/auth";
+import { getUserById } from "./services/users";
 
 const AppContent: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -23,6 +24,9 @@ const AppContent: React.FC = () => {
   const [initialized, setInitialized] = useState(false);
   const [currentUser, setCurrentUser] = useState("zhuge@zhugeio.com");
   const [activeTab, setActiveTab] = useState<TabView>(TabView.PROJECTS);
+  const [currentUserRole, setCurrentUserRole] = useState<string | undefined>(
+    undefined
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,7 +43,11 @@ const AppContent: React.FC = () => {
     setIsAuthenticated(true);
     try {
       const me = await getCurrentUser();
-      setCurrentUser(me.email ?? email);
+      setCurrentUser(me.username ?? me.email ?? email);
+      try {
+        const detail = await getUserById(me.id);
+        setCurrentUserRole(detail.role?.name || undefined);
+      } catch {}
     } catch (err) {
       console.error("fetch me error:", err);
       setCurrentUser(email);
@@ -90,7 +98,13 @@ const AppContent: React.FC = () => {
     if (token) {
       setIsAuthenticated(true);
       getCurrentUser()
-        .then((me) => setCurrentUser(me.email ?? me.username))
+        .then(async (me) => {
+          setCurrentUser(me.username ?? me.email);
+          try {
+            const detail = await getUserById(me.id);
+            setCurrentUserRole(detail.role?.name || undefined);
+          } catch {}
+        })
         .catch((err) => console.error("init fetch me error:", err))
         .finally(() => setInitialized(true));
     } else {
@@ -128,6 +142,7 @@ const AppContent: React.FC = () => {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       userEmail={currentUser}
+      userRoleName={currentUserRole}
       onLogout={handleLogout}
     >
       <Suspense fallback={<div />}>

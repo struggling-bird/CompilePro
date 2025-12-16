@@ -26,6 +26,7 @@ interface LayoutProps {
   activeTab: TabView;
   onTabChange: (tab: TabView) => void;
   userEmail: string;
+  userRoleName?: string;
   onLogout: () => void;
 }
 
@@ -43,6 +44,7 @@ const Layout: React.FC<LayoutProps> = ({
   onTabChange,
   userEmail,
   onLogout,
+  userRoleName,
 }) => {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -352,7 +354,7 @@ const Layout: React.FC<LayoutProps> = ({
             >
               {language === "en" ? "EN" : "中文"}
             </Button>
-            <div className="h-6 w-px bg-slate-200 mx-2" />
+            <div className="h-6 w-px bg-slate-600/40 mx-2" />
             <Dropdown
               menu={{
                 items: [
@@ -376,14 +378,25 @@ const Layout: React.FC<LayoutProps> = ({
               }}
             >
               <div className="flex items-center space-x-3 pl-1 cursor-pointer">
-                <Avatar style={{ backgroundColor: "#2563eb" }}>
+                <Avatar
+                  style={{ backgroundColor: "#3b82f6" }}
+                  className="shadow-sm ring-1 ring-white/30"
+                >
                   {userEmail.charAt(0).toUpperCase()}
                 </Avatar>
                 <div className="hidden sm:flex flex-col items-start">
-                  <span className="text-sm font-semibold text-slate-700 leading-none">
-                    {userEmail.split("@")[0]}
+                  <span className="text-sm font-semibold text-slate-100 leading-none">
+                    {userEmail.includes("@")
+                      ? userEmail.split("@")[0]
+                      : userEmail}
                   </span>
-                  <span className="text-xs text-slate-400 mt-0.5">Admin</span>
+                  <span className="text-xs text-slate-300 mt-0.5">
+                    {userRoleName && userRoleName.trim()
+                      ? userRoleName
+                      : language === "zh"
+                      ? "成员"
+                      : "Member"}
+                  </span>
                 </div>
               </div>
             </Dropdown>

@@ -104,4 +104,48 @@ export class UsersService {
     await this.repo.save(user);
     return { id: user.id, role: { name: role.name } };
   }
+
+  async updateProfile(
+    userId: string,
+    payload: {
+      username?: string;
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+    },
+  ) {
+    const user = await this.repo.findOne({ where: { id: userId } });
+    if (!user) throw new Error('用户不存在');
+
+    if (payload.username && payload.username !== user.username) {
+      const exists = await this.getByUsername(payload.username);
+      if (exists) throw new Error('用户名已存在');
+      user.username = payload.username;
+    }
+
+    if (payload.email && payload.email !== user.email) {
+      const existsEmail = await this.getByEmail(payload.email);
+      if (existsEmail) throw new Error('邮箱已存在');
+      user.email = payload.email;
+    }
+
+    if (payload.password) {
+      if (
+        !payload.confirmPassword ||
+        payload.confirmPassword !== payload.password
+      ) {
+        throw new Error('确认密码与密码不一致');
+      }
+      user.password = await bcrypt.hash(payload.password, 10);
+    }
+
+    const saved = await this.repo.save(user);
+    return {
+      id: saved.id,
+      username: saved.username,
+      email: saved.email,
+      status: saved.status,
+      createdAt: saved.createdAt,
+    };
+  }
 }
