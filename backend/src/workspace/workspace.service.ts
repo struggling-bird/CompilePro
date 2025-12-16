@@ -91,14 +91,56 @@ export class WorkspaceService {
     } catch {
       void 0;
     }
-    const args: string[] = ['clone'];
+    const args: string[] = [];
+    const isHttp = this.isHttpUrl(gitUrl);
+    if (isHttp) {
+      const basic = await this.getUserGitBasicAuth(userId);
+      if (!basic) {
+        await this.redis.set(
+          progressKey,
+          JSON.stringify({
+            status: 'error',
+            message: 'HTTP 仓库需要配置用户名密码',
+            event: 'credential_required',
+          }),
+          3600,
+        );
+        this.logger.warn(
+          JSON.stringify({
+            event: 'git_clone_blocked_no_credentials',
+            gitUrl,
+            targetDir,
+          }),
+          'Workspace',
+        );
+        return;
+      }
+      const base64 = Buffer.from(
+        `${basic.username}:${basic.password}`,
+      ).toString('base64');
+      args.push('-c', `http.extraHeader=Authorization: Basic ${base64}`);
+    }
+    args.push('clone');
     if (sourceType === 'branch' && sourceValue) {
       args.push('--branch', sourceValue);
     }
     args.push(gitUrl, targetDir);
-    const child = spawn('git', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const sanitizedArgs = args.map((a) =>
+      a.startsWith('http.extraHeader=Authorization: Basic ')
+        ? 'http.extraHeader=Authorization: Basic ***'
+        : a,
+    );
+    const child = spawn('git', args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+    });
     this.logger.log(
-      JSON.stringify({ event: 'git_clone_start', gitUrl, targetDir, args }),
+      JSON.stringify({
+        event: 'git_clone_start',
+        gitUrl,
+        targetDir,
+        args: sanitizedArgs,
+      }),
       'Workspace',
     );
     await this.redis.set(
@@ -202,6 +244,27 @@ export class WorkspaceService {
         finish();
       });
     });
+  }
+
+  private isHttpUrl(url: string): boolean {
+    return /^https?:\/\//i.test(url.trim());
+  }
+
+  private async getUserGitBasicAuth(
+    userId: string,
+  ): Promise<{ username: string; password: string } | null> {
+    const raw = await this.redis.get(`git:settings:${userId}`);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as {
+        gitUsername?: string;
+        gitPassword?: string;
+      };
+      if (!parsed.gitUsername || !parsed.gitPassword) return null;
+      return { username: parsed.gitUsername, password: parsed.gitPassword };
+    } catch {
+      return null;
+    }
   }
 
   private async checkoutTag(dir: string, tag: string): Promise<void> {
