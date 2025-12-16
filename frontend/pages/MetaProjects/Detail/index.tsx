@@ -4,7 +4,6 @@ import {
   ArrowLeftOutlined,
   BranchesOutlined,
   PlusOutlined,
-  CloseOutlined,
   TagOutlined,
 } from "@ant-design/icons";
 import {
@@ -15,8 +14,6 @@ import {
   Steps,
   Typography,
   Space,
-  Row,
-  Col,
   Modal,
   Input,
   Alert,
@@ -345,68 +342,65 @@ const ProjectDetail: React.FC = () => {
             </Button>
           </Space>
         </Card>
-        {/* Config & Build */}
-        <Row gutter={24}>
-          <Col span={8}>
-            <Card
-              title={t.projectDetail.compilationCommands}
+        {/* Config List */}
+        <Card
+          title="配置列表"
+          size="small"
+          style={{ marginBottom: 24 }}
+          extra={
+            <Button
+              type="primary"
               size="small"
-              loading={loading}
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingConfig(undefined);
+                setShowConfigModal(true);
+              }}
             >
-              <Space orientation="vertical" style={{ width: "100%" }}>
-                {(
-                  project.versions.find((v) => v.version === activeVersion)
-                    ?.compileCommands || []
-                ).map((cmd, idx) => (
-                  <Alert
-                    key={idx}
-                    message={cmd}
-                    type="info"
-                    closable
-                    onClose={() => handleDeleteCmd(idx)}
-                  />
-                ))}
-                <Button
-                  type="dashed"
-                  block
-                  icon={<PlusOutlined />}
-                  onClick={() => setShowCmdModal(true)}
-                >
-                  {t.projectDetail.newCmd}
-                </Button>
-              </Space>
-            </Card>
-          </Col>
-          <Col span={16}>
-            <Card
-              title="配置列表"
-              size="small"
-              extra={
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={() => {
-                    setEditingConfig(undefined);
-                    setShowConfigModal(true);
-                  }}
-                >
-                  添加配置项
-                </Button>
-              }
-            >
-              <ConfigTable
-                loading={configsLoading}
-                dataSource={configs}
-                onEdit={(record) => {
-                  setEditingConfig(record);
-                  setShowConfigModal(true);
-                }}
-                onDelete={handleDeleteConfig}
+              添加配置项
+            </Button>
+          }
+        >
+          <ConfigTable
+            loading={configsLoading}
+            dataSource={configs}
+            onEdit={(record) => {
+              setEditingConfig(record);
+              setShowConfigModal(true);
+            }}
+            onDelete={handleDeleteConfig}
+          />
+        </Card>
+
+        {/* Build Commands */}
+        <Card
+          title={t.projectDetail.compilationCommands}
+          size="small"
+          loading={loading}
+        >
+          <Space orientation="vertical" style={{ width: "100%" }}>
+            {(
+              project.versions.find((v) => v.version === activeVersion)
+                ?.compileCommands || []
+            ).map((cmd, idx) => (
+              <Alert
+                key={idx}
+                message={cmd}
+                type="info"
+                closable
+                onClose={() => handleDeleteCmd(idx)}
               />
-            </Card>
-          </Col>
-        </Row>
+            ))}
+            <Button
+              type="dashed"
+              block
+              icon={<PlusOutlined />}
+              onClick={() => setShowCmdModal(true)}
+            >
+              {t.projectDetail.newCmd}
+            </Button>
+          </Space>
+        </Card>
 
         {/* Timeline */}
         <Card
