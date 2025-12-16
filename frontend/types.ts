@@ -55,6 +55,24 @@ export interface GitConfig {
   pushWechat?: boolean;
 }
 
+export interface SystemCheckItem {
+  name: string;
+  installed: boolean;
+  version?: string;
+  versionManager?: {
+    name: string;
+    installed: boolean;
+    version?: string;
+  };
+  error?: string;
+}
+
+export interface SystemEnvironment {
+  git: SystemCheckItem;
+  java: SystemCheckItem;
+  nodejs: SystemCheckItem;
+}
+
 // --- Template / Suite System Definitions ---
 
 export interface TemplateGlobalConfig {

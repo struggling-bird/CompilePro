@@ -34,7 +34,7 @@ const Pages = {
   MemberDetail: lazy(() => import("../pages/Members/Detail")),
   RoleList: lazy(() => import("../pages/Roles/List")),
   RoleDetail: lazy(() => import("../pages/Roles/Detail")),
-  SettingsPage: lazy(() => import("../pages/SettingsPage")),
+  SettingsPage: lazy(() => import("../pages/Settings")),
 };
 
 export const routes: RouteItem[] = [
