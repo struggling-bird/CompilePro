@@ -25,4 +25,20 @@ export class GitSettingsDto {
   @IsString()
   @IsNotEmpty()
   accessToken: string;
+
+  @ApiProperty({
+    description: 'git账户名（如使用 Basic Auth 可选填）',
+    example: 'root',
+    required: false,
+  })
+  @IsString()
+  gitUsername?: string;
+
+  @ApiProperty({
+    description: 'git密码（如使用 Basic Auth 可选填）',
+    example: 'your-password',
+    required: false,
+  })
+  @IsString()
+  gitPassword?: string;
 }

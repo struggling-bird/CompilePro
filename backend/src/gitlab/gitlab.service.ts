@@ -43,13 +43,40 @@ export class GitlabService {
       .catch(() => false);
   }
 
+  async validateAny(
+    apiRoot: string,
+    token?: string,
+    basicAuth?: { username: string; password: string },
+  ): Promise<boolean> {
+    if (token) {
+      const okByToken = await this.validate(apiRoot, token);
+      if (okByToken) return true;
+    }
+    if (basicAuth) {
+      return this.request<boolean>(
+        apiRoot,
+        token ?? '',
+        '/projects',
+        'GET',
+        undefined,
+        { basicAuth },
+      )
+        .then(() => true)
+        .catch(() => false);
+    }
+    return false;
+  }
+
   request<T = unknown>(
     apiRoot: string,
     token: string,
     path: string,
     method: HttpMethod,
     body?: unknown,
-    options?: { usePrivateToken?: boolean },
+    options?: {
+      usePrivateToken?: boolean;
+      basicAuth?: { username: string; password: string };
+    },
   ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const root = this.normalizeRoot(apiRoot);
@@ -58,7 +85,12 @@ export class GitlabService {
         'User-Agent': 'CompilePro/1.0',
         Accept: 'application/json',
       };
-      if (options?.usePrivateToken) headers['Private-Token'] = token;
+      if (options?.basicAuth) {
+        const base = Buffer.from(
+          `${options.basicAuth.username}:${options.basicAuth.password}`,
+        ).toString('base64');
+        headers['Authorization'] = `Basic ${base}`;
+      } else if (options?.usePrivateToken) headers['Private-Token'] = token;
       else headers['Authorization'] = `Bearer ${token}`;
       let payload = '';
       if (body !== undefined) {

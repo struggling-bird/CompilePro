@@ -66,10 +66,18 @@ export class SystemService {
         gitName: dto.gitName,
         apiEndpoint: normalized,
         accessToken: dto.accessToken,
+        gitUsername: dto.gitUsername ?? '',
+        gitPassword: dto.gitPassword ?? '',
       }),
     );
 
-    const ok = await this.gitlab.validate(normalized, dto.accessToken);
+    const ok = await this.gitlab.validateAny(
+      normalized,
+      dto.accessToken,
+      dto.gitUsername && dto.gitPassword
+        ? { username: dto.gitUsername, password: dto.gitPassword }
+        : undefined,
+    );
     if (!ok) {
       throw new HttpException('Git 绑定校验失败（令牌或地址无效）', 400);
     }
@@ -78,20 +86,37 @@ export class SystemService {
 
   async getGitSettings(userId: string) {
     const raw = await this.redis.get(this.redisKey(userId));
-    if (!raw) return { gitName: '', apiEndpoint: '', hasToken: false };
+    if (!raw)
+      return {
+        gitName: '',
+        apiEndpoint: '',
+        hasToken: false,
+        hasBasic: false,
+        gitUsername: '',
+      };
     try {
       const parsed = JSON.parse(raw) as {
         gitName?: string;
         apiEndpoint?: string;
         accessToken?: string;
+        gitUsername?: string;
+        gitPassword?: string;
       };
       return {
         gitName: parsed.gitName ?? '',
         apiEndpoint: parsed.apiEndpoint ?? '',
         hasToken: !!parsed.accessToken,
+        hasBasic: !!(parsed.gitUsername && parsed.gitPassword),
+        gitUsername: parsed.gitUsername ?? '',
       };
     } catch {
-      return { gitName: '', apiEndpoint: '', hasToken: false };
+      return {
+        gitName: '',
+        apiEndpoint: '',
+        hasToken: false,
+        hasBasic: false,
+        gitUsername: '',
+      };
     }
   }
 

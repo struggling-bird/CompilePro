@@ -299,20 +299,30 @@ export class MetaprojectsService {
     return { id: projectId };
   }
 
-  private async getGitSettings(
-    userId: string,
-  ): Promise<{ apiEndpoint: string; accessToken: string } | null> {
+  private async getGitSettings(userId: string): Promise<{
+    apiEndpoint: string;
+    accessToken?: string;
+    basicAuth?: { username: string; password: string };
+  } | null> {
     const raw = await this.redis.get(`git:settings:${userId}`);
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw) as {
         apiEndpoint?: string;
         accessToken?: string;
+        gitUsername?: string;
+        gitPassword?: string;
       };
-      if (!parsed.apiEndpoint || !parsed.accessToken) return null;
+      if (!parsed.apiEndpoint) return null;
+      const basicOk = parsed.gitUsername && parsed.gitPassword;
+      const tokenOk = !!parsed.accessToken;
+      if (!basicOk && !tokenOk) return null;
       return {
         apiEndpoint: parsed.apiEndpoint,
-        accessToken: parsed.accessToken,
+        accessToken: tokenOk ? parsed.accessToken : undefined,
+        basicAuth: basicOk
+          ? { username: parsed.gitUsername!, password: parsed.gitPassword! }
+          : undefined,
       };
     } catch {
       return null;
@@ -346,12 +356,29 @@ export class MetaprojectsService {
     if (!settings) throw new HttpException('未配置 Git 绑定', 400);
     const projectPath = this.parseProjectPath(gitUrl);
     const encoded = encodeURIComponent(projectPath);
-    const res = await this.gitlab.request<unknown>(
-      settings.apiEndpoint,
-      settings.accessToken,
-      `/projects/${encoded}/repository/branches?per_page=100`,
-      'GET',
-    );
+    let res: unknown;
+    try {
+      res = await this.gitlab.request<unknown>(
+        settings.apiEndpoint,
+        settings.accessToken ?? '',
+        `/projects/${encoded}/repository/branches?per_page=100`,
+        'GET',
+      );
+    } catch (e) {
+      const status = (e as { status?: number }).status ?? 0;
+      if (settings.basicAuth && (status === 401 || status === 403)) {
+        res = await this.gitlab.request<unknown>(
+          settings.apiEndpoint,
+          '',
+          `/projects/${encoded}/repository/branches?per_page=100`,
+          'GET',
+          undefined,
+          { basicAuth: settings.basicAuth },
+        );
+      } else {
+        throw e;
+      }
+    }
     const arr = Array.isArray(res) ? (res as unknown[]) : [];
     const list = arr.map((b) => {
       const name = (b as Record<string, unknown>)?.['name'];
@@ -365,12 +392,29 @@ export class MetaprojectsService {
     if (!settings) throw new HttpException('未配置 Git 绑定', 400);
     const projectPath = this.parseProjectPath(gitUrl);
     const encoded = encodeURIComponent(projectPath);
-    const res = await this.gitlab.request<unknown>(
-      settings.apiEndpoint,
-      settings.accessToken,
-      `/projects/${encoded}/repository/tags?per_page=100`,
-      'GET',
-    );
+    let res: unknown;
+    try {
+      res = await this.gitlab.request<unknown>(
+        settings.apiEndpoint,
+        settings.accessToken ?? '',
+        `/projects/${encoded}/repository/tags?per_page=100`,
+        'GET',
+      );
+    } catch (e) {
+      const status = (e as { status?: number }).status ?? 0;
+      if (settings.basicAuth && (status === 401 || status === 403)) {
+        res = await this.gitlab.request<unknown>(
+          settings.apiEndpoint,
+          '',
+          `/projects/${encoded}/repository/tags?per_page=100`,
+          'GET',
+          undefined,
+          { basicAuth: settings.basicAuth },
+        );
+      } else {
+        throw e;
+      }
+    }
     const arr = Array.isArray(res) ? (res as unknown[]) : [];
     const list = arr.map((t) => {
       const name = (t as Record<string, unknown>)?.['name'];

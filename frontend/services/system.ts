@@ -60,6 +60,8 @@ export type GitSettingsPayload = {
   gitName: string;
   apiEndpoint: string;
   accessToken: string;
+  gitUsername?: string;
+  gitPassword?: string;
 };
 
 export const saveGitSettings = async (
@@ -75,6 +77,8 @@ export type GitSettingsResponse = {
   gitName: string;
   apiEndpoint: string;
   hasToken: boolean;
+  hasBasic?: boolean;
+  gitUsername?: string;
 };
 
 export const getGitSettings = async (): Promise<GitSettingsResponse> => {

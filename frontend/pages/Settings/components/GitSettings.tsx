@@ -38,6 +38,8 @@ const GitSettings: React.FC = () => {
           gitName: s.gitName,
           apiEndpoint: s.apiEndpoint,
           accessToken: "",
+          gitUsername: s.gitUsername ?? "",
+          gitPassword: "",
         });
       } catch (err) {}
     };
@@ -90,11 +92,14 @@ const GitSettings: React.FC = () => {
   const handleSave = async (values: any) => {
     try {
       setSaving(true);
-      await saveGitSettings({
+      const payload: any = {
         gitName: values.gitName,
         apiEndpoint: values.apiEndpoint,
         accessToken: values.accessToken,
-      });
+      };
+      if (values.gitUsername) payload.gitUsername = values.gitUsername;
+      if (values.gitPassword) payload.gitPassword = values.gitPassword;
+      await saveGitSettings(payload);
       message.success(t.settings.saveAll);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "保存失败";
@@ -181,6 +186,18 @@ const GitSettings: React.FC = () => {
               label={t.settings.accessToken}
               rules={[{ required: true }]}
             >
+              <Input.Password />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="gitUsername" label={t.settings.username}>
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={24}>
+          <Col span={12}>
+            <Form.Item name="gitPassword" label={t.settings.password}>
               <Input.Password />
             </Form.Item>
           </Col>
