@@ -19,9 +19,13 @@ import { Customer } from './customers/customer.entity';
 import { Environment } from './environments/environment.entity';
 import { EnvironmentNode } from './environments/node.entity';
 import { NodeCredential } from './environments/credential.entity';
+import { MetaProject } from './metaprojects/metaproject.entity';
+import { ProjectVersion } from './metaprojects/version.entity';
+import { VersionConfig } from './metaprojects/version_config.entity';
 import { EnvironmentsModule } from './environments/environments.module';
 import { CustomersModule } from './customers/customers.module';
 import { SystemModule } from './system/system.module';
+import { MetaprojectsModule } from './metaprojects/metaprojects.module';
 
 @Module({
   imports: [
@@ -73,6 +77,9 @@ import { SystemModule } from './system/system.module';
           Environment,
           EnvironmentNode,
           NodeCredential,
+          MetaProject,
+          ProjectVersion,
+          VersionConfig,
         ],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
@@ -98,6 +105,7 @@ import { SystemModule } from './system/system.module';
     CustomersModule,
     EnvironmentsModule,
     SystemModule,
+    MetaprojectsModule,
   ],
   controllers: [],
   providers: [],
