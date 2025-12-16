@@ -356,30 +356,10 @@ export class MetaprojectsService {
     if (!settings) throw new HttpException('未配置 Git 绑定', 400);
     const projectPath = this.parseProjectPath(gitUrl);
     const encoded = encodeURIComponent(projectPath);
-    let res: unknown;
-    try {
-      res = await this.gitlab.request<unknown>(
-        settings.apiEndpoint,
-        settings.accessToken ?? '',
-        `/projects/${encoded}/repository/branches?per_page=100`,
-        'GET',
-      );
-    } catch (e) {
-      const status = (e as { status?: number }).status ?? 0;
-      if (settings.basicAuth && (status === 401 || status === 403)) {
-        res = await this.gitlab.request<unknown>(
-          settings.apiEndpoint,
-          '',
-          `/projects/${encoded}/repository/branches?per_page=100`,
-          'GET',
-          undefined,
-          { basicAuth: settings.basicAuth },
-        );
-      } else {
-        throw e;
-      }
-    }
-    const arr = Array.isArray(res) ? (res as unknown[]) : [];
+    const arr = await this.listAllPages(
+      settings,
+      `/projects/${encoded}/repository/branches`,
+    );
     const list = arr.map((b) => {
       const name = (b as Record<string, unknown>)?.['name'];
       return { name: typeof name === 'string' ? name : '' };
@@ -392,34 +372,60 @@ export class MetaprojectsService {
     if (!settings) throw new HttpException('未配置 Git 绑定', 400);
     const projectPath = this.parseProjectPath(gitUrl);
     const encoded = encodeURIComponent(projectPath);
-    let res: unknown;
-    try {
-      res = await this.gitlab.request<unknown>(
-        settings.apiEndpoint,
-        settings.accessToken ?? '',
-        `/projects/${encoded}/repository/tags?per_page=100`,
-        'GET',
-      );
-    } catch (e) {
-      const status = (e as { status?: number }).status ?? 0;
-      if (settings.basicAuth && (status === 401 || status === 403)) {
-        res = await this.gitlab.request<unknown>(
-          settings.apiEndpoint,
-          '',
-          `/projects/${encoded}/repository/tags?per_page=100`,
-          'GET',
-          undefined,
-          { basicAuth: settings.basicAuth },
-        );
-      } else {
-        throw e;
-      }
-    }
-    const arr = Array.isArray(res) ? (res as unknown[]) : [];
+    const arr = await this.listAllPages(
+      settings,
+      `/projects/${encoded}/repository/tags`,
+    );
     const list = arr.map((t) => {
       const name = (t as Record<string, unknown>)?.['name'];
       return { name: typeof name === 'string' ? name : '' };
     });
     return { list };
+  }
+
+  private async listAllPages(
+    settings: {
+      apiEndpoint: string;
+      accessToken?: string;
+      basicAuth?: { username: string; password: string };
+    },
+    basePath: string,
+  ): Promise<unknown[]> {
+    const perPage = 100;
+    let page = 1;
+    const all: unknown[] = [];
+
+    while (true) {
+      let res: unknown[] = [];
+      const path = `${basePath}?per_page=${perPage}&page=${page}`;
+      try {
+        res = await this.gitlab.request<unknown[]>(
+          settings.apiEndpoint,
+          settings.accessToken ?? '',
+          path,
+          'GET',
+        );
+      } catch (e) {
+        const status = (e as { status?: number }).status ?? 0;
+        if (settings.basicAuth && (status === 401 || status === 403)) {
+          res = await this.gitlab.request<unknown[]>(
+            settings.apiEndpoint,
+            '',
+            path,
+            'GET',
+            undefined,
+            { basicAuth: settings.basicAuth },
+          );
+        } else {
+          throw e;
+        }
+      }
+      const arr = Array.isArray(res) ? res : [];
+      all.push(...arr);
+      if (arr.length < perPage) break;
+      page += 1;
+      if (page > 1000) break;
+    }
+    return all;
   }
 }

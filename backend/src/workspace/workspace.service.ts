@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { spawn } from 'child_process';
+import * as readline from 'readline';
 import { RedisService } from '../redis/redis.service';
 import { WinstonLogger } from '../logger/logger.provider';
 
@@ -149,10 +150,12 @@ export class WorkspaceService {
       3600,
     );
     let lastStderr = '';
-    child.stdout.on('data', (buf: Buffer) => {
-      const msg = buf.toString();
+    const rlOut = readline.createInterface({ input: child.stdout });
+    const rlErr = readline.createInterface({ input: child.stderr });
+    rlOut.on('line', (line: string) => {
+      const msg = line;
       this.logger.log(
-        JSON.stringify({ event: 'git_clone_stdout', message: msg.trim() }),
+        JSON.stringify({ event: 'git_clone_stdout', message: msg }),
         'Workspace',
       );
       this.redis
@@ -163,11 +166,11 @@ export class WorkspaceService {
         )
         .catch(() => undefined);
     });
-    child.stderr.on('data', (buf: Buffer) => {
-      const msg = buf.toString();
+    rlErr.on('line', (line: string) => {
+      const msg = line;
       lastStderr = msg.trim();
       this.logger.warn(
-        JSON.stringify({ event: 'git_clone_stderr', message: msg.trim() }),
+        JSON.stringify({ event: 'git_clone_stderr', message: msg }),
         'Workspace',
       );
       this.redis
