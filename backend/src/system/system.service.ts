@@ -76,6 +76,25 @@ export class SystemService {
     return { ok: true };
   }
 
+  async getGitSettings(userId: string) {
+    const raw = await this.redis.get(this.redisKey(userId));
+    if (!raw) return { gitName: '', apiEndpoint: '', hasToken: false };
+    try {
+      const parsed = JSON.parse(raw) as {
+        gitName?: string;
+        apiEndpoint?: string;
+        accessToken?: string;
+      };
+      return {
+        gitName: parsed.gitName ?? '',
+        apiEndpoint: parsed.apiEndpoint ?? '',
+        hasToken: !!parsed.accessToken,
+      };
+    } catch {
+      return { gitName: '', apiEndpoint: '', hasToken: false };
+    }
+  }
+
   private redisKey(userId: string) {
     return `git:settings:${userId}`;
   }

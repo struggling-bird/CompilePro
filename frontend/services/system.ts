@@ -70,3 +70,15 @@ export const saveGitSettings = async (
     data: payload,
   });
 };
+
+export type GitSettingsResponse = {
+  gitName: string;
+  apiEndpoint: string;
+  hasToken: boolean;
+};
+
+export const getGitSettings = async (): Promise<GitSettingsResponse> => {
+  return request<GitSettingsResponse>("/apis/system/git/settings", {
+    method: "GET",
+  });
+};

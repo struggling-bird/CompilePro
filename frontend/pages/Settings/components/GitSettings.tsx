@@ -16,6 +16,7 @@ import {
   checkGit,
   installGitGuide,
   saveGitSettings,
+  getGitSettings,
 } from "../../../services/system";
 
 const { Text } = Typography;
@@ -28,6 +29,20 @@ const GitSettings: React.FC = () => {
   const [gitInstalled, setGitInstalled] = useState<boolean | null>(null);
   const [gitVersion, setGitVersion] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
+
+  React.useEffect(() => {
+    const load = async () => {
+      try {
+        const s = await getGitSettings();
+        form.setFieldsValue({
+          gitName: s.gitName,
+          apiEndpoint: s.apiEndpoint,
+          accessToken: "",
+        });
+      } catch (err) {}
+    };
+    load();
+  }, []);
 
   const handleCheck = async () => {
     try {

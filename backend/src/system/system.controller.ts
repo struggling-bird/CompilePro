@@ -42,4 +42,11 @@ export class SystemController {
   ) {
     return this.sys.saveGitSettings(req.user.userId, dto);
   }
+
+  @Get('git/settings')
+  @ApiOperation({ summary: '获取 Git 绑定数据（用于页面回显）' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async getGitSettings(@Req() req: { user: { userId: string } }) {
+    return this.sys.getGitSettings(req.user.userId);
+  }
 }
