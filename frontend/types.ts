@@ -17,6 +17,8 @@ export interface Project {
   domain?: string;
   logo?: string;
   webpackConfig?: string;
+  gitRepo?: string;
+  description?: string;
   versions: Version[];
 }
 
@@ -27,6 +29,7 @@ export interface Version {
   type: "tag" | "branch"; // 'tag' for release, 'branch' for dev branch
   isDeprecated?: boolean;
   sourceVersion?: string; // The version this was branched from
+  ref?: string;
 }
 
 export interface DeploymentConfig {

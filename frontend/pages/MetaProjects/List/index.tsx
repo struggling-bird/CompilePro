@@ -20,19 +20,29 @@ const ProjectList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
 
-  const handleCreate = (values: { name: string; version: string }) => {
+  const handleCreate = (values: {
+    name: string;
+    gitRepo: string;
+    version: string;
+    sourceType: "branch" | "tag";
+    refName: string;
+    description?: string;
+  }) => {
     const newProject: Project = {
       id: Date.now().toString(),
       name: values.name,
       latestVersion: values.version,
       readmeUrl: "#",
       buildDocUrl: "#",
+      gitRepo: values.gitRepo,
+      description: values.description,
       versions: [
         {
           id: `v-${Date.now()}`,
           version: values.version,
           date: "Today",
-          type: "tag",
+          type: values.sourceType,
+          ref: values.refName,
         },
       ],
     };
