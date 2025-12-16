@@ -61,6 +61,7 @@ export const getProjectDetail = async (
     sourceType: "branch" | "tag";
     sourceValue: string;
     status: "enabled" | "disabled";
+    compileCommands?: string[];
   }>;
 }> => {
   return request(`/apis/metaprojects/${projectId}`, {
@@ -121,5 +122,79 @@ export const listTags = async (
   return request<{ list: { name: string }[] }>(`/apis/metaprojects/git/tags`, {
     method: "GET",
     params: { gitUrl },
+  });
+};
+
+export const listConfigs = async (
+  projectId: string,
+  versionId: string
+): Promise<{ list: any[] }> => {
+  return request<{ list: any[] }>(
+    `/apis/metaprojects/${projectId}/versions/${versionId}/configs`,
+    {
+      method: "GET",
+    }
+  );
+};
+
+export const upsertConfig = async (
+  projectId: string,
+  versionId: string,
+  payload: {
+    name: string;
+    type: "TEXT" | "FILE";
+    textOrigin?: string;
+    textTarget?: string;
+    fileOriginPath?: string;
+    fileTargetUrl?: string;
+    description?: string;
+  }
+) => {
+  return request(
+    `/apis/metaprojects/${projectId}/versions/${versionId}/configs`,
+    {
+      method: "POST",
+      data: payload,
+    }
+  );
+};
+
+export const deleteConfig = async (
+  projectId: string,
+  versionId: string,
+  configId: string
+) => {
+  return request(
+    `/apis/metaprojects/${projectId}/versions/${versionId}/configs/${configId}`,
+    {
+      method: "DELETE",
+    }
+  );
+};
+
+export const updateCommands = async (
+  projectId: string,
+  versionId: string,
+  payload: { commands: string[] }
+) => {
+  return request(
+    `/apis/metaprojects/${projectId}/versions/${versionId}/commands`,
+    {
+      method: "PUT",
+      data: payload,
+    }
+  );
+};
+
+export const listProjectFiles = async (projectId: string) => {
+  return request<any[]>(`/apis/metaprojects/${projectId}/files`, {
+    method: "GET",
+  });
+};
+
+export const getFileContent = async (projectId: string, path: string) => {
+  return request<string>(`/apis/metaprojects/${projectId}/files/content`, {
+    method: "GET",
+    params: { path },
   });
 };

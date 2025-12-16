@@ -382,4 +382,61 @@ export class WorkspaceService {
     }
     return size;
   }
+
+  async listFiles(userId: string, projectId: string): Promise<any[]> {
+    const root = await this.ensureUserDir(userId);
+    const projDir = this.safeJoin(root, projectId);
+    try {
+      await stat(projDir);
+    } catch {
+      throw new HttpException('项目尚未克隆或不存在', 404);
+    }
+
+    const buildTree = async (
+      currentPath: string,
+      relativePath: string = '',
+    ): Promise<any[]> => {
+      const entries = await readdir(currentPath, { withFileTypes: true });
+      const result = [];
+      for (const entry of entries) {
+        if (entry.name === '.git') continue;
+        const fullPath = path.join(currentPath, entry.name);
+        const relPath = path.join(relativePath, entry.name);
+        const node: any = {
+          title: entry.name,
+          key: relPath,
+        };
+        if (entry.isDirectory()) {
+          node.children = await buildTree(fullPath, relPath);
+          node.isLeaf = false;
+        } else {
+          node.isLeaf = true;
+        }
+        result.push(node);
+      }
+      return result.sort((a, b) => {
+        if (a.children && !b.children) return -1;
+        if (!a.children && b.children) return 1;
+        return a.title.localeCompare(b.title);
+      });
+    };
+
+    return buildTree(projDir);
+  }
+
+  async getFileContent(
+    userId: string,
+    projectId: string,
+    filePath: string,
+  ): Promise<string> {
+    const root = await this.ensureUserDir(userId);
+    const projDir = this.safeJoin(root, projectId);
+    const targetPath = this.safeJoin(projDir, filePath);
+    try {
+      const content = await fs.promises.readFile(targetPath, 'utf-8');
+      return content;
+    } catch {
+      throw new HttpException('无法读取文件', 404);
+    }
+  }
 }

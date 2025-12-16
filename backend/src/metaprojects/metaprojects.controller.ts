@@ -232,4 +232,28 @@ export class MetaprojectsController {
   ) {
     return this.svc.listGitTags(req.user.userId, gitUrl);
   }
+
+  @Get(':projectId/files')
+  @ApiOperation({ summary: '获取项目文件列表' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async listFiles(
+    @Param('projectId') projectId: string,
+    @Req() req: { user: { userId: string } },
+  ) {
+    return this.svc.listProjectFiles(req.user.userId, projectId);
+  }
+
+  @Get(':projectId/files/content')
+  @ApiOperation({ summary: '获取项目文件内容' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiQuery({ name: 'path', required: true, description: '文件路径' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async getFileContent(
+    @Param('projectId') projectId: string,
+    @Query('path') path: string,
+    @Req() req: { user: { userId: string } },
+  ) {
+    return this.svc.getFileContent(req.user.userId, projectId, path);
+  }
 }

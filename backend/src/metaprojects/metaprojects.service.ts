@@ -383,6 +383,14 @@ export class MetaprojectsService {
     return { list };
   }
 
+  async listProjectFiles(userId: string, projectId: string) {
+    return this.workspace.listFiles(userId, projectId);
+  }
+
+  async getFileContent(userId: string, projectId: string, filePath: string) {
+    return this.workspace.getFileContent(userId, projectId, filePath);
+  }
+
   private async listAllPages(
     settings: {
       apiEndpoint: string;

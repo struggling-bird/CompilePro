@@ -30,6 +30,18 @@ export interface Version {
   isDeprecated?: boolean;
   sourceVersion?: string; // The version this was branched from
   ref?: string;
+  compileCommands?: string[];
+}
+
+export interface VersionConfig {
+  id: string;
+  name: string;
+  type: "TEXT" | "FILE";
+  textOrigin?: string;
+  textTarget?: string;
+  fileOriginPath?: string;
+  fileTargetUrl?: string;
+  description?: string;
 }
 
 export interface DeploymentConfig {

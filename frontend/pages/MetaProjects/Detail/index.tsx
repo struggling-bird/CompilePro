@@ -17,16 +17,23 @@ import {
   Space,
   Row,
   Col,
+  Modal,
+  Input,
   Alert,
 } from "antd";
-import { Project } from "@/types";
+import { Project, VersionConfig } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AddVersionModal from "../components/AddVersionModal";
-import FileEditorDrawer from "../components/FileEditorDrawer";
+import ConfigTable from "../components/ConfigTable";
+import ConfigEditorDrawer from "../components/ConfigEditorDrawer";
 import {
   getProjectDetail,
   getCloneStatus,
   retryClone,
+  listConfigs,
+  upsertConfig,
+  deleteConfig,
+  updateCommands,
 } from "@/services/metaprojects";
 import { message } from "antd";
 
@@ -39,10 +46,17 @@ const ProjectDetail: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [activeVersion, setActiveVersion] = useState<string>("");
   const [showAddVersionModal, setShowAddVersionModal] = useState(false);
-  const [showEditor, setShowEditor] = useState(false);
+  const [showCmdModal, setShowCmdModal] = useState(false);
+  const [newCmd, setNewCmd] = useState("");
   const [cloneStatus, setCloneStatus] = useState<string>("idle");
   const [cloneMessage, setCloneMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [configs, setConfigs] = useState<VersionConfig[]>([]);
+  const [configsLoading, setConfigsLoading] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [editingConfig, setEditingConfig] = useState<VersionConfig | undefined>(
+    undefined
+  );
   const pollRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -59,6 +73,7 @@ const ProjectDetail: React.FC = () => {
           type: v.sourceType,
           isDeprecated: v.status === "disabled",
           ref: v.sourceValue,
+          compileCommands: v.compileCommands || [],
         }));
         const latest = versions[0]?.version ?? "";
         const proj: Project = {
@@ -123,6 +138,99 @@ const ProjectDetail: React.FC = () => {
       }
     };
   }, [projectId]);
+
+  const currentVersionId = useMemo(() => {
+    return project?.versions.find((v) => v.version === activeVersion)?.id;
+  }, [project, activeVersion]);
+
+  useEffect(() => {
+    if (projectId && currentVersionId) {
+      fetchConfigs();
+    }
+  }, [projectId, currentVersionId]);
+
+  const fetchConfigs = async () => {
+    if (!projectId || !currentVersionId) return;
+    try {
+      setConfigsLoading(true);
+      const res = await listConfigs(projectId, currentVersionId);
+      setConfigs(res.list);
+    } catch (err: any) {
+      message.error(err?.message || "加载配置失败");
+    } finally {
+      setConfigsLoading(false);
+    }
+  };
+
+  const handleSaveConfig = async (values: any) => {
+    if (!projectId || !currentVersionId) return;
+    try {
+      await upsertConfig(projectId, currentVersionId, values);
+      message.success("保存成功");
+      setShowConfigModal(false);
+      setEditingConfig(undefined);
+      fetchConfigs();
+    } catch (err: any) {
+      message.error(err?.message || "保存失败");
+    }
+  };
+
+  const handleDeleteConfig = async (record: VersionConfig) => {
+    if (!projectId || !currentVersionId) return;
+    try {
+      await deleteConfig(projectId, currentVersionId, record.id);
+      message.success("删除成功");
+      fetchConfigs();
+    } catch (err: any) {
+      message.error(err?.message || "删除失败");
+    }
+  };
+
+  const handleAddCmd = async () => {
+    if (!newCmd.trim()) return;
+    if (!currentVersionId || !project) return;
+    try {
+      const version = project.versions.find((v) => v.id === currentVersionId);
+      if (!version) return;
+      const currentCmds = version.compileCommands || [];
+      const newCmds = [...currentCmds, newCmd.trim()];
+      await updateCommands(projectId!, currentVersionId, { commands: newCmds });
+      message.success("添加成功");
+      setShowCmdModal(false);
+      setNewCmd("");
+      const newVersions = project.versions.map((v) => {
+        if (v.id === currentVersionId) {
+          return { ...v, compileCommands: newCmds };
+        }
+        return v;
+      });
+      setProject({ ...project, versions: newVersions });
+    } catch (e: any) {
+      message.error(e?.message || "添加失败");
+    }
+  };
+
+  const handleDeleteCmd = async (index: number) => {
+    if (!currentVersionId || !project) return;
+    try {
+      const version = project.versions.find((v) => v.id === currentVersionId);
+      if (!version) return;
+      const currentCmds = version.compileCommands || [];
+      const newCmds = [...currentCmds];
+      newCmds.splice(index, 1);
+      await updateCommands(projectId!, currentVersionId, { commands: newCmds });
+      message.success("删除成功");
+      const newVersions = project.versions.map((v) => {
+        if (v.id === currentVersionId) {
+          return { ...v, compileCommands: newCmds };
+        }
+        return v;
+      });
+      setProject({ ...project, versions: newVersions });
+    } catch (e: any) {
+      message.error(e?.message || "删除失败");
+    }
+  };
 
   if (!project) return <div style={{ padding: 24 }}>项目不存在或加载中...</div>;
 
@@ -246,19 +354,23 @@ const ProjectDetail: React.FC = () => {
               loading={loading}
             >
               <Space orientation="vertical" style={{ width: "100%" }}>
-                {["yarn", "npm run build"].map((cmd, idx) => (
+                {(
+                  project.versions.find((v) => v.version === activeVersion)
+                    ?.compileCommands || []
+                ).map((cmd, idx) => (
                   <Alert
                     key={idx}
-                    title={cmd}
+                    message={cmd}
                     type="info"
-                    closable={{ closeIcon: <CloseOutlined /> }}
+                    closable
+                    onClose={() => handleDeleteCmd(idx)}
                   />
                 ))}
                 <Button
                   type="dashed"
                   block
                   icon={<PlusOutlined />}
-                  onClick={() => setShowEditor(true)}
+                  onClick={() => setShowCmdModal(true)}
                 >
                   {t.projectDetail.newCmd}
                 </Button>
@@ -267,21 +379,31 @@ const ProjectDetail: React.FC = () => {
           </Col>
           <Col span={16}>
             <Card
-              title={t.projectDetail.configTypesTitle}
+              title="配置列表"
               size="small"
-              style={{ backgroundColor: "#fffbf0", borderColor: "#fcefc7" }}
+              extra={
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    setEditingConfig(undefined);
+                    setShowConfigModal(true);
+                  }}
+                >
+                  添加配置项
+                </Button>
+              }
             >
-              <ul style={{ paddingLeft: 20, margin: 0 }}>
-                <li>
-                  <Text strong>1.</Text> {t.projectDetail.configTypes.text}
-                </li>
-                <li>
-                  <Text strong>2.</Text> {t.projectDetail.configTypes.file}
-                </li>
-                <li>
-                  <Text strong>3.</Text> {t.projectDetail.configTypes.json}
-                </li>
-              </ul>
+              <ConfigTable
+                loading={configsLoading}
+                dataSource={configs}
+                onEdit={(record) => {
+                  setEditingConfig(record);
+                  setShowConfigModal(true);
+                }}
+                onDelete={handleDeleteConfig}
+              />
             </Card>
           </Col>
         </Row>
@@ -370,10 +492,29 @@ const ProjectDetail: React.FC = () => {
         onAdd={handleAddVersion}
       />
 
-      <FileEditorDrawer
-        visible={showEditor}
-        onClose={() => setShowEditor(false)}
+      <ConfigEditorDrawer
+        visible={showConfigModal}
+        projectId={projectId || ""}
+        config={editingConfig}
+        onClose={() => {
+          setShowConfigModal(false);
+          setEditingConfig(undefined);
+        }}
+        onSave={handleSaveConfig}
       />
+
+      <Modal
+        title="添加编译命令"
+        open={showCmdModal}
+        onOk={handleAddCmd}
+        onCancel={() => setShowCmdModal(false)}
+      >
+        <Input
+          value={newCmd}
+          onChange={(e) => setNewCmd(e.target.value)}
+          placeholder="例如: npm run build"
+        />
+      </Modal>
     </div>
   );
 };
