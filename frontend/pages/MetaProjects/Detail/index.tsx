@@ -14,15 +14,16 @@ import {
   Steps,
   Typography,
   Space,
-  Modal,
-  Input,
   Alert,
+  Row,
+  Col,
 } from "antd";
 import { Project, VersionConfig } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AddVersionModal from "../components/AddVersionModal";
 import ConfigTable from "../components/ConfigTable";
 import ConfigEditorDrawer from "../components/ConfigEditorDrawer";
+import CmdList from "../components/CmdList";
 import {
   getProjectDetail,
   getCloneStatus,
@@ -43,8 +44,6 @@ const ProjectDetail: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [activeVersion, setActiveVersion] = useState<string>("");
   const [showAddVersionModal, setShowAddVersionModal] = useState(false);
-  const [showCmdModal, setShowCmdModal] = useState(false);
-  const [newCmd, setNewCmd] = useState("");
   const [cloneStatus, setCloneStatus] = useState<string>("idle");
   const [cloneMessage, setCloneMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -183,49 +182,23 @@ const ProjectDetail: React.FC = () => {
     }
   };
 
-  const handleAddCmd = async () => {
-    if (!newCmd.trim()) return;
+  const handleUpdateCommands = async (newCommands: string[]) => {
     if (!currentVersionId || !project) return;
     try {
-      const version = project.versions.find((v) => v.id === currentVersionId);
-      if (!version) return;
-      const currentCmds = version.compileCommands || [];
-      const newCmds = [...currentCmds, newCmd.trim()];
-      await updateCommands(projectId!, currentVersionId, { commands: newCmds });
-      message.success("添加成功");
-      setShowCmdModal(false);
-      setNewCmd("");
+      await updateCommands(projectId!, currentVersionId, {
+        commands: newCommands,
+      });
+      // Optimistically update local state
       const newVersions = project.versions.map((v) => {
         if (v.id === currentVersionId) {
-          return { ...v, compileCommands: newCmds };
+          return { ...v, compileCommands: newCommands };
         }
         return v;
       });
       setProject({ ...project, versions: newVersions });
+      message.success("命令已更新");
     } catch (e: any) {
-      message.error(e?.message || "添加失败");
-    }
-  };
-
-  const handleDeleteCmd = async (index: number) => {
-    if (!currentVersionId || !project) return;
-    try {
-      const version = project.versions.find((v) => v.id === currentVersionId);
-      if (!version) return;
-      const currentCmds = version.compileCommands || [];
-      const newCmds = [...currentCmds];
-      newCmds.splice(index, 1);
-      await updateCommands(projectId!, currentVersionId, { commands: newCmds });
-      message.success("删除成功");
-      const newVersions = project.versions.map((v) => {
-        if (v.id === currentVersionId) {
-          return { ...v, compileCommands: newCmds };
-        }
-        return v;
-      });
-      setProject({ ...project, versions: newVersions });
-    } catch (e: any) {
-      message.error(e?.message || "删除失败");
+      message.error(e?.message || "更新失败");
     }
   };
 
@@ -372,62 +345,53 @@ const ProjectDetail: React.FC = () => {
           />
         </Card>
 
-        {/* Build Commands */}
-        <Card
-          title={t.projectDetail.compilationCommands}
-          size="small"
-          loading={loading}
-        >
-          <Space orientation="vertical" style={{ width: "100%" }}>
-            {(
-              project.versions.find((v) => v.version === activeVersion)
-                ?.compileCommands || []
-            ).map((cmd, idx) => (
-              <Alert
-                key={idx}
-                message={cmd}
-                type="info"
-                closable
-                onClose={() => handleDeleteCmd(idx)}
-              />
-            ))}
-            <Button
-              type="dashed"
-              block
-              icon={<PlusOutlined />}
-              onClick={() => setShowCmdModal(true)}
-            >
-              {t.projectDetail.newCmd}
-            </Button>
-          </Space>
-        </Card>
-
-        {/* Timeline */}
-        <Card
-          title={t.projectDetail.versionHistory}
-          style={{ marginTop: 24 }}
-          extra={
-            <Button
-              type="primary"
+        {/* Build Commands & Version History */}
+        <Row gutter={24} style={{ marginBottom: 24 }}>
+          <Col span={8}>
+            <Card
+              title={t.projectDetail.compilationCommands}
               size="small"
-              icon={<PlusOutlined />}
-              onClick={() => setShowAddVersionModal(true)}
+              loading={loading}
+              style={{ height: "100%" }}
             >
-              {t.projectDetail.new}
-            </Button>
-          }
-        >
-          <div style={{ overflowX: "auto", paddingBottom: 16 }}>
-            <Steps
-              current={currentStep}
-              onChange={(current) =>
-                setActiveVersion(project.versions[current].version)
+              <CmdList
+                commands={
+                  project.versions.find((v) => v.version === activeVersion)
+                    ?.compileCommands || []
+                }
+                onUpdate={handleUpdateCommands}
+                loading={loading}
+              />
+            </Card>
+          </Col>
+          <Col span={16}>
+            <Card
+              title={t.projectDetail.versionHistory}
+              style={{ height: "100%" }}
+              extra={
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={() => setShowAddVersionModal(true)}
+                >
+                  {t.projectDetail.new}
+                </Button>
               }
-              items={stepsItems}
-              titlePlacement="vertical"
-            />
-          </div>
-        </Card>
+            >
+              <div style={{ overflowX: "auto", paddingBottom: 16 }}>
+                <Steps
+                  current={currentStep}
+                  onChange={(current) =>
+                    setActiveVersion(project.versions[current].version)
+                  }
+                  items={stepsItems}
+                  titlePlacement="vertical"
+                />
+              </div>
+            </Card>
+          </Col>
+        </Row>
 
         {/* Docs */}
         <Card style={{ marginTop: 24 }} styles={{ body: { padding: 0 } }}>
@@ -496,19 +460,6 @@ const ProjectDetail: React.FC = () => {
         }}
         onSave={handleSaveConfig}
       />
-
-      <Modal
-        title="添加编译命令"
-        open={showCmdModal}
-        onOk={handleAddCmd}
-        onCancel={() => setShowCmdModal(false)}
-      >
-        <Input
-          value={newCmd}
-          onChange={(e) => setNewCmd(e.target.value)}
-          placeholder="例如: npm run build"
-        />
-      </Modal>
     </div>
   );
 };
