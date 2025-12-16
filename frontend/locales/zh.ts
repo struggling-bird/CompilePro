@@ -196,6 +196,7 @@ export default {
     ready: "就绪",
   },
   settings: {
+    install: "安装",
     title: "设置",
     accountSettings: "账号设置",
     username: "用户名",
