@@ -141,24 +141,25 @@ const GitSettings: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="gitToken" label={t.settings.token}>
+            <Form.Item
+              name="gitToken"
+              label={
+                <span>
+                  {t.settings.token}
+                  <a
+                    href={installGitGuide}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600"
+                    style={{ marginLeft: 4 }}
+                  >
+                    {t.settings.howToGetToken}
+                  </a>
+                </span>
+              }
+            >
               <Input.Password />
             </Form.Item>
-            <div className="text-right">
-              <a href="#" className="text-xs text-blue-600">
-                {t.settings.howToGetToken}
-              </a>
-            </div>
-          </Col>
-          <Col span={24}>
-            <Form.Item name="sshKey" label={t.settings.sshKey}>
-              <Input.TextArea rows={4} placeholder="ssh-rsa AAAAB3Nza..." />
-            </Form.Item>
-            <div className="text-right">
-              <Button type="link" size="small">
-                {t.settings.copyKey}
-              </Button>
-            </div>
           </Col>
         </Row>
         <Form.Item className="flex justify-end">

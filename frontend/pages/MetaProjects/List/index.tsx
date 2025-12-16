@@ -88,12 +88,6 @@ const ProjectList: React.FC = () => {
           >
             {t.projectList.newProject}
           </Button>
-          <Button
-            icon={<SettingOutlined />}
-            onClick={() => navigate("/settings")}
-          >
-            {t.projectList.settings}
-          </Button>
         </Space>
       </div>
 
