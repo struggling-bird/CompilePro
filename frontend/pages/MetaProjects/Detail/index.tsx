@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeftOutlined,
@@ -43,6 +43,7 @@ const ProjectDetail: React.FC = () => {
   const [cloneStatus, setCloneStatus] = useState<string>("idle");
   const [cloneMessage, setCloneMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const pollRef = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -86,21 +87,41 @@ const ProjectDetail: React.FC = () => {
     };
   }, [projectId]);
 
-  useEffect(() => {
+  const startPolling = () => {
     if (!projectId) return;
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
     const tick = async () => {
       try {
         const s = await getCloneStatus(projectId);
         setCloneStatus(s.status);
         setCloneMessage(s.message || "");
+        if (
+          (s.status === "error" || s.status === "success") &&
+          pollRef.current
+        ) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
       } catch (err: any) {
         setCloneStatus("idle");
         setCloneMessage(err?.message || "");
       }
     };
     tick();
-    const timer = setInterval(tick, 3000);
-    return () => clearInterval(timer);
+    pollRef.current = window.setInterval(tick, 3000);
+  };
+
+  useEffect(() => {
+    startPolling();
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
   }, [projectId]);
 
   if (!project) return <div style={{ padding: 24 }}>项目不存在或加载中...</div>;
@@ -203,6 +224,9 @@ const ProjectDetail: React.FC = () => {
                 try {
                   await retryClone(projectId);
                   message.success("已重新发起克隆");
+                  setCloneStatus("running");
+                  setCloneMessage("");
+                  startPolling();
                 } catch (err: any) {
                   message.error(err?.message || "重试失败");
                 }

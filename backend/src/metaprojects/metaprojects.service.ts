@@ -123,8 +123,9 @@ export class MetaprojectsService {
     const p = await this.projects.findOne({ where: { id: projectId } });
     if (!p) throw new HttpException('项目不存在', 404);
     const v = await this.VLatestOfProject(projectId);
-    await this.workspace
+    this.workspace
       .cloneProject(userId, projectId, p.gitUrl, v?.sourceType, v?.sourceValue)
+      .then(() => undefined)
       .catch(() => undefined);
     return { ok: true };
   }

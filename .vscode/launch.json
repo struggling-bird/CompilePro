@@ -1,0 +1,37 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend: Launch (ts-node)",
+      "cwd": "${workspaceFolder}/backend",
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register",
+        "-r",
+        "tsconfig-paths/register"
+      ],
+      "args": [
+        "${workspaceFolder}/backend/src/main.ts"
+      ],
+      "envFile": "${workspaceFolder}/backend/.env.dev",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "autoAttachChildProcesses": true
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Backend: Attach (npm start:debug)",
+      "port": 9229,
+      "restart": true,
+      "protocol": "inspector",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "preLaunchTask": "backend: start:debug"
+    }
+  ]
+}

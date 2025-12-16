@@ -5,17 +5,20 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { spawn } from 'child_process';
 import { RedisService } from '../redis/redis.service';
+import { WinstonLogger } from '../logger/logger.provider';
 
 const stat = promisify(fs.stat);
 const mkdir = promisify(fs.mkdir);
 const readdir = promisify(fs.readdir);
 const lstat = promisify(fs.lstat);
+const rm = promisify(fs.rm);
 
 @Injectable()
 export class WorkspaceService {
   constructor(
     private readonly config: ConfigService,
     private readonly redis: RedisService,
+    private readonly logger: WinstonLogger,
   ) {}
 
   rootDir(): string {
@@ -74,29 +77,42 @@ export class WorkspaceService {
     const progressKey = `workspace:clone:${userId}:${projectId}`;
     try {
       await stat(targetDir);
-      await this.redis.set(
-        progressKey,
-        JSON.stringify({ status: 'success', message: '已存在' }),
-        3600,
-      );
-      return;
+      const ok = await this.isGitRepo(targetDir);
+      if (ok) {
+        await this.redis.set(
+          progressKey,
+          JSON.stringify({ status: 'success', message: '已存在' }),
+          3600,
+        );
+        return;
+      } else {
+        await rm(targetDir, { recursive: true, force: true });
+      }
     } catch {
       void 0;
     }
-    await mkdir(targetDir, { recursive: true, mode: 0o700 });
     const args: string[] = ['clone'];
     if (sourceType === 'branch' && sourceValue) {
       args.push('--branch', sourceValue);
     }
     args.push(gitUrl, targetDir);
     const child = spawn('git', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    this.logger.log(
+      JSON.stringify({ event: 'git_clone_start', gitUrl, targetDir, args }),
+      'Workspace',
+    );
     await this.redis.set(
       progressKey,
       JSON.stringify({ status: 'running', message: '开始克隆' }),
       3600,
     );
+    let lastStderr = '';
     child.stdout.on('data', (buf: Buffer) => {
       const msg = buf.toString();
+      this.logger.log(
+        JSON.stringify({ event: 'git_clone_stdout', message: msg.trim() }),
+        'Workspace',
+      );
       this.redis
         .set(
           progressKey,
@@ -107,6 +123,11 @@ export class WorkspaceService {
     });
     child.stderr.on('data', (buf: Buffer) => {
       const msg = buf.toString();
+      lastStderr = msg.trim();
+      this.logger.warn(
+        JSON.stringify({ event: 'git_clone_stderr', message: msg.trim() }),
+        'Workspace',
+      );
       this.redis
         .set(
           progressKey,
@@ -116,6 +137,12 @@ export class WorkspaceService {
         .catch(() => undefined);
     });
     await new Promise<void>((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
       child.on('close', (code) => {
         if (code === 0) {
           if (sourceType === 'tag' && sourceValue) {
@@ -128,16 +155,51 @@ export class WorkspaceService {
               3600,
             )
             .catch(() => undefined);
+          this.logger.log(
+            JSON.stringify({ event: 'git_clone_done', code }),
+            'Workspace',
+          );
         } else {
+          const mapped = this.mapGitError(lastStderr, code ?? undefined);
           this.redis
             .set(
               progressKey,
-              JSON.stringify({ status: 'error', message: `失败 ${code}` }),
+              JSON.stringify({
+                status: 'error',
+                message: mapped.message,
+                event: mapped.event,
+              }),
               3600,
             )
             .catch(() => undefined);
+          this.logger.error(
+            JSON.stringify({ event: 'git_clone_fail', code, mapped }),
+            undefined,
+            'Workspace',
+          );
         }
-        resolve();
+        finish();
+      });
+      child.on('error', (err) => {
+        const emsg = String(err?.message ?? err);
+        const mapped = this.mapGitError(emsg, undefined);
+        this.redis
+          .set(
+            progressKey,
+            JSON.stringify({
+              status: 'error',
+              message: mapped.message,
+              event: mapped.event,
+            }),
+            3600,
+          )
+          .catch(() => undefined);
+        this.logger.error(
+          JSON.stringify({ event: 'git_clone_spawn_error', raw: emsg, mapped }),
+          err?.stack,
+          'Workspace',
+        );
+        finish();
       });
     });
   }
@@ -147,8 +209,70 @@ export class WorkspaceService {
       const child = spawn('git', ['-C', dir, 'checkout', `tags/${tag}`], {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
+      this.logger.log(
+        JSON.stringify({ event: 'git_checkout_tag_start', dir, tag }),
+        'Workspace',
+      );
       child.on('close', () => resolve());
     });
+  }
+
+  private async isGitRepo(dir: string): Promise<boolean> {
+    try {
+      await stat(path.join(dir, '.git'));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private mapGitError(
+    stderr: string,
+    code?: number,
+  ): { event: string; message: string } {
+    const s = (stderr || '').toLowerCase();
+    if (
+      s.includes('authentication failed') ||
+      s.includes('access denied') ||
+      s.includes('http basic')
+    ) {
+      return {
+        event: 'auth_failed',
+        message: '认证失败：请检查访问令牌/账号密码',
+      };
+    }
+    if (s.includes('repository not found') || s.includes('404')) {
+      return { event: 'repo_not_found', message: '仓库不存在或地址错误' };
+    }
+    if (
+      s.includes('could not resolve host') ||
+      s.includes('name or service not known')
+    ) {
+      return { event: 'dns_error', message: '网络解析失败：请检查网络或域名' };
+    }
+    if (s.includes('permission denied (publickey)')) {
+      return { event: 'ssh_key_missing', message: 'SSH 公钥未配置或无权限' };
+    }
+    if (s.includes('ssl certificate problem')) {
+      return { event: 'ssl_error', message: 'SSL 证书异常：请检查证书配置' };
+    }
+    if (
+      s.includes('unable to access') ||
+      s.includes('rpc failed') ||
+      s.includes('failed to connect')
+    ) {
+      return { event: 'network_error', message: '网络异常：无法访问远程仓库' };
+    }
+    if (s.includes('could not read username')) {
+      return {
+        event: 'credential_required',
+        message: '需要凭据：请配置用户名/令牌',
+      };
+    }
+    if (s.includes('fatal:') || (code && code !== 0)) {
+      return { event: 'git_error', message: 'Git 操作失败：请检查仓库与凭据' };
+    }
+    return { event: 'unknown', message: '未知错误：请查看日志详情' };
   }
 
   async cloneStatus(userId: string, projectId: string) {
