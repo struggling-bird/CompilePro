@@ -6,6 +6,7 @@ interface FilePreviewProps {
   content: string;
   fileName?: string;
   regexPattern?: string;
+  matchIndex?: number;
   onMatchCountChange?: (count: number) => void;
 }
 
@@ -13,9 +14,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   content,
   fileName = "",
   regexPattern,
+  matchIndex = 0,
   onMatchCountChange,
 }) => {
   const language = useMemo(() => {
+    // ... existing language detection logic
     const ext = fileName.split(".").pop()?.toLowerCase();
     switch (ext) {
       case "js":
@@ -73,6 +76,12 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     onMatchCountChange?.(matchCount);
   }, [matchCount, onMatchCountChange]);
 
+  // Use a ref to track global match index across tokens
+  const globalMatchCounter = React.useRef(0);
+
+  // Reset counter before each render pass
+  globalMatchCounter.current = 0;
+
   const renderNode = (
     node: any,
     key: string | number,
@@ -98,10 +107,19 @@ const FilePreview: React.FC<FilePreviewProps> = ({
 
         return parts.map((part: string, k: number) => {
           if (k % 2 === 1) {
+            const currentMatchIdx = globalMatchCounter.current;
+            globalMatchCounter.current += 1;
+            
+            const isSelected = currentMatchIdx === matchIndex;
             return (
               <span
                 key={`${key}-${k}`}
-                style={{ backgroundColor: "#ffaa00", color: "#000" }}
+                style={{ 
+                    backgroundColor: isSelected ? "#ffaa00" : "#ffe58f", // Distinct highlight for selected vs others
+                    color: "#000",
+                    border: isSelected ? "2px solid #d46b08" : "none",
+                    fontWeight: isSelected ? "bold" : "normal"
+                }}
               >
                 {part}
               </span>
@@ -159,6 +177,8 @@ const FilePreview: React.FC<FilePreviewProps> = ({
       renderer={
         regexPattern
           ? ({ rows, stylesheet }) => {
+              // Reset counter at start of render
+              globalMatchCounter.current = 0;
               return rows.map((row: any, i: number) => {
                 return (
                   <div key={i} style={row.properties?.style}>

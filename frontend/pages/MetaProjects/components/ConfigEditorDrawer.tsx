@@ -12,6 +12,7 @@ import {
   message,
   Spin,
   Form,
+  InputNumber,
 } from "antd";
 import { SaveOutlined, InboxOutlined } from "@ant-design/icons";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -48,12 +49,16 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   const [saving, setSaving] = useState(false);
   const regexPattern = Form.useWatch("textOrigin", form);
   const [matchCount, setMatchCount] = useState(0);
+  const matchIndex = Form.useWatch("matchIndex", form) || 0;
 
   useEffect(() => {
     if (visible) {
       if (config) {
         setActiveTab(config.type);
-        form.setFieldsValue(config);
+        form.setFieldsValue({
+          ...config,
+          matchIndex: config.matchIndex || 0,
+        });
         if (config.fileOriginPath) {
           setSelectedFile(config.fileOriginPath);
           // If it's TEXT mode, we should try to load the content if we can
@@ -64,6 +69,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
       } else {
         setActiveTab("TEXT");
         form.resetFields();
+        form.setFieldValue("matchIndex", 0);
         setSelectedFile("");
         setFileContent("");
       }
@@ -145,6 +151,19 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               <Input placeholder="Description" />
             </Form.Item>
           </Col>
+          <Col span={12}>
+            <Form.Item
+              name="matchIndex"
+              label="匹配项索引 (从0开始)"
+              initialValue={0}
+            >
+              <InputNumber
+                min={0}
+                max={matchCount > 0 ? matchCount - 1 : 0}
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+          </Col>
           <Col span={24}>
             <Form.Item
               name="textTarget"
@@ -204,6 +223,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
             content={fileContent}
             fileName={selectedFile}
             regexPattern={activeTab === "TEXT" ? regexPattern : undefined}
+            matchIndex={matchIndex}
             onMatchCountChange={setMatchCount}
           />
         </Spin>

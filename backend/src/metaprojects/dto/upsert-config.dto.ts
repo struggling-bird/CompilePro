@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsIn,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
+  Min,
 } from 'class-validator';
 
 export class UpsertConfigDto {
@@ -27,6 +29,12 @@ export class UpsertConfigDto {
   @IsOptional()
   @IsString()
   textTarget?: string;
+
+  @ApiPropertyOptional({ description: '匹配项索引', default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  matchIndex?: number;
 
   @ApiPropertyOptional({ description: '文件原始路径' })
   @IsOptional()
