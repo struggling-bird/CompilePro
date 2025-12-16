@@ -1,7 +1,16 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SystemService } from './system.service';
 import { AuthenticatedGuard } from '../auth/authenticated.guard';
+import { GitSettingsDto } from './dto/git-settings.dto';
 
 @Controller('system')
 @ApiTags('系统环境')
@@ -22,5 +31,15 @@ export class SystemController {
   installGit() {
     return this.sys.installGit();
   }
-}
 
+  @Put('git/settings')
+  @ApiOperation({ summary: '保存 Git 绑定并校验' })
+  @ApiBody({ type: GitSettingsDto })
+  @ApiResponse({ status: 200, description: '成功' })
+  async saveGitSettings(
+    @Req() req: { user: { userId: string } },
+    @Body() dto: GitSettingsDto,
+  ) {
+    return this.sys.saveGitSettings(req.user.userId, dto);
+  }
+}

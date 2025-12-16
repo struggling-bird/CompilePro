@@ -27,6 +27,7 @@ const GitSettings: React.FC = () => {
   const [installing, setInstalling] = useState(false);
   const [gitInstalled, setGitInstalled] = useState<boolean | null>(null);
   const [gitVersion, setGitVersion] = useState<string | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
 
   const handleCheck = async () => {
     try {
@@ -72,12 +73,20 @@ const GitSettings: React.FC = () => {
   };
 
   const handleSave = async (values: any) => {
-    await saveGitSettings({
-      gitName: values.gitName,
-      apiEndpoint: values.apiEndpoint,
-      accessToken: values.accessToken,
-    });
-    message.success(t.settings.saveAll);
+    try {
+      setSaving(true);
+      await saveGitSettings({
+        gitName: values.gitName,
+        apiEndpoint: values.apiEndpoint,
+        accessToken: values.accessToken,
+      });
+      message.success(t.settings.saveAll);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "保存失败";
+      message.error(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -162,7 +171,12 @@ const GitSettings: React.FC = () => {
           </Col>
         </Row>
         <Form.Item className="flex justify-end">
-          <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            icon={<SaveOutlined />}
+            loading={saving}
+          >
             {t.settings.saveAll}
           </Button>
         </Form.Item>
