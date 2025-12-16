@@ -21,6 +21,7 @@ import { EnvironmentNode } from './environments/node.entity';
 import { NodeCredential } from './environments/credential.entity';
 import { EnvironmentsModule } from './environments/environments.module';
 import { CustomersModule } from './customers/customers.module';
+import { SystemModule } from './system/system.module';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { CustomersModule } from './customers/customers.module';
     AuditModule,
     CustomersModule,
     EnvironmentsModule,
+    SystemModule,
   ],
   controllers: [],
   providers: [],

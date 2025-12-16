@@ -1,4 +1,4 @@
-import { request } from "../utils/request";
+import request, { request as namedRequest } from "../utils/request";
 import { SystemEnvironment } from "../types";
 
 export const getSystemEnvironment = async (): Promise<SystemEnvironment> => {
@@ -35,4 +35,23 @@ export const getSystemEnvironment = async (): Promise<SystemEnvironment> => {
       });
     }, 1000);
   });
+};
+
+export const checkGit = async (): Promise<{
+  installed: boolean;
+  version?: string;
+}> => {
+  return request<{ installed: boolean; version?: string }>("/apis/system/git", {
+    method: "GET",
+  });
+};
+
+export const installGitGuide = async (): Promise<{
+  os: string;
+  instructions: string[];
+}> => {
+  return request<{ os: string; instructions: string[] }>(
+    "/apis/system/git/install",
+    { method: "POST" }
+  );
 };
