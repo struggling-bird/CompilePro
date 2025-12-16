@@ -48,9 +48,9 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     }
   }, [fileName]);
 
-  const { parts, matchCount } = useMemo(() => {
+  const { matchCount } = useMemo(() => {
     if (!regexPattern || !content) {
-      return { parts: null, matchCount: 0 };
+      return { matchCount: 0 };
     }
 
     try {
@@ -61,14 +61,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({
         pattern = match[1];
         flags = match[2] || "g";
       }
-      const regex = new RegExp(`(${pattern})`, flags);
       const matches = content.match(new RegExp(pattern, flags));
       const count = matches ? matches.length : 0;
-      
-      const splitParts = content.split(regex);
-      return { parts: splitParts, matchCount: count };
+      return { matchCount: count };
     } catch (e) {
-      return { parts: null, matchCount: 0 };
+      return { matchCount: 0 };
     }
   }, [content, regexPattern]);
 
@@ -76,35 +73,78 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     onMatchCountChange?.(matchCount);
   }, [matchCount, onMatchCountChange]);
 
-  // If we have matches, show the highlighted text view
-  if (parts && matchCount > 0) {
-    return (
-      <div
-        style={{
-          fontFamily: "monospace",
-          whiteSpace: "pre-wrap",
-          color: "#d4d4d4",
-          lineHeight: 1.5,
-        }}
-      >
-        {parts.map((part, i) => {
-          if (i % 2 === 1) {
+  const renderNode = (
+    node: any,
+    key: string | number,
+    stylesheet?: any
+  ): React.ReactNode => {
+    if (node.type === "text") {
+      const text = node.value;
+      if (!text) return null;
+      if (!regexPattern) return text;
+
+      try {
+        let pattern = regexPattern;
+        let flags = "g";
+        const match = regexPattern.match(/^\/(.*?)\/([gimsuy]*)$/);
+        if (match) {
+          pattern = match[1];
+          flags = match[2] || "g";
+        }
+        const regex = new RegExp(`(${pattern})`, flags);
+        const parts = text.split(regex);
+
+        if (parts.length === 1) return text;
+
+        return parts.map((part: string, k: number) => {
+          if (k % 2 === 1) {
             return (
               <span
-                key={i}
+                key={`${key}-${k}`}
                 style={{ backgroundColor: "#ffaa00", color: "#000" }}
               >
                 {part}
               </span>
             );
           }
-          return <span key={i}>{part}</span>;
-        })}
-      </div>
-    );
-  }
+          return part;
+        });
+      } catch (e) {
+        return text;
+      }
+    }
 
-  // Otherwise show syntax highlighting
+    if (node.type === "element") {
+      const { tagName, properties, children } = node;
+      let style = properties?.style;
+      const className = properties?.className;
+      const Tag = tagName as any;
+
+      if (
+        (!style || Object.keys(style).length === 0) &&
+        className &&
+        stylesheet
+      ) {
+        style = className.reduce((acc: any, cls: string) => {
+          return { ...acc, ...(stylesheet[cls] || {}) };
+        }, {});
+      }
+
+      return (
+        <Tag
+          key={key}
+          style={style}
+          className={className ? className.join(" ") : undefined}
+        >
+          {children.map((child: any, i: number) =>
+            renderNode(child, i, stylesheet)
+          )}
+        </Tag>
+      );
+    }
+    return null;
+  };
+
   return (
     <SyntaxHighlighter
       language={language}
@@ -116,6 +156,21 @@ const FilePreview: React.FC<FilePreviewProps> = ({
         fontSize: "13px",
       }}
       wrapLongLines
+      renderer={
+        regexPattern
+          ? ({ rows, stylesheet }) => {
+              return rows.map((row: any, i: number) => {
+                return (
+                  <div key={i} style={row.properties?.style}>
+                    {row.children.map((child: any, j: number) =>
+                      renderNode(child, j, stylesheet)
+                    )}
+                  </div>
+                );
+              });
+            }
+          : undefined
+      }
     >
       {content || ""}
     </SyntaxHighlighter>
