@@ -11,9 +11,9 @@ import {
 import type { SourceType } from '../version.entity';
 
 export class CreateVersionDto {
-  @ApiProperty({ description: '版本号' })
+  @ApiProperty({ description: '版本号（支持可选 v 前缀，2-3段版本）' })
   @IsString()
-  @Matches(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/)
+  @Matches(/^v?\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.-]+)?$/)
   version: string;
 
   @ApiProperty({ description: '版本来源类型', enum: ['branch', 'tag'] })

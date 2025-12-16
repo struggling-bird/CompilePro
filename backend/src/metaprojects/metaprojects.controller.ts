@@ -188,4 +188,26 @@ export class MetaprojectsController {
   ) {
     return this.svc.deleteProject(projectId, req.user.userId);
   }
+
+  @Get('git/branches')
+  @ApiOperation({ summary: '获取指定仓库的分支列表' })
+  @ApiQuery({ name: 'gitUrl', required: true, description: 'Git 仓库地址' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async listBranches(
+    @Req() req: { user: { userId: string } },
+    @Query('gitUrl') gitUrl: string,
+  ) {
+    return this.svc.listGitBranches(req.user.userId, gitUrl);
+  }
+
+  @Get('git/tags')
+  @ApiOperation({ summary: '获取指定仓库的标签列表' })
+  @ApiQuery({ name: 'gitUrl', required: true, description: 'Git 仓库地址' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async listTags(
+    @Req() req: { user: { userId: string } },
+    @Query('gitUrl') gitUrl: string,
+  ) {
+    return this.svc.listGitTags(req.user.userId, gitUrl);
+  }
 }

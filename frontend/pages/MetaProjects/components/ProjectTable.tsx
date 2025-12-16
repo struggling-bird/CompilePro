@@ -70,7 +70,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         <Button
           type="link"
           icon={<EditOutlined />}
-          onClick={() => navigate(`/projects/${record.id}`)}
+          onClick={() => navigate(`/meta-projects/${record.id}`)}
         >
           {t.projectList.edit}
         </Button>

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, Radio, Select, message } from "antd";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { listBranches, listTags } from "@/services/metaprojects";
 
 interface CreateProjectModalProps {
   visible: boolean;
   onCancel: () => void;
   onCreate: (values: {
     name: string;
-    gitRepo: string;
+    gitUrl: string;
     version: string;
     sourceType: "branch" | "tag";
     refName: string;
@@ -23,7 +24,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [form] = Form.useForm();
   const { t } = useLanguage();
   const sourceType = Form.useWatch("sourceType", form);
-  const gitRepo = Form.useWatch("gitRepo", form);
+  const gitUrl = Form.useWatch("gitUrl", form);
   const [refOptions, setRefOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -31,7 +32,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const loadRefs = async () => {
     const type = sourceType;
-    const repo = (gitRepo || "").trim();
+    const repo = (gitUrl || "").trim();
     if (!type) return;
     if (!repo) {
       setRefOptions([]);
@@ -40,20 +41,13 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }
     try {
       setLoadingRefs(true);
-      await new Promise((r) => setTimeout(r, 300));
-      if (type === "tag") {
-        setRefOptions([
-          { label: "v1.0.0", value: "v1.0.0" },
-          { label: "v1.1.0", value: "v1.1.0" },
-          { label: "v2.0.0", value: "v2.0.0" },
-        ]);
-      } else {
-        setRefOptions([
-          { label: "main", value: "main" },
-          { label: "develop", value: "develop" },
-          { label: "release/1.0", value: "release/1.0" },
-        ]);
-      }
+      const data =
+        type === "tag" ? await listTags(repo) : await listBranches(repo);
+      const opts = (data.list ?? []).map((i) => ({
+        label: i.name,
+        value: i.name,
+      }));
+      setRefOptions(opts);
     } finally {
       setLoadingRefs(false);
     }
@@ -63,7 +57,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     setRefOptions([]);
     form.setFieldsValue({ refName: undefined });
     if (sourceType) loadRefs();
-  }, [sourceType, gitRepo]);
+  }, [sourceType, gitUrl]);
 
   const handleOk = async () => {
     try {
@@ -93,7 +87,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <Input placeholder={t.projectList.projectPlaceholder} />
         </Form.Item>
         <Form.Item
-          name="gitRepo"
+          name="gitUrl"
           label={t.projectDetail.gitRepo}
           rules={[
             { required: true, message: "请输入Git地址" },

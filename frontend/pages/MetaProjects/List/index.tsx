@@ -1,53 +1,93 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Input, Space } from "antd";
 import {
   PlusOutlined,
   SettingOutlined,
   SearchOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ProjectTable from "../components/ProjectTable";
 import CreateProjectModal from "../components/CreateProjectModal";
-import { MOCK_PROJECTS } from "@/constants";
 import { Project } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  listProjects,
+  createProject,
+  createVersion,
+} from "@/services/metaprojects";
 
 const ProjectList: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
 
-  const handleCreate = (values: {
+  const fetchList = async () => {
+    try {
+      setLoading(true);
+      setLoadError(null);
+      const res = await listProjects({
+        page,
+        pageSize,
+        q: searchText.trim() || undefined,
+      });
+      const mapped: Project[] = (res.list ?? []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        latestVersion: p.latestVersion?.version ?? "",
+        readmeUrl: "#",
+        buildDocUrl: "#",
+        gitRepo: p.gitUrl,
+        description: p.description ?? "",
+        versions: [],
+      }));
+      setProjects(mapped);
+    } catch (err: any) {
+      const msg = err?.message || "加载失败";
+      setLoadError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  const handleCreate = async (values: {
     name: string;
-    gitRepo: string;
+    gitUrl: string;
     version: string;
     sourceType: "branch" | "tag";
     refName: string;
     description?: string;
   }) => {
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: values.name,
-      latestVersion: values.version,
-      readmeUrl: "#",
-      buildDocUrl: "#",
-      gitRepo: values.gitRepo,
-      description: values.description,
-      versions: [
-        {
-          id: `v-${Date.now()}`,
-          version: values.version,
-          date: "Today",
-          type: values.sourceType,
-          ref: values.refName,
-        },
-      ],
-    };
-    setProjects([...projects, newProject]);
-    setIsModalOpen(false);
+    try {
+      setLoading(true);
+      await createProject({
+        name: values.name,
+        gitUrl: values.gitUrl,
+        description: values.description,
+        initialVersion: values.version,
+        sourceType: values.sourceType,
+        sourceValue: values.refName,
+        summary: values.description,
+      });
+      await fetchList();
+      setIsModalOpen(false);
+    } catch (e) {
+      // ignore here, UI 将在服务层抛错后由 message 捕获
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredProjects = projects.filter((p: Project) =>
@@ -99,11 +139,27 @@ const ProjectList: React.FC = () => {
           borderRadius: 8,
         }}
       >
-        <ProjectTable
-          projects={filteredProjects}
-          selectedRowKeys={selectedRowKeys}
-          onSelectionChange={setSelectedRowKeys}
-        />
+        {loadError ? (
+          <div style={{ padding: 24, textAlign: "center" }}>
+            <Space direction="vertical">
+              <div style={{ color: "#ff4d4f" }}>{loadError}</div>
+              <Button
+                type="primary"
+                onClick={fetchList}
+                icon={<ReloadOutlined />}
+              >
+                重新加载
+              </Button>
+            </Space>
+          </div>
+        ) : (
+          <ProjectTable
+            projects={filteredProjects}
+            selectedRowKeys={selectedRowKeys}
+            onSelectionChange={setSelectedRowKeys}
+            loading={loading}
+          />
+        )}
       </div>
 
       <CreateProjectModal

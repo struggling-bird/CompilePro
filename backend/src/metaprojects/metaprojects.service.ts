@@ -11,6 +11,8 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { UpsertConfigDto } from './dto/upsert-config.dto';
 import { UpdateCommandsDto } from './dto/commands.dto';
 import { AuditService } from '../audit/audit.service';
+import { RedisService } from '../redis/redis.service';
+import { GitlabService } from '../gitlab/gitlab.service';
 
 @Injectable()
 export class MetaprojectsService {
@@ -22,6 +24,8 @@ export class MetaprojectsService {
     @InjectRepository(VersionConfig)
     private readonly configs: Repository<VersionConfig>,
     private readonly audit: AuditService,
+    private readonly redis: RedisService,
+    private readonly gitlab: GitlabService,
   ) {}
 
   async createProject(userId: string, dto: CreateProjectDto) {
@@ -34,6 +38,18 @@ export class MetaprojectsService {
       createdBy: userId,
     } as Partial<MetaProject>);
     const saved = await this.projects.save(p);
+    if (dto.initialVersion && dto.sourceType && dto.sourceValue) {
+      const v = this.versions.create({
+        project: saved,
+        version: dto.initialVersion,
+        sourceType: dto.sourceType,
+        sourceValue: dto.sourceValue,
+        summary: dto.summary ?? undefined,
+        status: 'enabled',
+        createdBy: userId,
+      } as Partial<ProjectVersion>);
+      await this.versions.save(v);
+    }
     return saved;
   }
 
@@ -255,5 +271,81 @@ export class MetaprojectsService {
       details: { projectId },
     });
     return { id: projectId };
+  }
+
+  private async getGitSettings(
+    userId: string,
+  ): Promise<{ apiEndpoint: string; accessToken: string } | null> {
+    const raw = await this.redis.get(`git:settings:${userId}`);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as {
+        apiEndpoint?: string;
+        accessToken?: string;
+      };
+      if (!parsed.apiEndpoint || !parsed.accessToken) return null;
+      return {
+        apiEndpoint: parsed.apiEndpoint,
+        accessToken: parsed.accessToken,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private parseProjectPath(gitUrl: string): string {
+    const trimmed = gitUrl.trim();
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const u = new URL(trimmed);
+        const path = u.pathname.replace(/^\/+/, '').replace(/\.git$/i, '');
+        return path;
+      } catch {
+        return trimmed;
+      }
+    }
+    const sshMatch = trimmed.match(/^[\w.-]+@[^:]+:(.+)$/);
+    if (sshMatch) {
+      return sshMatch[1].replace(/\.git$/i, '');
+    }
+    const scpLike = trimmed.match(/^ssh:\/\/[^/]+\/(.+)$/i);
+    if (scpLike) {
+      return scpLike[1].replace(/\.git$/i, '');
+    }
+    return trimmed.replace(/\.git$/i, '');
+  }
+
+  async listGitBranches(userId: string, gitUrl: string) {
+    const settings = await this.getGitSettings(userId);
+    if (!settings) throw new HttpException('未配置 Git 绑定', 400);
+    const projectPath = this.parseProjectPath(gitUrl);
+    const encoded = encodeURIComponent(projectPath);
+    const res = await this.gitlab.request<any[]>(
+      settings.apiEndpoint,
+      settings.accessToken,
+      `/projects/${encoded}/repository/branches?per_page=100`,
+      'GET',
+    );
+    const list = (Array.isArray(res) ? res : []).map((b: any) => ({
+      name: b?.name ?? '',
+    }));
+    return { list };
+  }
+
+  async listGitTags(userId: string, gitUrl: string) {
+    const settings = await this.getGitSettings(userId);
+    if (!settings) throw new HttpException('未配置 Git 绑定', 400);
+    const projectPath = this.parseProjectPath(gitUrl);
+    const encoded = encodeURIComponent(projectPath);
+    const res = await this.gitlab.request<any[]>(
+      settings.apiEndpoint,
+      settings.accessToken,
+      `/projects/${encoded}/repository/tags?per_page=100`,
+      'GET',
+    );
+    const list = (Array.isArray(res) ? res : []).map((t: any) => ({
+      name: t?.name ?? '',
+    }));
+    return { list };
   }
 }
