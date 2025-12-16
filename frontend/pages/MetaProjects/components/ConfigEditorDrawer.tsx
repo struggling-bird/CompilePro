@@ -4,7 +4,6 @@ import {
   Tabs,
   Button,
   Input,
-  Checkbox,
   Tree,
   Space,
   Row,
@@ -18,8 +17,8 @@ import { SaveOutlined, InboxOutlined } from "@ant-design/icons";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { VersionConfig } from "@/types";
 import { listProjectFiles, getFileContent } from "@/services/metaprojects";
+import FilePreview from "@/components/FilePreview";
 
-const { TextArea } = Input;
 const { DirectoryTree } = Tree;
 const { Dragger } = Upload;
 
@@ -72,31 +71,9 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
     }
   }, [visible, config, projectId]);
 
-  // Reset match count when regex or content changes
-  useEffect(() => {
-    if (!regexPattern || !fileContent || activeTab !== "TEXT") {
-      setMatchCount(0);
-      return;
-    }
-    try {
-      // Simple heuristic to extract flags if user entered /pattern/flags format
-      // Otherwise assume the whole string is the pattern
-      let pattern = regexPattern;
-      let flags = "g"; // default global
-
-      const match = regexPattern.match(/^\/(.*?)\/([gimsuy]*)$/);
-      if (match) {
-        pattern = match[1];
-        flags = match[2] || "g";
-      }
-
-      const regex = new RegExp(pattern, flags);
-      const matches = fileContent.match(regex);
-      setMatchCount(matches ? matches.length : 0);
-    } catch (e) {
-      setMatchCount(0);
-    }
-  }, [regexPattern, fileContent, activeTab]);
+  // Reset match count when regex or content changes - NOW handled by FilePreview
+  // But we still reset it here to be safe if FilePreview unmounts?
+  // Actually FilePreview will call onMatchCountChange immediately.
 
   const fetchFiles = async () => {
     try {
@@ -147,45 +124,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
     } catch (err) {
       console.error(err);
       setSaving(false);
-    }
-  };
-
-  const renderHighlightedContent = () => {
-    if (!fileContent) return null;
-    if (!regexPattern || activeTab !== "TEXT") return fileContent;
-
-    try {
-      let pattern = regexPattern;
-      let flags = "g";
-      const match = regexPattern.match(/^\/(.*?)\/([gimsuy]*)$/);
-      if (match) {
-        pattern = match[1];
-        flags = match[2] || "g";
-      }
-      const regex = new RegExp(`(${pattern})`, flags);
-      const parts = fileContent.split(regex);
-
-      // RegExp with capturing group in split returns [pre, match, post, match, ...]
-      // However, if the regex is global, it might behave differently or we need to be careful.
-      // Actually, String.prototype.split with capturing group includes the captured parts.
-      // But simply, we can use a safer approach: react-string-replace or manual splitting.
-      // Let's use a manual map approach for simplicity with basic highlighting.
-
-      return parts.map((part, i) => {
-        // Even indices are non-matches, odd indices are matches (because of capturing group)
-        // But verify if it actually matches the pattern to be safe,
-        // though split with capturing group guarantees this structure.
-        if (i % 2 === 1) {
-          return (
-            <span key={i} style={{ backgroundColor: "#ffaa00", color: "#000" }}>
-              {part}
-            </span>
-          );
-        }
-        return part;
-      });
-    } catch (e) {
-      return fileContent;
     }
   };
 
@@ -259,12 +197,15 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
           color: "#d4d4d4",
           padding: 16,
           overflow: "auto",
-          fontFamily: "monospace",
-          whiteSpace: "pre-wrap",
         }}
       >
         <Spin spinning={loadingContent}>
-          <div>{renderHighlightedContent()}</div>
+          <FilePreview
+            content={fileContent}
+            fileName={selectedFile}
+            regexPattern={activeTab === "TEXT" ? regexPattern : undefined}
+            onMatchCountChange={setMatchCount}
+          />
         </Spin>
       </div>
     </div>
