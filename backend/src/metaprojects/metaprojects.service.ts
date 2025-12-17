@@ -10,6 +10,7 @@ import { UpdateVersionDto } from './dto/update-version.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { UpsertConfigDto } from './dto/upsert-config.dto';
 import { UpdateCommandsDto } from './dto/commands.dto';
+import { UpdateArtifactsDto } from './dto/update-artifacts.dto';
 import { AuditService } from '../audit/audit.service';
 import { RedisService } from '../redis/redis.service';
 import { GitlabService } from '../gitlab/gitlab.service';
@@ -151,6 +152,7 @@ export class MetaprojectsService {
       buildDoc: dto.buildDoc ?? undefined,
       updateDoc: dto.updateDoc ?? undefined,
       compileCommands: dto.compileCommands ?? [],
+      artifacts: dto.artifacts ?? [],
       status: 'enabled',
       createdBy: userId,
     } as Partial<ProjectVersion>);
@@ -284,6 +286,32 @@ export class MetaprojectsService {
       action: 'commands_update',
       userId: actorId,
       details: { projectId, versionId, count: dto.commands.length },
+    });
+    return { ok: true };
+  }
+
+  async updateArtifacts(
+    projectId: string,
+    versionId: string,
+    actorId: string,
+    dto: UpdateArtifactsDto,
+  ) {
+    const v = await this.versions
+      .createQueryBuilder('v')
+      .where('v.id = :vid', { vid: versionId })
+      .andWhere('v.projectId = :pid', { pid: projectId })
+      .getOne();
+    if (!v) throw new HttpException('版本不存在', 404);
+    if (dto.artifacts.length > 20)
+      throw new HttpException('制品配置数量超过限制', 400);
+    if (dto.artifacts.some((c) => typeof c !== 'string' || c.length > 500))
+      throw new HttpException('制品路径不合法', 400);
+    v.artifacts = dto.artifacts;
+    await this.versions.save(v);
+    await this.audit.log({
+      action: 'artifacts_update',
+      userId: actorId,
+      details: { projectId, versionId, count: dto.artifacts.length },
     });
     return { ok: true };
   }

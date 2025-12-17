@@ -46,6 +46,9 @@ export class ProjectVersion {
   @Column({ type: 'json', nullable: true })
   compileCommands?: string[];
 
+  @Column({ type: 'json', nullable: true })
+  artifacts?: string[];
+
   @Column({ length: 16, default: 'enabled' })
   status: VersionStatus;
 

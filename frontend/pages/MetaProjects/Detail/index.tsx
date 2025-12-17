@@ -24,6 +24,7 @@ import AddVersionModal from "../components/AddVersionModal";
 import ConfigTable from "../components/ConfigTable";
 import ConfigEditorDrawer from "../components/ConfigEditorDrawer";
 import CmdList from "../components/CmdList";
+import ArtifactList from "../components/ArtifactList";
 import {
   getProjectDetail,
   getCloneStatus,
@@ -32,6 +33,7 @@ import {
   upsertConfig,
   deleteConfig,
   updateCommands,
+  updateArtifacts,
 } from "@/services/metaprojects";
 import { message } from "antd";
 
@@ -70,6 +72,7 @@ const ProjectDetail: React.FC = () => {
           isDeprecated: v.status === "disabled",
           ref: v.sourceValue,
           compileCommands: v.compileCommands || [],
+          artifacts: v.artifacts || [],
         }));
         const latest = versions[0]?.version ?? "";
         const proj: Project = {
@@ -197,6 +200,26 @@ const ProjectDetail: React.FC = () => {
       });
       setProject({ ...project, versions: newVersions });
       message.success("命令已更新");
+    } catch (e: any) {
+      message.error(e?.message || "更新失败");
+    }
+  };
+
+  const handleUpdateArtifacts = async (newArtifacts: string[]) => {
+    if (!currentVersionId || !project) return;
+    try {
+      await updateArtifacts(projectId!, currentVersionId, {
+        artifacts: newArtifacts,
+      });
+      // Optimistically update local state
+      const newVersions = project.versions.map((v) => {
+        if (v.id === currentVersionId) {
+          return { ...v, artifacts: newArtifacts };
+        }
+        return v;
+      });
+      setProject({ ...project, versions: newVersions });
+      message.success("制品配置已更新");
     } catch (e: any) {
       message.error(e?.message || "更新失败");
     }
@@ -352,7 +375,7 @@ const ProjectDetail: React.FC = () => {
               title={t.projectDetail.compilationCommands}
               size="small"
               loading={loading}
-              style={{ height: "100%" }}
+              style={{ marginBottom: 16 }}
             >
               <CmdList
                 commands={
@@ -360,6 +383,16 @@ const ProjectDetail: React.FC = () => {
                     ?.compileCommands || []
                 }
                 onUpdate={handleUpdateCommands}
+                loading={loading}
+              />
+            </Card>
+            <Card title="制品目录配置" size="small" loading={loading}>
+              <ArtifactList
+                artifacts={
+                  project.versions.find((v) => v.version === activeVersion)
+                    ?.artifacts || []
+                }
+                onUpdate={handleUpdateArtifacts}
                 loading={loading}
               />
             </Card>

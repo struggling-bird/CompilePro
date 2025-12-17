@@ -51,4 +51,9 @@ export class CreateVersionDto {
   @IsOptional()
   @IsArray()
   compileCommands?: string[];
+
+  @ApiPropertyOptional({ description: '制品目录配置' })
+  @IsOptional()
+  @IsArray()
+  artifacts?: string[];
 }

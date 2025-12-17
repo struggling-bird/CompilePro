@@ -31,6 +31,7 @@ export interface Version {
   sourceVersion?: string; // The version this was branched from
   ref?: string;
   compileCommands?: string[];
+  artifacts?: string[];
 }
 
 export interface VersionConfig {

@@ -30,6 +30,7 @@ import { UpdateVersionDto } from './dto/update-version.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { UpsertConfigDto } from './dto/upsert-config.dto';
 import { UpdateCommandsDto } from './dto/commands.dto';
+import { UpdateArtifactsDto } from './dto/update-artifacts.dto';
 
 @Controller('metaprojects')
 @ApiTags('元项目管理')
@@ -198,6 +199,26 @@ export class MetaprojectsController {
     @Body() dto: UpdateCommandsDto,
   ) {
     return this.svc.updateCommands(projectId, versionId, req.user.userId, dto);
+  }
+
+  @Put(':projectId/versions/:versionId/artifacts')
+  @ApiOperation({ summary: '更新制品目录配置' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiBody({ type: UpdateArtifactsDto })
+  @ApiResponse({ status: 200, description: '成功' })
+  async updateArtifacts(
+    @Param('projectId') projectId: string,
+    @Param('versionId') versionId: string,
+    @Req() req: { user: { userId: string } },
+    @Body() dto: UpdateArtifactsDto,
+  ) {
+    return await this.svc.updateArtifacts(
+      projectId,
+      versionId,
+      req.user.userId,
+      dto,
+    );
   }
 
   @Delete(':projectId')

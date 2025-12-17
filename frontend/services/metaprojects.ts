@@ -62,6 +62,7 @@ export const getProjectDetail = async (
     sourceValue: string;
     status: "enabled" | "disabled";
     compileCommands?: string[];
+    artifacts?: string[];
   }>;
 }> => {
   return request(`/apis/metaprojects/${projectId}`, {
@@ -96,6 +97,7 @@ export const createVersion = async (
     buildDoc?: string;
     updateDoc?: string;
     compileCommands?: string[];
+    artifacts?: string[];
   }
 ) => {
   return request(`/apis/metaprojects/${projectId}/versions`, {
@@ -179,6 +181,20 @@ export const updateCommands = async (
 ) => {
   return request(
     `/apis/metaprojects/${projectId}/versions/${versionId}/commands`,
+    {
+      method: "PUT",
+      data: payload,
+    }
+  );
+};
+
+export const updateArtifacts = async (
+  projectId: string,
+  versionId: string,
+  payload: { artifacts: string[] }
+) => {
+  return request(
+    `/apis/metaprojects/${projectId}/versions/${versionId}/artifacts`,
     {
       method: "PUT",
       data: payload,
