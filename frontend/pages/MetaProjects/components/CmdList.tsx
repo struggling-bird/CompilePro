@@ -72,7 +72,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
     transition,
     marginBottom: 8,
     padding: "8px 12px",
-    backgroundColor: isDragging ? token.colorFillSecondary : token.colorBgContainer,
+    backgroundColor: isDragging
+      ? token.colorFillSecondary
+      : token.colorBgContainer,
     border: `1px solid ${token.colorBorder}`,
     borderRadius: token.borderRadius,
     display: "flex",
@@ -165,7 +167,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
 const CmdList: React.FC<CmdListProps> = ({ commands, onUpdate, loading }) => {
   const [adding, setAdding] = useState(false);
   const [newCmd, setNewCmd] = useState("");
-  
+
   // We need stable IDs for dnd-kit. Since commands are strings and can be duplicates,
   // we map them to objects with unique IDs.
   // However, simple approach: use index as ID if we don't reorder duplicates often?
@@ -173,7 +175,9 @@ const CmdList: React.FC<CmdListProps> = ({ commands, onUpdate, loading }) => {
   const [items, setItems] = useState<{ id: string; cmd: string }[]>([]);
 
   React.useEffect(() => {
-    setItems(commands.map((c, i) => ({ id: `${i}-${c}-${Math.random()}`, cmd: c })));
+    setItems(
+      commands.map((c, i) => ({ id: `${i}-${c}-${Math.random()}`, cmd: c }))
+    );
   }, [commands]);
 
   const sensors = useSensors(
@@ -209,39 +213,14 @@ const CmdList: React.FC<CmdListProps> = ({ commands, onUpdate, loading }) => {
   };
 
   const handleEdit = (id: string, newVal: string) => {
-    const newItems = items.map((i) => (i.id === id ? { ...i, cmd: newVal } : i));
+    const newItems = items.map((i) =>
+      i.id === id ? { ...i, cmd: newVal } : i
+    );
     onUpdate(newItems.map((i) => i.cmd));
   };
 
   return (
     <div style={{ width: "100%" }}>
-      {adding && (
-        <div style={{ marginBottom: 12, display: "flex" }}>
-          <Input
-            value={newCmd}
-            onChange={(e) => setNewCmd(e.target.value)}
-            onPressEnter={handleAdd}
-            placeholder="请输入命令，回车确认"
-            autoFocus
-            style={{ marginRight: 8 }}
-          />
-          <Button onClick={() => setAdding(false)}>取消</Button>
-        </div>
-      )}
-      
-      {!adding && (
-        <Button
-          type="dashed"
-          block
-          icon={<PlusOutlined />}
-          onClick={() => setAdding(true)}
-          style={{ marginBottom: 12 }}
-          loading={loading}
-        >
-          新建命令
-        </Button>
-      )}
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -262,6 +241,33 @@ const CmdList: React.FC<CmdListProps> = ({ commands, onUpdate, loading }) => {
           ))}
         </SortableContext>
       </DndContext>
+
+      {adding && (
+        <div style={{ marginTop: 12, display: "flex" }}>
+          <Input
+            value={newCmd}
+            onChange={(e) => setNewCmd(e.target.value)}
+            onPressEnter={handleAdd}
+            placeholder="请输入命令，回车确认"
+            autoFocus
+            style={{ marginRight: 8 }}
+          />
+          <Button onClick={() => setAdding(false)}>取消</Button>
+        </div>
+      )}
+
+      {!adding && (
+        <Button
+          type="dashed"
+          block
+          icon={<PlusOutlined />}
+          onClick={() => setAdding(true)}
+          style={{ marginTop: 12 }}
+          loading={loading}
+        >
+          新建命令
+        </Button>
+      )}
     </div>
   );
 };
