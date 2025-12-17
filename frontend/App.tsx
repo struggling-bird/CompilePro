@@ -147,7 +147,7 @@ const AppContent: React.FC = () => {
     >
       <Suspense fallback={<div />}>
         <Routes>
-          <Route path="/" element={<Navigate to="/compile" replace />} />
+          <Route path="/" element={<Navigate to="/meta-projects" replace />} />
           {privateRoutes.map(({ path, component: C }) => (
             <Route key={path} path={path} element={<C />} />
           ))}
