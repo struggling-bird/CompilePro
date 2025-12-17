@@ -95,6 +95,7 @@ export interface SystemEnvironment {
 export interface TemplateGlobalConfig {
   id: string;
   name: string;
+  type: "FILE" | "TEXT";
   defaultValue: string;
   description: string;
   isHidden: boolean;
