@@ -27,6 +27,11 @@ import { CustomersModule } from './customers/customers.module';
 import { SystemModule } from './system/system.module';
 import { MetaprojectsModule } from './metaprojects/metaprojects.module';
 import { WorkspaceModule } from './workspace/workspace.module';
+import { StorageModule } from './storage/storage.module';
+import { FileEntity } from './storage/file.entity';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -34,6 +39,13 @@ import { WorkspaceModule } from './workspace/workspace.module';
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'production' ? '.env' : '.env.dev',
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
+    ScheduleModule.forRoot(),
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
@@ -81,6 +93,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
           MetaProject,
           ProjectVersion,
           VersionConfig,
+          FileEntity,
         ],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
@@ -108,8 +121,14 @@ import { WorkspaceModule } from './workspace/workspace.module';
     SystemModule,
     MetaprojectsModule,
     WorkspaceModule,
+    StorageModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

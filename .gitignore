@@ -3,3 +3,4 @@ dist
 logs
 backend/artifacts
 compile-space
+uploads
