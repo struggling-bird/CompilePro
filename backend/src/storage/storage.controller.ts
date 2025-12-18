@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { StorageService } from './storage.service';
+import { StorageConfigService } from '../storage-config/storage-config.service';
 import type { Response } from 'express';
 import {
   ApiTags,
@@ -34,7 +35,10 @@ import sharp from 'sharp';
 @ApiTags('存储模块')
 @Controller('storage')
 export class StorageController {
-  constructor(private readonly storageService: StorageService) {}
+  constructor(
+    private readonly storageService: StorageService,
+    private readonly storageConfig: StorageConfigService,
+  ) {}
 
   @Post('upload')
   @UseGuards(AuthenticatedGuard, ReplayGuard)
@@ -165,7 +169,11 @@ export class StorageController {
       });
     }
 
-    const kbps = Number(limitKbps ?? process.env.DOWNLOAD_LIMIT_KBPS ?? '0');
+    const globalLimit = await this.storageConfig.get<number>(
+      'DOWNLOAD_LIMIT_KBPS',
+      0,
+    );
+    const kbps = Number(limitKbps ?? globalLimit);
     const throttled =
       kbps > 0 ? stream.pipe(new ThrottleTransform(kbps)) : stream;
     return new StreamableFile(throttled);

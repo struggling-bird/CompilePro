@@ -16,8 +16,8 @@ import type { Readable } from 'stream';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import 'multer';
 import { createHash, randomBytes, createCipheriv } from 'crypto';
-import { ConfigService } from '@nestjs/config';
 import { AuditService } from '../audit/audit.service';
+import { StorageConfigService } from '../storage-config/storage-config.service';
 
 @Injectable()
 export class StorageService {
@@ -29,8 +29,8 @@ export class StorageService {
     @Inject(LocalStorageStrategy)
     private readonly storageStrategy: StorageStrategy,
     private readonly strategyResolver: StorageStrategyResolver,
-    private readonly config: ConfigService,
     private readonly audit: AuditService,
+    private readonly storageConfig: StorageConfigService,
   ) {}
 
   async uploadFile(
@@ -43,11 +43,13 @@ export class StorageService {
     const md5 = createHash('md5').update(file.buffer).digest('hex');
     const sha256 = createHash('sha256').update(file.buffer).digest('hex');
 
-    const encrypted = this.shouldEncrypt(file.mimetype);
+    const encrypted = await this.shouldEncrypt(file.mimetype);
     let fileInfo;
     if (encrypted) {
       const iv = randomBytes(16);
-      const keyHex = this.config.get<string>('STORAGE_ENCRYPTION_KEY');
+      const keyHex = await this.storageConfig.get<string>(
+        'STORAGE_ENCRYPTION_KEY',
+      );
       if (!keyHex) {
         throw new BadRequestException('Encryption key not configured');
       }
@@ -75,7 +77,9 @@ export class StorageService {
         storageType: 'local',
         userId: userId,
         isTemp: isTemp,
-        expiresAt: isTemp ? new Date(Date.now() + this.tempTtlMs()) : undefined,
+        expiresAt: isTemp
+          ? new Date(Date.now() + (await this.tempTtlMs()))
+          : undefined,
         checksumMd5: md5,
         checksumSha256: sha256,
         isEncrypted: true,
@@ -99,7 +103,9 @@ export class StorageService {
         storageType: 'local',
         userId: userId,
         isTemp: isTemp,
-        expiresAt: isTemp ? new Date(Date.now() + this.tempTtlMs()) : undefined,
+        expiresAt: isTemp
+          ? new Date(Date.now() + (await this.tempTtlMs()))
+          : undefined,
         checksumMd5: md5,
         checksumSha256: sha256,
         isEncrypted: false,
@@ -150,7 +156,7 @@ export class StorageService {
     const input = await this.readStreamToBuffer(stream);
     const buffer = await sharp(input)
       .resize(width, height)
-      .webp({ quality: this.previewQuality() })
+      .webp({ quality: await this.previewQuality() })
       .toBuffer();
     return { buffer, mimetype: 'image/webp' };
   }
@@ -180,19 +186,25 @@ export class StorageService {
     this.logger.log(`Cleanup complete. Deleted ${count} files.`);
   }
 
-  private tempTtlMs(): number {
-    const hours = Number(
-      this.config.get<string>('STORAGE_TEMP_TTL_HOURS') ?? '24',
+  private async tempTtlMs(): Promise<number> {
+    const ttlHours = await this.storageConfig.get<number>(
+      'STORAGE_TEMP_TTL_HOURS',
+      24,
     );
-    return Math.max(1, hours) * 60 * 60 * 1000;
+    return Math.max(1, Number(ttlHours)) * 60 * 60 * 1000;
   }
 
-  private shouldEncrypt(mime: string): boolean {
-    const enabled =
-      (this.config.get<string>('STORAGE_ENCRYPTION_ENABLED') ?? 'false') ===
-      'true';
+  private async shouldEncrypt(mime: string): Promise<boolean> {
+    const enabled = await this.storageConfig.get<boolean>(
+      'STORAGE_ENCRYPTION_ENABLED',
+      false,
+    );
     if (!enabled) return false;
-    const list = (this.config.get<string>('STORAGE_ENCRYPT_MIME_TYPES') ?? '')
+    const raw = await this.storageConfig.get<string>(
+      'STORAGE_ENCRYPT_MIME_TYPES',
+      '',
+    );
+    const list = raw
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
@@ -208,8 +220,10 @@ export class StorageService {
     return `${type}/${y}/${m}/${d}`;
   }
 
-  private previewQuality(): number {
-    return Number(this.config.get<string>('IMAGE_PREVIEW_QUALITY') ?? '80');
+  private async previewQuality(): Promise<number> {
+    return Number(
+      await this.storageConfig.get<number>('IMAGE_PREVIEW_QUALITY', 80),
+    );
   }
 
   private readStreamToBuffer(stream: Readable): Promise<Buffer> {

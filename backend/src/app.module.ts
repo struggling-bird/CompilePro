@@ -29,6 +29,9 @@ import { MetaprojectsModule } from './metaprojects/metaprojects.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { StorageModule } from './storage/storage.module';
 import { FileEntity } from './storage/file.entity';
+import { StorageConfigModule } from './storage-config/storage-config.module';
+import { StorageConfig } from './storage-config/entities/storage-config.entity';
+import { StorageConfigHistory } from './storage-config/entities/storage-config-history.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -94,6 +97,8 @@ import { APP_GUARD } from '@nestjs/core';
           ProjectVersion,
           VersionConfig,
           FileEntity,
+          StorageConfig,
+          StorageConfigHistory,
         ],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
@@ -119,6 +124,7 @@ import { APP_GUARD } from '@nestjs/core';
     CustomersModule,
     EnvironmentsModule,
     SystemModule,
+    StorageConfigModule,
     MetaprojectsModule,
     WorkspaceModule,
     StorageModule,
