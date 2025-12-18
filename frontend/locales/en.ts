@@ -1,4 +1,7 @@
 export default {
+  common: {
+    saved: "Saved successfully",
+  },
   login: {
     title: "Login to ZhugeIO",
     emailPlaceholder: "Email address",
@@ -111,6 +114,10 @@ export default {
     },
   },
   manageList: {
+    version: "VERSION",
+    environment: "ENVIRONMENT",
+    view: "View",
+    searchPlaceholder: "Search...",
     newDeployment: "New Deployment",
     name: "NAME",
     type: "TYPE",
@@ -139,6 +146,10 @@ export default {
     },
   },
   deploymentDetail: {
+    newTitle: "New Deployment Config",
+    editTitle: "Edit Deployment Config",
+    environment: "Environment",
+    save: "Save",
     newConfig: "New Deployment Config",
     editConfig: "Edit",
     back: "Back",
@@ -201,6 +212,7 @@ export default {
   settings: {
     title: "Settings",
     accountSettings: "Account Settings",
+    install: "Install",
     username: "Username",
     password: "Password",
     confirmPassword: "Confirm Password",
@@ -236,12 +248,24 @@ export default {
     saveFailed: "Failed to save configuration",
     loadFailed: "Failed to load configs",
     workspaceStats: "Workspace Stats",
+    totalUsers: "Total Users",
+    totalProjects: "Total Projects",
     rootPath: "Root Path",
-    userCount: "Users Count",
+    userCount: "User Count",
     totalSize: "Total Size",
+    storageDistribution: "Storage Distribution",
+    projectCountDistribution: "Project Count Distribution",
+    details: "Details",
+    usernameColumn: "Username",
+    projectCountColumn: "Project Count",
+    sizeColumn: "Size",
+    projectName: "Project Name",
+    projectDesc: "Description",
   },
   templateList: {
     title: "Project Templates",
+    author: "Author",
+    createdDate: "Created Date",
     newTemplate: "New Template",
     name: "TEMPLATE NAME",
     latestVersion: "LATEST VERSION",

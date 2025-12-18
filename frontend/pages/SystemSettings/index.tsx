@@ -78,12 +78,12 @@ const SystemSettingsPage: React.FC = () => {
 
   return (
     <div className="settings-container">
-      <Card bordered={false}>
+      <Card variant="borderless">
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           items={items}
-          tabPosition="left"
+          tabPlacement="start"
           className={`h-full settings-tabs`}
         />
       </Card>

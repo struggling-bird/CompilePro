@@ -359,6 +359,46 @@ export class WorkspaceService {
     }
   }
 
+  async scanWorkspace() {
+    const root = await this.ensureRoot();
+    const users = await readdir(root).catch(() => []);
+    const result: {
+      userId: string;
+      size: number;
+      projects: { projectId: string; size: number }[];
+    }[] = [];
+
+    for (const u of users) {
+      const up = path.join(root, u);
+      const uStat = await lstat(up).catch(() => null);
+      if (!uStat || !uStat.isDirectory()) continue;
+
+      const projects: { projectId: string; size: number }[] = [];
+      const projectDirs = await readdir(up).catch(() => []);
+
+      for (const p of projectDirs) {
+        const pp = path.join(up, p);
+        const pStat = await lstat(pp).catch(() => null);
+        if (!pStat || !pStat.isDirectory()) continue;
+
+        const pSize = await this.dirSize(pp);
+        projects.push({ projectId: p, size: pSize });
+      }
+
+      // Add files in user root to size if any (though structure should be user/project)
+      // For now we assume size is sum of projects + user dir metadata
+      // But dirSize recursive already covers everything in 'up'
+      const realUserSize = await this.dirSize(up);
+
+      result.push({
+        userId: u,
+        size: realUserSize,
+        projects,
+      });
+    }
+    return result;
+  }
+
   async stats() {
     const root = await this.ensureRoot();
     const users = await readdir(root).catch(() => []);

@@ -31,6 +31,10 @@ export class MetaprojectsService {
     private readonly workspace: WorkspaceService,
   ) {}
 
+  async getById(id: string) {
+    return this.projects.findOne({ where: { id } });
+  }
+
   async createProject(userId: string, dto: CreateProjectDto) {
     const exists = await this.projects.findOne({ where: { name: dto.name } });
     if (exists) throw new HttpException('项目名称已存在', 400);

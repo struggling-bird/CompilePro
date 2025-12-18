@@ -55,6 +55,8 @@ export interface DeploymentConfig {
   lastBuilder: string;
   projects: string[]; // IDs of projects included
   customerId?: string;
+  environment?: string;
+  customerName?: string;
 }
 
 export interface User {
@@ -177,6 +179,8 @@ export interface ProjectTemplate {
   latestVersion: string;
   description?: string;
   updateTime?: string;
+  author?: string;
+  createdDate?: string;
   versions: TemplateVersion[];
 }
 

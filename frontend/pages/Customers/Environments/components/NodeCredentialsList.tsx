@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, message, Popconfirm, Tooltip, Card } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined, KeyOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  KeyOutlined,
+} from "@ant-design/icons";
 import { useLanguage } from "../../../../contexts/LanguageContext";
 import { NodeCredential } from "../../../../types";
 import {
@@ -25,10 +30,12 @@ const NodeCredentialsList: React.FC<Props> = ({
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [list, setList] = useState<NodeCredential[]>([]);
-  
+
   // Edit Modal State
   const [editVisible, setEditVisible] = useState(false);
-  const [currentCred, setCurrentCred] = useState<Partial<NodeCredential> | undefined>(undefined);
+  const [currentCred, setCurrentCred] = useState<
+    Partial<NodeCredential> | undefined
+  >(undefined);
 
   const fetchList = async () => {
     try {
@@ -59,7 +66,13 @@ const NodeCredentialsList: React.FC<Props> = ({
   const handleEditSave = async (values: Partial<NodeCredential>) => {
     try {
       if (currentCred?.id) {
-        await updateNodeCredential(customerId, envId, nodeId, currentCred.id, values);
+        await updateNodeCredential(
+          customerId,
+          envId,
+          nodeId,
+          currentCred.id,
+          values
+        );
         message.success(t.environment.saveSuccess);
       } else {
         await createNodeCredential(customerId, envId, nodeId, values);
@@ -73,19 +86,28 @@ const NodeCredentialsList: React.FC<Props> = ({
   };
 
   const columns = [
-    { 
-      title: t.environment.type, 
-      dataIndex: "type", 
+    {
+      title: t.environment.type,
+      dataIndex: "type",
       key: "type",
       width: 150,
-      render: (text: string) => <span className="font-medium text-slate-700">{text}</span>
+      render: (text: string) => (
+        <span className="font-medium text-slate-700">{text}</span>
+      ),
     },
-    { title: t.environment.username, dataIndex: "username", key: "username", width: 200 },
-    { 
-      title: t.environment.description, 
-      dataIndex: "description", 
+    {
+      title: t.environment.username,
+      dataIndex: "username",
+      key: "username",
+      width: 200,
+    },
+    {
+      title: t.environment.description,
+      dataIndex: "description",
       key: "description",
-      render: (text: string) => <span className="text-slate-500">{text || '-'}</span>
+      render: (text: string) => (
+        <span className="text-slate-500">{text || "-"}</span>
+      ),
     },
     {
       title: t.customerList.action,
@@ -109,7 +131,12 @@ const NodeCredentialsList: React.FC<Props> = ({
             onConfirm={() => handleDelete(r.id!)}
           >
             <Tooltip title={t.customerList.delete}>
-              <Button type="text" danger size="small" icon={<DeleteOutlined />} />
+              <Button
+                type="text"
+                danger
+                size="small"
+                icon={<DeleteOutlined />}
+              />
             </Tooltip>
           </Popconfirm>
         </div>
@@ -118,8 +145,8 @@ const NodeCredentialsList: React.FC<Props> = ({
   ];
 
   return (
-    <Card 
-      size="small" 
+    <Card
+      size="small"
       title={
         <div className="flex items-center gap-2 text-slate-600">
           <KeyOutlined />
@@ -140,7 +167,7 @@ const NodeCredentialsList: React.FC<Props> = ({
         </Button>
       }
       className="bg-slate-50 border-slate-200"
-      bodyStyle={{ padding: 0 }}
+      styles={{ body: { padding: 0 } }}
     >
       <Table
         rowKey="id"
@@ -149,7 +176,7 @@ const NodeCredentialsList: React.FC<Props> = ({
         loading={loading}
         pagination={false}
         size="small"
-        bordered={false}
+        virtual
       />
 
       <CredentialEditModal

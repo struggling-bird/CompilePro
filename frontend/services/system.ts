@@ -1,4 +1,4 @@
-import request, { request as namedRequest } from "../utils/request";
+import request from "../utils/request";
 import { SystemEnvironment } from "../types";
 
 export const getSystemEnvironment = async (): Promise<SystemEnvironment> => {
@@ -86,3 +86,33 @@ export const getGitSettings = async (): Promise<GitSettingsResponse> => {
     method: "GET",
   });
 };
+
+export interface ProjectStats {
+  id: string;
+  name: string;
+  description: string;
+  size: number;
+}
+
+export interface UserSpaceStats {
+  id: string;
+  username: string;
+  email: string;
+  size: number;
+  projectCount: number;
+  projects: ProjectStats[];
+}
+
+export interface WorkspaceStatsDetail {
+  totalSize: number;
+  totalUsers: number;
+  totalProjects: number;
+  userSpaces: UserSpaceStats[];
+}
+
+export const getWorkspaceStatsDetail =
+  async (): Promise<WorkspaceStatsDetail> => {
+    return request<WorkspaceStatsDetail>("/apis/system/workspace/stats", {
+      method: "GET",
+    });
+  };

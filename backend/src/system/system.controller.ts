@@ -49,4 +49,11 @@ export class SystemController {
   async getGitSettings(@Req() req: { user: { userId: string } }) {
     return this.sys.getGitSettings(req.user.userId);
   }
+
+  @Get('workspace/stats')
+  @ApiOperation({ summary: '获取工作空间详细统计' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async getWorkspaceStatsDetail() {
+    return this.sys.getWorkspaceStatsDetail();
+  }
 }

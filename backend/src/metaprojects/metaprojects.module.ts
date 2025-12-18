@@ -20,5 +20,6 @@ import { WorkspaceModule } from '../workspace/workspace.module';
   ],
   providers: [MetaprojectsService],
   controllers: [MetaprojectsController],
+  exports: [MetaprojectsService],
 })
 export class MetaprojectsModule {}

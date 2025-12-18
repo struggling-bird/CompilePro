@@ -2,16 +2,95 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { exec } from 'child_process';
 import { RedisService } from '../redis/redis.service';
 import { GitlabService } from '../gitlab/gitlab.service';
-import * as https from 'https';
-import { URL } from 'url';
+import { WorkspaceService } from '../workspace/workspace.service';
+import { UsersService } from '../users/users.service';
+import { MetaprojectsService } from '../metaprojects/metaprojects.service';
 import { GitSettingsDto } from './dto/git-settings.dto';
+import { URL } from 'url';
 
 @Injectable()
 export class SystemService {
   constructor(
     private readonly redis: RedisService,
     private readonly gitlab: GitlabService,
+    private readonly workspace: WorkspaceService,
+    private readonly users: UsersService,
+    private readonly projects: MetaprojectsService,
   ) {}
+
+  async getWorkspaceStatsDetail() {
+    const rawStats = await this.workspace.scanWorkspace();
+
+    // Collect IDs
+    const userIds = rawStats.map((u) => u.userId);
+    const projectIds = rawStats.flatMap((u) =>
+      u.projects.map((p) => p.projectId),
+    );
+
+    // Fetch details
+    const userMap = new Map<string, { username: string; email: string }>();
+    await Promise.all(
+      userIds.map(async (id) => {
+        try {
+          const u = await this.users.getById(id);
+          if (u) userMap.set(id, u);
+        } catch (e) {
+          void e;
+        }
+      }),
+    );
+
+    const projectMap = new Map<
+      string,
+      { name: string; description?: string }
+    >();
+    await Promise.all(
+      projectIds.map(async (id) => {
+        try {
+          const p = await this.projects.getById(id);
+          if (p) projectMap.set(id, p);
+        } catch (e) {
+          void e;
+        }
+      }),
+    );
+
+    // Assemble result
+    let totalSize = 0;
+    let totalProjects = 0;
+    const userDetails = rawStats.map((u) => {
+      const userInfo = userMap.get(u.userId);
+      const projects = u.projects.map((p) => {
+        const projectInfo = projectMap.get(p.projectId);
+        return {
+          id: p.projectId,
+          name: projectInfo?.name ?? 'Unknown Project',
+          description: projectInfo?.description ?? '',
+          size: p.size,
+        };
+      });
+
+      totalSize += u.size;
+      totalProjects += projects.length;
+
+      return {
+        id: u.userId,
+        username: userInfo?.username ?? 'Unknown User',
+        email: userInfo?.email ?? '',
+        size: u.size,
+        projectCount: projects.length,
+        projects,
+      };
+    });
+
+    return {
+      totalSize,
+      totalUsers: userDetails.length,
+      totalProjects,
+      userSpaces: userDetails,
+    };
+  }
+
   checkGit(): Promise<{ installed: boolean; version?: string }> {
     return new Promise((resolve) => {
       const child = exec('git --version', { timeout: 5000 }, (err, stdout) => {
@@ -138,64 +217,5 @@ export class SystemService {
       }
       return `https://${host}/api/v4`;
     }
-  }
-
-  private validateGitSettings(
-    apiRoot: string,
-    token: string,
-  ): Promise<boolean> {
-    return new Promise((resolve) => {
-      const url = new URL(`${apiRoot}/projects`);
-      const options: https.RequestOptions = {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'User-Agent': 'CompilePro/1.0',
-          Accept: 'application/json',
-        },
-      };
-      const req = https.request(url, options, (res) => {
-        const status = res.statusCode ?? 0;
-        if (status === 200) return resolve(true);
-        if (status === 401) return resolve(false);
-        if (status === 403) return resolve(false);
-        let data = '';
-        res.on('data', (chunk) => (data += chunk));
-        res.on('end', () => {
-          let parsed: unknown = {};
-          try {
-            parsed = data ? (JSON.parse(data) as unknown) : {};
-          } catch {
-            parsed = {};
-          }
-          const body = parsed as { message?: string };
-          if (body && body.message === '401 Unauthorized')
-            return resolve(false);
-          resolve(status >= 200 && status < 300);
-        });
-      });
-      req.on('error', () => resolve(false));
-      req.end();
-    }).then(async (ok) => {
-      if (ok) return true;
-      return new Promise((resolve) => {
-        const url = new URL(`${apiRoot}/projects`);
-        const options: https.RequestOptions = {
-          method: 'GET',
-          headers: {
-            'Private-Token': token,
-            'User-Agent': 'CompilePro/1.0',
-            Accept: 'application/json',
-          },
-        };
-        const req = https.request(url, options, (res) => {
-          const status = res.statusCode ?? 0;
-          if (status === 200) return resolve(true);
-          resolve(false);
-        });
-        req.on('error', () => resolve(false));
-        req.end();
-      });
-    });
   }
 }
