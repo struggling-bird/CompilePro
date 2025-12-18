@@ -134,74 +134,93 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   };
 
   const renderTextTab = () => (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ padding: 16, borderBottom: "1px solid #f0f0f0" }}>
-        <Row gutter={16}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        padding: 8,
+      }}
+    >
+      <div style={{ padding: "8px 16px 0", borderBottom: "1px solid #f0f0f0" }}>
+        {/* Hidden but required field for selected file */}
+        <Form.Item name="fileOriginPath" rules={[{ required: true }]} hidden>
+          <Input />
+        </Form.Item>
+        <Row gutter={8}>
           <Col span={12}>
+            <Form.Item
+              name="name"
+              label="配置名称"
+              rules={[{ required: true, message: "请输入配置名称" }]}
+              style={{ marginBottom: 6 }}
+            >
+              <Input placeholder="Config Name" size="small" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="description"
+              label="配置描述"
+              style={{ marginBottom: 6 }}
+            >
+              <Input placeholder="Description" size="small" />
+            </Form.Item>
+          </Col>
+
+          <Col span={16}>
             <Form.Item
               name="textOrigin"
               label="正则表达式"
               rules={[{ required: true, message: "请输入正则表达式" }]}
+              style={{ marginBottom: 6 }}
             >
-              <Input placeholder="/pattern/flags" />
+              <Input placeholder="/pattern/flags" size="small" />
             </Form.Item>
           </Col>
-          <Col span={12}>
-            <Form.Item name="description" label="配置描述">
-              <Input placeholder="Description" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
+          <Col span={8}>
             <Form.Item
               name="matchIndex"
               label="匹配项索引 (从0开始)"
               initialValue={0}
+              style={{ marginBottom: 6 }}
             >
               <InputNumber
                 min={0}
                 max={matchCount > 0 ? matchCount - 1 : 0}
                 style={{ width: "100%" }}
+                size="small"
               />
             </Form.Item>
           </Col>
+
           <Col span={24}>
             <Form.Item
               name="textTarget"
               label="替换内容"
               rules={[{ required: true, message: "请输入替换内容" }]}
+              style={{ marginBottom: 6 }}
             >
-              <Input placeholder="New value" />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item
-              name="name"
-              label="配置名称"
-              rules={[{ required: true, message: "请输入配置名称" }]}
-            >
-              <Input placeholder="Config Name" />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item
-              name="fileOriginPath"
-              label="选中文件"
-              rules={[{ required: true }]}
-            >
-              <Input readOnly placeholder="请从左侧选择文件" />
+              <Input.TextArea
+                placeholder="New value"
+                rows={1}
+                size="small"
+                autoSize={{ minRows: 1, maxRows: 4 }}
+              />
             </Form.Item>
           </Col>
         </Row>
       </div>
       <div
         style={{
-          padding: "8px 16px",
+          padding: "6px 16px",
           background: "#333",
           color: "#fff",
           borderBottom: "1px solid #444",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          fontSize: 12,
         }}
       >
         <span>预览内容</span>
@@ -216,6 +235,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
           color: "#d4d4d4",
           padding: 16,
           overflow: "auto",
+          minHeight: 200,
         }}
       >
         <Spin spinning={loadingContent}>
@@ -333,7 +353,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
     >
       <div
         style={{
-          width: 300,
+          width: 450,
           borderRight: "1px solid #f0f0f0",
           display: "flex",
           flexDirection: "column",
@@ -352,12 +372,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
         <div style={{ flex: 1, overflow: "auto", padding: 8 }}>
           <Spin spinning={loadingFiles}>
             {treeData.length > 0 ? (
-              <DirectoryTree
-                onSelect={handleSelect}
-                treeData={treeData}
-                // height={800} // Remove fixed height to let flex handle it
-                // defaultExpandAll
-              />
+              <DirectoryTree onSelect={handleSelect} treeData={treeData} />
             ) : (
               <div style={{ padding: 16, textAlign: "center", color: "#999" }}>
                 暂无文件或未加载
@@ -366,7 +381,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
           </Spin>
         </div>
       </div>
-      <div style={{ flex: 1, overflow: "hidden" }}>
+      <div style={{ flex: 1, overflow: "auto" }}>
         <Form form={form} layout="vertical" style={{ height: "100%" }}>
           {renderContent()}
         </Form>
