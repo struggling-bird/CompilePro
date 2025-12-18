@@ -234,6 +234,10 @@ export default {
     saveSuccess: "Configuration saved successfully",
     saveFailed: "Failed to save configuration",
     loadFailed: "Failed to load configs",
+    workspaceStats: "Workspace Stats",
+    rootPath: "Root Path",
+    userCount: "Users Count",
+    totalSize: "Total Size",
   },
   templateList: {
     title: "Project Templates",

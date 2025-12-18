@@ -233,6 +233,10 @@ export default {
     saveSuccess: "配置保存成功",
     saveFailed: "配置保存失败",
     loadFailed: "加载配置失败",
+    workspaceStats: "工作空间统计",
+    rootPath: "根目录路径",
+    userCount: "用户数量",
+    totalSize: "总占用空间",
   },
   templateList: {
     title: "项目模板",
