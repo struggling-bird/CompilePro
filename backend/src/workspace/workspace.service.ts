@@ -383,7 +383,22 @@ export class WorkspaceService {
     return size;
   }
 
-  async listFiles(userId: string, projectId: string): Promise<any[]> {
+  async listFiles(
+    userId: string,
+    projectId: string,
+  ): Promise<
+    Array<{
+      title: string;
+      key: string;
+      isLeaf: boolean;
+      children?: Array<{
+        title: string;
+        key: string;
+        isLeaf: boolean;
+        children?: any[];
+      }>;
+    }>
+  > {
     const root = await this.ensureUserDir(userId);
     const projDir = this.safeJoin(root, projectId);
     try {
@@ -395,16 +410,29 @@ export class WorkspaceService {
     const buildTree = async (
       currentPath: string,
       relativePath: string = '',
-    ): Promise<any[]> => {
+    ): Promise<
+      Array<{ title: string; key: string; isLeaf: boolean; children?: any[] }>
+    > => {
       const entries = await readdir(currentPath, { withFileTypes: true });
-      const result = [];
+      const result: Array<{
+        title: string;
+        key: string;
+        isLeaf: boolean;
+        children?: any[];
+      }> = [];
       for (const entry of entries) {
         if (entry.name === '.git') continue;
         const fullPath = path.join(currentPath, entry.name);
         const relPath = path.join(relativePath, entry.name);
-        const node: any = {
+        const node: {
+          title: string;
+          key: string;
+          isLeaf: boolean;
+          children?: any[];
+        } = {
           title: entry.name,
           key: relPath,
+          isLeaf: false,
         };
         if (entry.isDirectory()) {
           node.children = await buildTree(fullPath, relPath);
