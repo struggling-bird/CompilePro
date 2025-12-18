@@ -20,6 +20,7 @@ export class UsersService {
       username: user.username,
       email: user.email,
       status: user.status,
+      isSuperAdmin: user.isSuperAdmin,
       role: user.role
         ? {
             name: user.role.name,

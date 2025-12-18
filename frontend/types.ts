@@ -58,9 +58,11 @@ export interface DeploymentConfig {
 }
 
 export interface User {
+  id?: string;
   email: string;
   name: string;
   avatar: string;
+  isSuperAdmin?: boolean;
 }
 
 export interface GitConfig {

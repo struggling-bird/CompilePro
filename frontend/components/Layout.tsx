@@ -15,6 +15,7 @@ import {
   SafetyCertificateOutlined,
   DownOutlined,
   UserOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import { TabView } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -27,6 +28,7 @@ interface LayoutProps {
   onTabChange: (tab: TabView) => void;
   userEmail: string;
   userRoleName?: string;
+  isSuperAdmin?: boolean;
   onLogout: () => void;
 }
 
@@ -45,6 +47,7 @@ const Layout: React.FC<LayoutProps> = ({
   userEmail,
   onLogout,
   userRoleName,
+  isSuperAdmin,
 }) => {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -363,6 +366,15 @@ const Layout: React.FC<LayoutProps> = ({
                     label: t.layout.settings,
                     icon: <SettingOutlined />,
                   },
+                  ...(isSuperAdmin
+                    ? [
+                        {
+                          key: "systemSettings",
+                          label: t.layout.systemSettings || "System Settings",
+                          icon: <ToolOutlined />,
+                        },
+                      ]
+                    : []),
                   { type: "divider" },
                   {
                     key: "logout",
@@ -372,7 +384,14 @@ const Layout: React.FC<LayoutProps> = ({
                   },
                 ],
                 onClick: ({ key }) => {
-                  if (key === "settings") onTabChange(TabView.SETTINGS);
+                  if (key === "settings") {
+                    onTabChange(TabView.SETTINGS);
+                    navigate("/settings");
+                  }
+                  if (key === "systemSettings") {
+                    onTabChange(TabView.SETTINGS);
+                    navigate("/settings/system");
+                  }
                   if (key === "logout") onLogout();
                 },
               }}

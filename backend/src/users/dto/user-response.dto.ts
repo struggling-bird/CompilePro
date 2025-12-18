@@ -18,6 +18,9 @@ export class UserResponseDto {
   })
   status: 'active' | 'inactive';
 
+  @ApiProperty({ description: '是否为超级管理员', example: false })
+  isSuperAdmin: boolean;
+
   @ApiProperty({
     description: '角色信息',
     type: RoleSummaryDto,

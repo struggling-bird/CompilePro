@@ -35,6 +35,7 @@ const Pages = {
   RoleList: lazy(() => import("../pages/Roles/List")),
   RoleDetail: lazy(() => import("../pages/Roles/Detail")),
   SettingsPage: lazy(() => import("../pages/Settings")),
+  SystemSettingsPage: lazy(() => import("../pages/SystemSettings")),
 };
 
 export const routes: RouteItem[] = [
@@ -160,6 +161,11 @@ export const routes: RouteItem[] = [
   {
     path: "/settings",
     component: Pages.SettingsPage,
+    meta: { auth: "private", tab: TabView.SETTINGS },
+  },
+  {
+    path: "/settings/system",
+    component: Pages.SystemSettingsPage,
     meta: { auth: "private", tab: TabView.SETTINGS },
   },
 ];

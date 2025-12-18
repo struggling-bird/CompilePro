@@ -21,6 +21,7 @@ export interface CurrentUserResult {
   username: string;
   email: string;
   status: "active" | "inactive";
+  isSuperAdmin?: boolean;
 }
 
 export const register = async (params: RegisterParams): Promise<void> => {
@@ -40,5 +41,11 @@ export const login = async (params: LoginParams): Promise<LoginResult> => {
 export const getCurrentUser = async (): Promise<CurrentUserResult> => {
   return request<CurrentUserResult>("/apis/auth/me", {
     method: "GET",
+  });
+};
+
+export const logout = async (): Promise<void> => {
+  await request("/apis/auth/logout", {
+    method: "POST",
   });
 };
