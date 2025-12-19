@@ -30,6 +30,16 @@ export class User {
   @Column({ default: false })
   isSuperAdmin: boolean;
 
+  @Column({
+    type: 'bigint',
+    default: 1073741824,
+    comment: '存储配额(字节), 默认1GB',
+  })
+  storageQuota: number;
+
+  @Column({ type: 'bigint', default: 0, comment: '已用存储空间(字节)' })
+  usedStorage: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

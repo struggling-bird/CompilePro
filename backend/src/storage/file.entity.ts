@@ -30,6 +30,18 @@ export class FileEntity {
   @Column({ length: 50, default: 'local', comment: '存储提供商类型' })
   storageType: string;
 
+  @Column({ nullable: true, comment: '父文件夹ID' })
+  parentId: string;
+
+  @Column({ default: false, comment: '是否为文件夹' })
+  isFolder: boolean;
+
+  @Column({ default: 0, comment: '访问次数' })
+  accessCount: number;
+
+  @Column({ type: 'timestamp', nullable: true, comment: '最后访问时间' })
+  lastAccessedAt: Date;
+
   @Column({ nullable: true, comment: '上传用户ID' })
   userId: string;
 

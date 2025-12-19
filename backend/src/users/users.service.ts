@@ -103,7 +103,33 @@ export class UsersService {
     if (!role) throw new Error('角色不存在');
     user.role = role;
     await this.repo.save(user);
-    return { id: user.id, role: { name: role.name } };
+    return { id: user.id, roleName: user.role.name };
+  }
+
+  async checkQuota(userId: string, sizeToAdd: number): Promise<boolean> {
+    const user = await this.repo.findOne({ where: { id: userId } });
+    if (!user) return false;
+    // Super admin has unlimited quota or custom logic
+    if (user.isSuperAdmin) return true;
+    return Number(user.usedStorage) + sizeToAdd <= Number(user.storageQuota);
+  }
+
+  async updateStorageUsage(userId: string, delta: number): Promise<void> {
+    const user = await this.repo.findOne({ where: { id: userId } });
+    if (!user) return;
+    const current = Number(user.usedStorage);
+    const newVal = current + delta;
+    user.usedStorage = newVal < 0 ? 0 : newVal;
+    await this.repo.save(user);
+  }
+
+  async getUserQuota(userId: string): Promise<{ total: number; used: number }> {
+    const user = await this.repo.findOne({ where: { id: userId } });
+    if (!user) return { total: 0, used: 0 };
+    return {
+      total: Number(user.storageQuota),
+      used: Number(user.usedStorage),
+    };
   }
 
   async updateProfile(

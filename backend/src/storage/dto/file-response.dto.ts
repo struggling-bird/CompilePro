@@ -19,9 +19,18 @@ export class FileResponseDto {
   @ApiProperty({ description: '存储路径' })
   path: string;
 
+  @ApiProperty({ description: '是否为文件夹' })
+  isFolder: boolean;
+
+  @ApiProperty({ description: '父文件夹ID', required: false })
+  parentId?: string;
+
   @ApiProperty({ description: '访问URL' })
   url: string;
 
   @ApiProperty({ description: '创建时间' })
   createdAt: Date;
+
+  @ApiProperty({ description: '更新时间' })
+  updatedAt: Date;
 }

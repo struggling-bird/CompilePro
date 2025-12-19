@@ -18,6 +18,7 @@ import 'multer';
 import { createHash, randomBytes, createCipheriv } from 'crypto';
 import { AuditService } from '../audit/audit.service';
 import { StorageConfigService } from '../storage-config/storage-config.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class StorageService {
@@ -31,13 +32,29 @@ export class StorageService {
     private readonly strategyResolver: StorageStrategyResolver,
     private readonly audit: AuditService,
     private readonly storageConfig: StorageConfigService,
+    private readonly usersService: UsersService,
   ) {}
 
   async uploadFile(
     file: Express.Multer.File,
     userId?: string,
     isTemp: boolean = false,
+    parentId?: string,
   ): Promise<FileEntity> {
+    if (userId && !isTemp) {
+      const allowed = await this.usersService.checkQuota(userId, file.size);
+      if (!allowed) {
+        throw new BadRequestException('存储空间不足');
+      }
+    }
+
+    if (parentId) {
+      const parent = await this.fileRepository.findOne({
+        where: { id: parentId, isFolder: true },
+      });
+      if (!parent) throw new NotFoundException('父文件夹不存在');
+    }
+
     const folder = isTemp ? 'temp' : this.buildPathRule(file.mimetype);
 
     const md5 = createHash('md5').update(file.buffer).digest('hex');
@@ -45,6 +62,8 @@ export class StorageService {
 
     const encrypted = await this.shouldEncrypt(file.mimetype);
     let fileInfo;
+    let newFile: FileEntity;
+
     if (encrypted) {
       const iv = randomBytes(16);
       const keyHex = await this.storageConfig.get<string>(
@@ -68,7 +87,7 @@ export class StorageService {
         },
         folder,
       );
-      const newFile = this.fileRepository.create({
+      newFile = this.fileRepository.create({
         originalName: file.originalname,
         filename: fileInfo.filename,
         mimetype: fileInfo.mimetype,
@@ -85,16 +104,12 @@ export class StorageService {
         isEncrypted: true,
         encryptionIv: iv.toString('hex'),
         scanStatus: 'clean',
+        parentId,
+        isFolder: false,
       });
-      await this.audit.log({
-        action: 'file.upload',
-        userId: userId ?? 'unknown',
-        details: { fileId: newFile.id },
-      });
-      return this.fileRepository.save(newFile);
     } else {
       fileInfo = await this.storageStrategy.upload(file, folder);
-      const newFile = this.fileRepository.create({
+      newFile = this.fileRepository.create({
         originalName: file.originalname,
         filename: fileInfo.filename,
         mimetype: fileInfo.mimetype,
@@ -110,19 +125,120 @@ export class StorageService {
         checksumSha256: sha256,
         isEncrypted: false,
         scanStatus: 'clean',
+        parentId,
+        isFolder: false,
       });
-      await this.audit.log({
-        action: 'file.upload',
-        userId: userId ?? 'unknown',
-        details: { fileId: newFile.id },
+    }
+
+    await this.audit.log({
+      action: 'file.upload',
+      userId: userId ?? 'unknown',
+      details: { fileId: newFile.id },
+    });
+
+    const savedFile = await this.fileRepository.save(newFile);
+
+    if (userId && !isTemp) {
+      await this.usersService.updateStorageUsage(userId, file.size);
+    }
+
+    return savedFile;
+  }
+
+  async createFolder(
+    name: string,
+    userId: string,
+    parentId?: string,
+  ): Promise<FileEntity> {
+    if (parentId) {
+      const parent = await this.fileRepository.findOne({
+        where: { id: parentId, isFolder: true },
       });
-      return this.fileRepository.save(newFile);
+      if (!parent) throw new NotFoundException('父文件夹不存在');
+    }
+
+    const folder = this.fileRepository.create({
+      originalName: name,
+      filename: `folder_${Date.now()}_${randomBytes(4).toString('hex')}`,
+      mimetype: 'application/x-directory',
+      size: 0,
+      path: '',
+      storageType: 'local',
+      userId,
+      isFolder: true,
+      parentId,
+      scanStatus: 'clean',
+    });
+
+    return this.fileRepository.save(folder);
+  }
+
+  async listFiles(userId?: string, parentId?: string): Promise<FileEntity[]> {
+    const query = this.fileRepository.createQueryBuilder('file');
+
+    if (parentId) {
+      query.where('file.parentId = :parentId', { parentId });
+    } else {
+      query.where('file.parentId IS NULL');
+    }
+
+    if (userId) {
+      query.andWhere('file.userId = :userId', { userId });
+    }
+
+    return query
+      .orderBy('file.isFolder', 'DESC')
+      .addOrderBy('file.createdAt', 'DESC')
+      .getMany();
+  }
+
+  async renameFile(
+    id: string,
+    name: string,
+    userId: string,
+  ): Promise<FileEntity> {
+    const file = await this.fileRepository.findOne({ where: { id, userId } });
+    if (!file) throw new NotFoundException('文件不存在');
+
+    file.originalName = name;
+    return this.fileRepository.save(file);
+  }
+
+  async deleteFile(id: string, userId: string): Promise<void> {
+    const file = await this.fileRepository.findOne({ where: { id, userId } });
+    if (!file) throw new NotFoundException('文件不存在');
+
+    if (file.isFolder) {
+      const count = await this.fileRepository.count({
+        where: { parentId: id },
+      });
+      if (count > 0) throw new BadRequestException('文件夹不为空');
+      await this.fileRepository.remove(file);
+    } else {
+      try {
+        const strategy = this.strategyResolver.resolve(file.storageType);
+        await strategy.delete(file.path);
+      } catch (e) {
+        this.logger.error(`Failed to delete physical file: ${e}`);
+      }
+
+      await this.usersService.updateStorageUsage(userId, -file.size);
+
+      await this.fileRepository.remove(file);
     }
   }
 
   async getFileStream(id: string, range?: { start: number; end?: number }) {
     const file = await this.fileRepository.findOne({ where: { id } });
     if (!file) throw new NotFoundException('File not found');
+
+    // Update access stats asynchronously
+    this.fileRepository
+      .update(id, {
+        accessCount: () => 'accessCount + 1',
+        lastAccessedAt: new Date(),
+      })
+      .catch((e) => this.logger.error(`Failed to update access stats: ${e}`));
 
     const { stream, size } = await this.storageStrategy.download(
       file.path,
@@ -145,6 +261,14 @@ export class StorageService {
   ): Promise<{ buffer: Buffer; mimetype: string }> {
     const file = await this.fileRepository.findOne({ where: { id } });
     if (!file) throw new NotFoundException('文件不存在');
+
+    // Update access stats asynchronously
+    this.fileRepository
+      .update(id, {
+        accessCount: () => 'accessCount + 1',
+        lastAccessedAt: new Date(),
+      })
+      .catch((e) => this.logger.error(`Failed to update access stats: ${e}`));
 
     // Ensure it's an image
     if (!file.mimetype.startsWith('image/')) {

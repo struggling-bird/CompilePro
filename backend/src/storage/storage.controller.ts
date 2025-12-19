@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Put,
+  Delete,
   Param,
   Res,
   UploadedFiles,
@@ -12,9 +14,11 @@ import {
   UseGuards,
   StreamableFile,
   Req,
+  Body,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { StorageService } from './storage.service';
+import { StorageAnalysisService } from './storage-analysis.service';
 import { StorageConfigService } from '../storage-config/storage-config.service';
 import type { Response } from 'express';
 import {
@@ -37,8 +41,89 @@ import sharp from 'sharp';
 export class StorageController {
   constructor(
     private readonly storageService: StorageService,
+    private readonly analysisService: StorageAnalysisService,
     private readonly storageConfig: StorageConfigService,
   ) {}
+
+  @Post('folder')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '创建文件夹' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { name: { type: 'string' }, parentId: { type: 'string' } },
+    },
+  })
+  async createFolder(
+    @Body() body: { name: string; parentId?: string },
+    @Req() req: { user: { id: string } },
+  ) {
+    return this.storageService.createFolder(
+      body.name,
+      req.user.id,
+      body.parentId,
+    );
+  }
+
+  @Get('files')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '获取文件列表' })
+  @ApiQuery({ name: 'parentId', required: false })
+  async listFiles(
+    @Query('parentId') parentId: string,
+    @Req() req: { user: { id: string } },
+  ) {
+    return this.storageService.listFiles(req.user.id, parentId);
+  }
+
+  @Put('files/:id/rename')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '重命名文件' })
+  async renameFile(
+    @Param('id') id: string,
+    @Body('name') name: string,
+    @Req() req: { user: { id: string } },
+  ) {
+    return this.storageService.renameFile(id, name, req.user.id);
+  }
+
+  @Delete('files/:id')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '删除文件' })
+  async deleteFile(
+    @Param('id') id: string,
+    @Req() req: { user: { id: string } },
+  ) {
+    return this.storageService.deleteFile(id, req.user.id);
+  }
+
+  @Get('quota')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '获取存储配额' })
+  async getQuota(@Req() req: { user: { id: string } }) {
+    return this.analysisService.getQuotaInfo(req.user.id);
+  }
+
+  @Get('analysis/trends')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '获取存储趋势' })
+  async getTrends(@Req() req: { user: { id: string } }) {
+    return this.analysisService.getStorageTrends(req.user.id);
+  }
+
+  @Get('analysis/types')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '获取文件类型分布' })
+  async getTypes(@Req() req: { user: { id: string } }) {
+    return this.analysisService.getFileTypeDistribution(req.user.id);
+  }
+
+  @Get('analysis/hot-files')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '获取热点文件' })
+  async getHotFiles(@Req() req: { user: { id: string } }) {
+    return this.analysisService.getHotFiles(req.user.id);
+  }
 
   @Post('upload')
   @UseGuards(AuthenticatedGuard, ReplayGuard)
@@ -89,6 +174,7 @@ export class StorageController {
   async uploadFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Query('isTemp') isTemp: boolean = false,
+    @Body() body: { parentId?: string },
     @Req() req: { user?: { id?: string } },
   ) {
     if (!files || files.length === 0) {
@@ -99,7 +185,12 @@ export class StorageController {
 
     const uploadedFiles = await Promise.all(
       files.map((file) =>
-        this.storageService.uploadFile(file, userId, Boolean(isTemp)),
+        this.storageService.uploadFile(
+          file,
+          userId,
+          Boolean(isTemp),
+          body.parentId,
+        ),
       ),
     );
 
