@@ -8,11 +8,16 @@ import {
   message,
   Tooltip,
   Select,
+  Tabs,
 } from "antd";
 import {
   InfoCircleOutlined,
   SaveOutlined,
   ReloadOutlined,
+  PieChartOutlined,
+  FolderOpenOutlined,
+  HddOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import {
@@ -21,8 +26,12 @@ import {
   StorageConfig,
   ConfigOption,
 } from "../../../services/storageConfig";
+import StorageOverview from "./storage/StorageOverview";
+import QuotaManagement from "./storage/QuotaManagement";
+import FileExplorer from "./storage/FileExplorer";
 
-const FileStorageSettings: React.FC = () => {
+// Original Configuration Component
+const StorageConfigPanel: React.FC = () => {
   const { t } = useLanguage();
   const [configs, setConfigs] = useState<StorageConfig[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,7 +43,6 @@ const FileStorageSettings: React.FC = () => {
     try {
       const data = await getStorageConfigs();
       setConfigs(data || []);
-      // Initialize form values
       const initialValues: Record<string, any> = {};
       data?.forEach((c) => {
         initialValues[c.key] =
@@ -75,16 +83,14 @@ const FileStorageSettings: React.FC = () => {
             ? JSON.stringify(config.value, null, 2)
             : config.value;
 
-        // Only update if changed
         if (newValue != oldValue) {
-          // loose equality for string/number match
           await updateStorageConfig(config.key, { value: newValue });
         }
       });
 
       await Promise.all(promises);
       message.success(t.settings.saveSuccess);
-      fetchConfigs(); // Refresh to get latest state
+      fetchConfigs();
     } catch (error) {
       console.error(error);
       message.error(t.settings.saveFailed);
@@ -156,7 +162,7 @@ const FileStorageSettings: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg">
+    <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
       <div className="mb-6 flex justify-end items-center">
         <Button
           icon={<ReloadOutlined />}
@@ -194,6 +200,60 @@ const FileStorageSettings: React.FC = () => {
           ))}
         </Form>
       )}
+    </div>
+  );
+};
+
+// Main Component with Tabs
+const FileStorageSettings: React.FC = () => {
+  const { t } = useLanguage();
+
+  const items = [
+    {
+      key: "overview",
+      label: (
+        <span>
+          <PieChartOutlined />
+          {t.settings.storageAnalysis}
+        </span>
+      ),
+      children: <StorageOverview />,
+    },
+    {
+      key: "files",
+      label: (
+        <span>
+          <FolderOpenOutlined />
+          {t.settings.fileExplorer}
+        </span>
+      ),
+      children: <FileExplorer />,
+    },
+    {
+      key: "quota",
+      label: (
+        <span>
+          <HddOutlined />
+          {t.settings.spaceManagement}
+        </span>
+      ),
+      children: <QuotaManagement />,
+    },
+    {
+      key: "config",
+      label: (
+        <span>
+          <SettingOutlined />
+          {t.settings.configuration}
+        </span>
+      ),
+      children: <StorageConfigPanel />,
+    },
+  ];
+
+  return (
+    <div className="w-full">
+      <Tabs defaultActiveKey="overview" items={items} />
     </div>
   );
 };
