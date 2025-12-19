@@ -507,4 +507,43 @@ export class WorkspaceService {
       throw new HttpException('无法读取文件', 404);
     }
   }
+
+  async getFileStream(
+    userId: string,
+    projectId: string,
+    filePath: string,
+  ): Promise<{ stream: fs.ReadStream; size: number; mimetype: string }> {
+    const root = await this.ensureUserDir(userId);
+    const projDir = this.safeJoin(root, projectId);
+    const targetPath = this.safeJoin(projDir, filePath);
+    const statInfo = await stat(targetPath).catch(() => null);
+    if (!statInfo || !statInfo.isFile()) {
+      throw new HttpException('文件不存在', 404);
+    }
+
+    const ext = path.extname(targetPath).toLowerCase().replace(/^\./, '');
+    const mimeMap: Record<string, string> = {
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      gif: 'image/gif',
+      webp: 'image/webp',
+      svg: 'image/svg+xml',
+      ico: 'image/x-icon',
+      mp4: 'video/mp4',
+      pdf: 'application/pdf',
+      txt: 'text/plain; charset=utf-8',
+      js: 'application/javascript; charset=utf-8',
+      ts: 'application/typescript; charset=utf-8',
+      json: 'application/json; charset=utf-8',
+      css: 'text/css; charset=utf-8',
+      html: 'text/html; charset=utf-8',
+      md: 'text/markdown; charset=utf-8',
+      yml: 'text/yaml; charset=utf-8',
+      yaml: 'text/yaml; charset=utf-8',
+    };
+    const mimetype = mimeMap[ext] || 'application/octet-stream';
+    const stream = fs.createReadStream(targetPath);
+    return { stream, size: statInfo.size, mimetype };
+  }
 }

@@ -51,6 +51,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   const [matchCount, setMatchCount] = useState(0);
   const matchIndex = Form.useWatch("matchIndex", form) || 0;
   const fileTargetUrlWatch = Form.useWatch("fileTargetUrl", form);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
 
   useEffect(() => {
     if (visible) {
@@ -117,6 +118,50 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
       }
     }
   };
+
+  useEffect(() => {
+    const ext = selectedFile?.split(".").pop()?.toLowerCase();
+    const isImage = ["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "");
+    if (
+      activeTab === "FILE" &&
+      selectedFile &&
+      isImage &&
+      !fileTargetUrlWatch
+    ) {
+      const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
+      const token =
+        typeof localStorage !== "undefined"
+          ? localStorage.getItem("token")
+          : null;
+      const url = `${BASE}/apis/metaprojects/${projectId}/files/preview?path=${encodeURIComponent(
+        selectedFile
+      )}`;
+      (async () => {
+        try {
+          const res = await fetch(url, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          });
+          const blob = await res.blob();
+          const objUrl = URL.createObjectURL(blob);
+          setImagePreviewUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return objUrl;
+          });
+        } catch (e) {
+          setImagePreviewUrl("");
+        }
+      })();
+    } else {
+      setImagePreviewUrl("");
+    }
+    // Cleanup on unmount
+    return () => {
+      setImagePreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return "";
+      });
+    };
+  }, [activeTab, selectedFile, projectId, fileTargetUrlWatch]);
 
   const handleSave = async () => {
     try {
@@ -258,25 +303,10 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
         : null;
     const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-    const isTextExt = (e?: string) =>
-      [
-        "txt",
-        "js",
-        "jsx",
-        "ts",
-        "tsx",
-        "json",
-        "css",
-        "less",
-        "scss",
-        "html",
-        "md",
-        "yml",
-        "yaml",
-      ].includes((e || "").toLowerCase());
-
     const isImageExt = (e?: string) =>
-      ["png", "jpg", "jpeg", "gif", "svg"].includes((e || "").toLowerCase());
+      ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
+        (e || "").toLowerCase()
+      );
 
     return (
       <div style={{ padding: 16 }}>
@@ -332,27 +362,24 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
           }}
         >
           {selectedFile ? (
-            isTextExt(ext) ? (
-              <Spin spinning={loadingContent}>
-                <div style={{ width: "100%" }}>
-                  <FilePreview content={fileContent} fileName={selectedFile} />
-                </div>
-              </Spin>
-            ) : ext === "svg" && fileContent ? (
-              <div
-                style={{ maxWidth: "100%" }}
-                dangerouslySetInnerHTML={{ __html: fileContent }}
-              />
-            ) : fileTargetUrlWatch ? (
-              <img
-                src={fileTargetUrlWatch}
-                alt={selectedFile}
-                style={{ maxWidth: "100%", maxHeight: 360 }}
-              />
+            isImageExt(ext) ? (
+              fileTargetUrlWatch ? (
+                <img
+                  src={fileTargetUrlWatch}
+                  alt={selectedFile}
+                  style={{ maxWidth: "100%", maxHeight: 360 }}
+                />
+              ) : imagePreviewUrl ? (
+                <img
+                  src={imagePreviewUrl}
+                  alt={selectedFile}
+                  style={{ maxWidth: "100%", maxHeight: 360 }}
+                />
+              ) : (
+                <div style={{ color: "#999" }}>图片预览不可用</div>
+              )
             ) : (
-              <div style={{ color: "#999" }}>
-                暂不支持预览该类型，请上传后预览
-              </div>
+              <div style={{ color: "#999" }}>仅支持图片类型预览</div>
             )
           ) : (
             <div style={{ color: "#999" }}>请从左侧选择文件</div>

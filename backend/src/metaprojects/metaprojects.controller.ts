@@ -9,9 +9,11 @@ import {
   Put,
   Query,
   Req,
+  Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBody,
   ApiOperation,
@@ -276,5 +278,27 @@ export class MetaprojectsController {
     @Req() req: { user: { userId: string } },
   ) {
     return this.svc.getFileContent(req.user.userId, projectId, path);
+  }
+
+  @Get(':projectId/files/preview')
+  @ApiOperation({ summary: '预览项目文件（原始流）' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiQuery({ name: 'path', required: true, description: '文件路径' })
+  async previewFile(
+    @Param('projectId') projectId: string,
+    @Query('path') path: string,
+    @Req() req: { user: { userId: string } },
+    @Res() res: Response,
+  ): Promise<void> {
+    const { stream, size, mimetype } = await this.svc.getFileStream(
+      req.user.userId,
+      projectId,
+      path,
+    );
+    res.setHeader('Content-Type', mimetype);
+    if (typeof size === 'number' && size >= 0) {
+      res.setHeader('Content-Length', String(size));
+    }
+    stream.pipe(res);
   }
 }

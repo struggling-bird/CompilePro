@@ -15,6 +15,7 @@ import { AuditService } from '../audit/audit.service';
 import { RedisService } from '../redis/redis.service';
 import { GitlabService } from '../gitlab/gitlab.service';
 import { WorkspaceService } from '../workspace/workspace.service';
+import type { ReadStream } from 'fs';
 
 @Injectable()
 export class MetaprojectsService {
@@ -422,6 +423,14 @@ export class MetaprojectsService {
 
   async getFileContent(userId: string, projectId: string, filePath: string) {
     return this.workspace.getFileContent(userId, projectId, filePath);
+  }
+
+  async getFileStream(
+    userId: string,
+    projectId: string,
+    filePath: string,
+  ): Promise<{ stream: ReadStream; size: number; mimetype: string }> {
+    return this.workspace.getFileStream(userId, projectId, filePath);
   }
 
   private async listAllPages(
