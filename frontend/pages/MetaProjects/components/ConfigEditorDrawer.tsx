@@ -155,7 +155,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               rules={[{ required: true, message: "请输入配置名称" }]}
               style={{ marginBottom: 6 }}
             >
-              <Input placeholder="Config Name" size="small" />
+              <Input placeholder="Config Name" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -164,7 +164,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               label="配置描述"
               style={{ marginBottom: 6 }}
             >
-              <Input placeholder="Description" size="small" />
+              <Input placeholder="Description" />
             </Form.Item>
           </Col>
 
@@ -175,7 +175,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               rules={[{ required: true, message: "请输入正则表达式" }]}
               style={{ marginBottom: 6 }}
             >
-              <Input placeholder="/pattern/flags" size="small" />
+              <Input placeholder="/pattern/flags" />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -189,7 +189,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
                 min={0}
                 max={matchCount > 0 ? matchCount - 1 : 0}
                 style={{ width: "100%" }}
-                size="small"
               />
             </Form.Item>
           </Col>
@@ -204,7 +203,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               <Input.TextArea
                 placeholder="New value"
                 rows={1}
-                size="small"
                 autoSize={{ minRows: 1, maxRows: 4 }}
               />
             </Form.Item>
