@@ -114,8 +114,8 @@ const StorageOverview: React.FC = () => {
                   colorField: "type",
                   radius: 0.8,
                   label: {
-                    type: "outer",
-                    content: "{name} {percentage}",
+                    text: (d: any) => `${d.type}\n${d.size.toFixed(1)}MB`,
+                    position: "outside",
                   },
                   interactions: [{ type: "element-active" }],
                 } as any)}

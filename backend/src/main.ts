@@ -9,6 +9,10 @@ import { WinstonLogger } from './logger/logger.provider';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
   app.setGlobalPrefix('apis');
   app.useGlobalPipes(
     new ValidationPipe({

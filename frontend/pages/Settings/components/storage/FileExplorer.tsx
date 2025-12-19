@@ -26,16 +26,21 @@ import { useLanguage } from "../../../../contexts/LanguageContext";
 
 const FileExplorer: React.FC = () => {
   const { t } = useLanguage();
-  const [currentPath, setCurrentPath] = useState("/");
   const [files, setFiles] = useState<FileItem[]>([]);
+  const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(
+    undefined
+  );
+  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id?: string; name: string }>>([
+    { name: "Home" },
+  ]);
   const [loading, setLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [previewContent, setPreviewContent] = useState<React.ReactNode>(null);
 
-  const fetchFiles = async (path: string) => {
+  const fetchFiles = async (parentId?: string) => {
     setLoading(true);
     try {
-      const data = await listFiles(path);
+      const data = await listFiles(parentId);
       setFiles(data);
     } finally {
       setLoading(false);
@@ -43,18 +48,19 @@ const FileExplorer: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFiles(currentPath);
-  }, [currentPath]);
+    fetchFiles(currentFolderId);
+  }, [currentFolderId]);
 
   const handlePreview = (file: FileItem) => {
     setPreviewFile(file);
     const ext = file.extension?.toLowerCase();
 
     if (["png", "jpg", "jpeg", "gif"].includes(ext || "")) {
+      const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
       setPreviewContent(
         <div className="flex justify-center">
           <Image
-            src={`https://via.placeholder.com/600x400?text=${file.name}`}
+            src={`${BASE}/apis/storage/preview/${file.id}?w=800`}
             alt={file.name}
             style={{ maxWidth: "100%" }}
           />
@@ -67,12 +73,17 @@ const FileExplorer: React.FC = () => {
         </div>
       );
     } else if (ext === "pdf") {
+      const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
       setPreviewContent(
         <div className="h-[500px] flex items-center justify-center bg-gray-100 border border-dashed border-gray-300 rounded">
           <div className="text-center">
             <FilePdfOutlined style={{ fontSize: 48, color: "#ff4d4f" }} />
             <p className="mt-4 text-gray-500">PDF Preview Placeholder</p>
-            <Button type="primary" className="mt-2">
+            <Button
+              type="primary"
+              className="mt-2"
+              onClick={() => window.open(`${BASE}/apis/storage/download/${file.id}`)}
+            >
               Download to view
             </Button>
           </div>
@@ -81,7 +92,7 @@ const FileExplorer: React.FC = () => {
     } else {
       setPreviewContent(
         <div className="h-[300px] flex items-center justify-center">
-          <Empty description="Preview not available for this file type" />
+          <Empty description={t.settings.previewNotAvailable} />
         </div>
       );
     }
@@ -112,7 +123,8 @@ const FileExplorer: React.FC = () => {
           <a
             onClick={() =>
               record.type === "folder"
-                ? setCurrentPath(`${currentPath}${record.name}/`)
+                ? (setBreadcrumbs([...breadcrumbs, { id: record.id, name: record.name }]),
+                  setCurrentFolderId(record.id))
                 : handlePreview(record)
             }
             className="text-gray-800 hover:text-blue-600"
@@ -163,15 +175,27 @@ const FileExplorer: React.FC = () => {
             {
               title: (
                 <HomeOutlined
-                  onClick={() => setCurrentPath("/")}
+                  onClick={() => {
+                    setBreadcrumbs([{ name: "Home" }]);
+                    setCurrentFolderId(undefined);
+                  }}
                   className="cursor-pointer"
                 />
               ),
             },
-            ...currentPath
-              .split("/")
-              .filter(Boolean)
-              .map((p) => ({ title: p })),
+            ...breadcrumbs.slice(1).map((b, idx) => ({
+              title: (
+                <a
+                  onClick={() => {
+                    const next = breadcrumbs.slice(0, idx + 2);
+                    setBreadcrumbs(next);
+                    setCurrentFolderId(next[next.length - 1].id);
+                  }}
+                >
+                  {b.name}
+                </a>
+              ),
+            })),
           ]}
         />
       </div>
@@ -193,10 +217,20 @@ const FileExplorer: React.FC = () => {
         width={800}
         footer={[
           <Button key="close" onClick={() => setPreviewFile(null)}>
-            Close
+            {t.settings.close}
           </Button>,
-          <Button key="download" type="primary" icon={<DownloadOutlined />}>
-            Download
+          <Button
+            key="download"
+            type="primary"
+            icon={<DownloadOutlined />}
+            onClick={() => {
+              const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
+              if (previewFile) {
+                window.open(`${BASE}/apis/storage/download/${previewFile.id}`);
+              }
+            }}
+          >
+            {t.settings.download ?? "Download"}
           </Button>,
         ]}
       >

@@ -29,12 +29,24 @@ import {
   ApiQuery,
   ApiResponse,
   ApiParam,
+  ApiProperty,
 } from '@nestjs/swagger';
 import { AuthenticatedGuard } from '../auth/authenticated.guard';
 import { ReplayGuard } from '../shared/replay.guard';
 import multer from 'multer';
 import { ThrottleTransform } from './utils/throttle.transform';
 import sharp from 'sharp';
+import { IsNumber } from 'class-validator';
+
+export class UpdateQuotaDto {
+  @ApiProperty({ description: '总配额 (GB)', example: 10 })
+  @IsNumber()
+  total: number;
+
+  @ApiProperty({ description: '预警阈值 (%)', example: 80 })
+  @IsNumber()
+  warningThreshold: number;
+}
 
 @ApiTags('存储模块')
 @Controller('storage')
@@ -102,6 +114,21 @@ export class StorageController {
   @ApiOperation({ summary: '获取存储配额' })
   async getQuota(@Req() req: { user: { id: string } }) {
     return this.analysisService.getQuotaInfo(req.user.id);
+  }
+
+  @Put('quota')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '更新存储配额' })
+  @ApiBody({ type: UpdateQuotaDto })
+  async updateQuota(
+    @Body() dto: UpdateQuotaDto,
+    @Req() req: { user: { id: string } },
+  ) {
+    return this.analysisService.updateQuota(
+      req.user.id,
+      dto.total,
+      dto.warningThreshold,
+    );
   }
 
   @Get('analysis/trends')

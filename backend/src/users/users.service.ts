@@ -123,13 +123,28 @@ export class UsersService {
     await this.repo.save(user);
   }
 
-  async getUserQuota(userId: string): Promise<{ total: number; used: number }> {
+  async getUserQuota(
+    userId: string,
+  ): Promise<{ total: number; used: number; warningThreshold: number }> {
     const user = await this.repo.findOne({ where: { id: userId } });
-    if (!user) return { total: 0, used: 0 };
+    if (!user) return { total: 0, used: 0, warningThreshold: 80 };
     return {
       total: Number(user.storageQuota),
       used: Number(user.usedStorage),
+      warningThreshold: user.storageWarningThreshold ?? 80,
     };
+  }
+
+  async updateUserQuota(
+    userId: string,
+    totalBytes: number,
+    warningThreshold: number,
+  ): Promise<void> {
+    const user = await this.repo.findOne({ where: { id: userId } });
+    if (!user) throw new Error('用户不存在');
+    user.storageQuota = totalBytes;
+    user.storageWarningThreshold = warningThreshold;
+    await this.repo.save(user);
   }
 
   async updateProfile(

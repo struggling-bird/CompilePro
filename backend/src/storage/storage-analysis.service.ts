@@ -142,7 +142,20 @@ export class StorageAnalysisService {
     return {
       total: quota.total / (1024 * 1024 * 1024), // GB
       used: quota.used / (1024 * 1024 * 1024), // GB
-      warningThreshold: 80,
+      warningThreshold: quota.warningThreshold,
     };
+  }
+
+  async updateQuota(
+    userId: string,
+    totalGB: number,
+    warningThreshold: number,
+  ): Promise<void> {
+    const totalBytes = totalGB * 1024 * 1024 * 1024;
+    await this.usersService.updateUserQuota(
+      userId,
+      totalBytes,
+      warningThreshold,
+    );
   }
 }

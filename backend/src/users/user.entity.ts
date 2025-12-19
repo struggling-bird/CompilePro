@@ -37,6 +37,13 @@ export class User {
   })
   storageQuota: number;
 
+  @Column({
+    type: 'int',
+    default: 80,
+    comment: '存储预警阈值(%)',
+  })
+  storageWarningThreshold: number;
+
   @Column({ type: 'bigint', default: 0, comment: '已用存储空间(字节)' })
   usedStorage: number;
 
