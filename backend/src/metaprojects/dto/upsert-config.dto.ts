@@ -25,11 +25,6 @@ export class UpsertConfigDto {
   @IsString()
   textOrigin?: string;
 
-  @ApiPropertyOptional({ description: '文本目标值' })
-  @IsOptional()
-  @IsString()
-  textTarget?: string;
-
   @ApiPropertyOptional({ description: '匹配项索引', default: 0 })
   @IsOptional()
   @IsInt()
@@ -40,11 +35,6 @@ export class UpsertConfigDto {
   @IsOptional()
   @IsString()
   fileOriginPath?: string;
-
-  @ApiPropertyOptional({ description: '文件目标URL' })
-  @IsOptional()
-  @IsString()
-  fileTargetUrl?: string;
 
   @ApiPropertyOptional({ description: '配置描述', maxLength: 300 })
   @IsOptional()

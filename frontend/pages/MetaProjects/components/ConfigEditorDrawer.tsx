@@ -8,20 +8,17 @@ import {
   Space,
   Row,
   Col,
-  Upload,
   message,
   Spin,
   Form,
   InputNumber,
 } from "antd";
-import { SaveOutlined, InboxOutlined } from "@ant-design/icons";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { SaveOutlined } from "@ant-design/icons";
 import { VersionConfig } from "@/types";
 import { listProjectFiles, getFileContent } from "@/services/metaprojects";
 import FilePreview from "@/components/FilePreview";
 
 const { DirectoryTree } = Tree;
-const { Dragger } = Upload;
 
 interface ConfigEditorDrawerProps {
   visible: boolean;
@@ -38,7 +35,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   onClose,
   onSave,
 }) => {
-  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("TEXT");
   const [treeData, setTreeData] = useState<any[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
@@ -50,7 +46,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   const regexPattern = Form.useWatch("textOrigin", form);
   const [matchCount, setMatchCount] = useState(0);
   const matchIndex = Form.useWatch("matchIndex", form) || 0;
-  const fileTargetUrlWatch = Form.useWatch("fileTargetUrl", form);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
 
   useEffect(() => {
@@ -122,12 +117,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   useEffect(() => {
     const ext = selectedFile?.split(".").pop()?.toLowerCase();
     const isImage = ["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "");
-    if (
-      activeTab === "FILE" &&
-      selectedFile &&
-      isImage &&
-      !fileTargetUrlWatch
-    ) {
+    if (activeTab === "FILE" && selectedFile && isImage) {
       const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
       const token =
         typeof localStorage !== "undefined"
@@ -161,7 +151,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
         return "";
       });
     };
-  }, [activeTab, selectedFile, projectId, fileTargetUrlWatch]);
+  }, [activeTab, selectedFile, projectId]);
 
   const handleSave = async () => {
     try {
@@ -237,21 +227,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               />
             </Form.Item>
           </Col>
-
-          <Col span={24}>
-            <Form.Item
-              name="textTarget"
-              label="替换内容"
-              rules={[{ required: true, message: "请输入替换内容" }]}
-              style={{ marginBottom: 6 }}
-            >
-              <Input.TextArea
-                placeholder="New value"
-                rows={1}
-                autoSize={{ minRows: 1, maxRows: 4 }}
-              />
-            </Form.Item>
-          </Col>
         </Row>
       </div>
       <div
@@ -296,12 +271,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
 
   const renderFileTab = () => {
     const ext = selectedFile?.split(".").pop()?.toLowerCase();
-    const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
-    const token =
-      typeof localStorage !== "undefined"
-        ? localStorage.getItem("token")
-        : null;
-    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
     const isImageExt = (e?: string) =>
       ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
@@ -334,15 +303,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               <Input placeholder="Description" />
             </Form.Item>
           </Col>
-          <Col span={24}>
-            <Form.Item
-              name="fileTargetUrl"
-              label="文件目标URL"
-              rules={[{ required: true, message: "请输入文件目标URL" }]}
-            >
-              <Input placeholder="https://..." />
-            </Form.Item>
-          </Col>
         </Row>
 
         <div style={{ marginTop: 8, fontSize: 12, color: "#666" }}>
@@ -363,13 +323,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
         >
           {selectedFile ? (
             isImageExt(ext) ? (
-              fileTargetUrlWatch ? (
-                <img
-                  src={fileTargetUrlWatch}
-                  alt={selectedFile}
-                  style={{ maxWidth: "100%", maxHeight: 360 }}
-                />
-              ) : imagePreviewUrl ? (
+              imagePreviewUrl ? (
                 <img
                   src={imagePreviewUrl}
                   alt={selectedFile}
@@ -384,47 +338,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
           ) : (
             <div style={{ color: "#999" }}>请从左侧选择文件</div>
           )}
-        </div>
-
-        <div style={{ marginTop: 16 }}>
-          <Dragger
-            name="file"
-            multiple={false}
-            headers={headers}
-            accept={ext ? `.${ext}` : undefined}
-            action={`${BASE}/apis/storage/upload`}
-            beforeUpload={(file) => {
-              const uploadExt = file.name.split(".").pop()?.toLowerCase();
-              if (ext && uploadExt !== ext) {
-                message.error(`上传文件格式必须为 .${ext}`);
-                return Upload.LIST_IGNORE;
-              }
-              return true;
-            }}
-            onChange={(info) => {
-              const { status } = info.file;
-              if (status === "done") {
-                const resp: any = info.file.response;
-                const url = resp?.data?.url || resp?.url || resp?.data;
-                if (url) {
-                  form.setFieldValue("fileTargetUrl", url);
-                  message.success("上传成功");
-                } else {
-                  message.success("上传成功，请手动填写文件URL");
-                }
-              } else if (status === "error") {
-                message.error("上传失败");
-              }
-            }}
-          >
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">点击或拖拽文件上传</p>
-            <p className="ant-upload-hint">
-              仅允许与选中文件相同格式，支持拖放
-            </p>
-          </Dragger>
         </div>
       </div>
     );
