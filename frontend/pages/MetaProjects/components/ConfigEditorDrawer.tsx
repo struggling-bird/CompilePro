@@ -50,6 +50,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   const regexPattern = Form.useWatch("textOrigin", form);
   const [matchCount, setMatchCount] = useState(0);
   const matchIndex = Form.useWatch("matchIndex", form) || 0;
+  const fileTargetUrlWatch = Form.useWatch("fileTargetUrl", form);
 
   useEffect(() => {
     if (visible) {
@@ -61,8 +62,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
         });
         if (config.fileOriginPath) {
           setSelectedFile(config.fileOriginPath);
-          // If it's TEXT mode, we should try to load the content if we can
-          if (config.type === "TEXT") {
+          if (config.type === "TEXT" || config.type === "FILE") {
             loadFileContent(config.fileOriginPath);
           }
         }
@@ -112,7 +112,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
       const path = info.node.key;
       setSelectedFile(path);
       form.setFieldValue("fileOriginPath", path);
-      if (activeTab === "TEXT") {
+      if (activeTab === "TEXT" || activeTab === "FILE") {
         loadFileContent(path);
       }
     }
@@ -251,56 +251,159 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
     </div>
   );
 
-  const renderFileTab = () => (
-    <div style={{ padding: 16 }}>
-      <Row gutter={16}>
-        <Col span={24}>
-          <Form.Item
-            name="name"
-            label="配置名称"
-            rules={[{ required: true, message: "请输入配置名称" }]}
-          >
-            <Input placeholder="Config Name" />
-          </Form.Item>
-        </Col>
-        <Col span={24}>
-          <Form.Item
-            name="fileOriginPath"
-            label="选中文件"
-            rules={[{ required: true }]}
-          >
-            <Input readOnly placeholder="请从左侧选择文件" />
-          </Form.Item>
-        </Col>
-        <Col span={24}>
-          <Form.Item name="description" label="配置描述">
-            <Input placeholder="Description" />
-          </Form.Item>
-        </Col>
-        <Col span={24}>
-          <Form.Item
-            name="fileTargetUrl"
-            label="文件目标URL"
-            rules={[{ required: true, message: "请输入文件目标URL" }]}
-          >
-            <Input placeholder="https://..." />
-          </Form.Item>
-        </Col>
-      </Row>
+  const renderFileTab = () => {
+    const ext = selectedFile?.split(".").pop()?.toLowerCase();
+    const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
+    const token =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-      <div style={{ marginTop: 24, textAlign: "center" }}>
-        <Dragger disabled>
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">这里是示意区域</p>
-          <p className="ant-upload-hint">
-            实际替换逻辑由后端构建时下载 fileTargetUrl 覆盖 fileOriginPath
-          </p>
-        </Dragger>
+    const isTextExt = (e?: string) =>
+      [
+        "txt",
+        "js",
+        "jsx",
+        "ts",
+        "tsx",
+        "json",
+        "css",
+        "less",
+        "scss",
+        "html",
+        "md",
+        "yml",
+        "yaml",
+      ].includes((e || "").toLowerCase());
+
+    const isImageExt = (e?: string) =>
+      ["png", "jpg", "jpeg", "gif", "svg"].includes((e || "").toLowerCase());
+
+    return (
+      <div style={{ padding: 16 }}>
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              name="name"
+              label="配置名称"
+              rules={[{ required: true, message: "请输入配置名称" }]}
+            >
+              <Input placeholder="Config Name" />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item
+              name="fileOriginPath"
+              hidden
+              rules={[{ required: true }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item name="description" label="配置描述">
+              <Input placeholder="Description" />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item
+              name="fileTargetUrl"
+              label="文件目标URL"
+              rules={[{ required: true, message: "请输入文件目标URL" }]}
+            >
+              <Input placeholder="https://..." />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <div style={{ marginTop: 8, fontSize: 12, color: "#666" }}>
+          文件预览
+        </div>
+        <div
+          style={{
+            marginTop: 8,
+            minHeight: 220,
+            border: "1px dashed #d9d9d9",
+            borderRadius: 4,
+            padding: 12,
+            background: "#fafafa",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {selectedFile ? (
+            isTextExt(ext) ? (
+              <Spin spinning={loadingContent}>
+                <div style={{ width: "100%" }}>
+                  <FilePreview content={fileContent} fileName={selectedFile} />
+                </div>
+              </Spin>
+            ) : ext === "svg" && fileContent ? (
+              <div
+                style={{ maxWidth: "100%" }}
+                dangerouslySetInnerHTML={{ __html: fileContent }}
+              />
+            ) : fileTargetUrlWatch ? (
+              <img
+                src={fileTargetUrlWatch}
+                alt={selectedFile}
+                style={{ maxWidth: "100%", maxHeight: 360 }}
+              />
+            ) : (
+              <div style={{ color: "#999" }}>
+                暂不支持预览该类型，请上传后预览
+              </div>
+            )
+          ) : (
+            <div style={{ color: "#999" }}>请从左侧选择文件</div>
+          )}
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <Dragger
+            name="file"
+            multiple={false}
+            headers={headers}
+            accept={ext ? `.${ext}` : undefined}
+            action={`${BASE}/apis/storage/upload`}
+            beforeUpload={(file) => {
+              const uploadExt = file.name.split(".").pop()?.toLowerCase();
+              if (ext && uploadExt !== ext) {
+                message.error(`上传文件格式必须为 .${ext}`);
+                return Upload.LIST_IGNORE;
+              }
+              return true;
+            }}
+            onChange={(info) => {
+              const { status } = info.file;
+              if (status === "done") {
+                const resp: any = info.file.response;
+                const url = resp?.data?.url || resp?.url || resp?.data;
+                if (url) {
+                  form.setFieldValue("fileTargetUrl", url);
+                  message.success("上传成功");
+                } else {
+                  message.success("上传成功，请手动填写文件URL");
+                }
+              } else if (status === "error") {
+                message.error("上传失败");
+              }
+            }}
+          >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">点击或拖拽文件上传</p>
+            <p className="ant-upload-hint">
+              仅允许与选中文件相同格式，支持拖放
+            </p>
+          </Dragger>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -327,7 +430,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
         />
       }
       placement="right"
-      width="80%"
+      size={1300}
       onClose={onClose}
       open={visible}
       extra={

@@ -234,7 +234,7 @@ const ProjectDetail: React.FC = () => {
 
   const stepsItems = project.versions.map((v) => ({
     title: v.version,
-    description: (
+    content: (
       <Space orientation="vertical" size={0}>
         <Text
           type={v.isDeprecated ? "danger" : "secondary"}
