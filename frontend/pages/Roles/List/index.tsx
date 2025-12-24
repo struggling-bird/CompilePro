@@ -5,6 +5,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { MOCK_ROLES } from "../../../constants";
 import type { Role } from "../../../types";
+import styles from "../styles/List.module.less";
 
 const RoleListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -55,8 +56,8 @@ const RoleListPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className={styles.container}>
+      <div className={styles.toolbar}>
         <Input
           placeholder={t.roleList.searchPlaceholder}
           value={keyword}

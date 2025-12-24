@@ -8,6 +8,7 @@ import {
 import { Project } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import styles from "./ProjectTable.module.less";
 
 const { Text } = Typography;
 
@@ -44,8 +45,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       key: "readme",
       render: () => (
         <Space>
-          <FileTextOutlined style={{ color: "#1890ff" }} />
-          <a href="#" style={{ color: "#1890ff" }}>
+          <FileTextOutlined className={styles.docIcon} />
+          <a href="#" className={styles.docLink}>
             README.md
           </a>
         </Space>
@@ -56,8 +57,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       key: "buildDoc",
       render: () => (
         <Space>
-          <BuildOutlined style={{ color: "#1890ff" }} />
-          <a href="#" style={{ color: "#1890ff" }}>
+          <BuildOutlined className={styles.docIcon} />
+          <a href="#" className={styles.docLink}>
             BUILD.md
           </a>
         </Space>

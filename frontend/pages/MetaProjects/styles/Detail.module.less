@@ -1,0 +1,76 @@
+@import '../../../assets/styles/variables.less';
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 1rem 1.5rem;
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-slate-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0 !important;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
+}
+
+.card {
+  margin-bottom: 1.5rem;
+}
+
+.statusCard {
+  margin-bottom: 1rem;
+}
+
+.statusContainer {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.cloneMsg {
+  margin-left: 0.5rem;
+}
+
+.row {
+  margin-bottom: 1.5rem;
+}
+
+.versionHistoryCard {
+  height: 100%;
+}
+
+.stepsContainer {
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.versionDate {
+  font-size: 0.75rem;
+}
+
+.tabsCard {
+  margin-top: 1.5rem;
+  
+  :global(.ant-card-body) {
+    padding: 0;
+  }
+}
+
+.tabContent {
+  padding: 1.5rem;
+}
+
+.contextAlert {
+  margin-top: 1rem;
+}

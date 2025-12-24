@@ -4,6 +4,7 @@ import { Form, Input, Checkbox, Button, Card } from "antd";
 import { SaveOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { MOCK_ROLES, MOCK_PERMISSIONS } from "../../../constants";
+import styles from "../styles/Detail.module.less";
 
 const RoleDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const RoleDetailPage: React.FC = () => {
   const groups = Array.from(new Set(MOCK_PERMISSIONS.map((p) => p.group)));
 
   return (
-    <div className="p-6">
+    <div className={styles.container}>
       <Card title={isNew ? t.roleDetail.newTitle : t.roleDetail.editTitle}>
         <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
@@ -57,11 +58,8 @@ const RoleDetailPage: React.FC = () => {
               </Form.Item>
             );
           })}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              onClick={() => navigate("/roles")}
-              style={{ marginRight: 8 }}
-            >
+          <div className={styles.actions}>
+            <Button onClick={() => navigate("/roles")}>
               {t.roleDetail.cancel}
             </Button>
             <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>

@@ -83,10 +83,13 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
       title: "默认值",
       dataIndex: "defaultValue",
       key: "defaultValue",
+import styles from "../../styles/Detail.module.less";
+
+// ... inside columns ...
       render: (text: string, record: TemplateGlobalConfig) => (
         <Space>
           {record.type === "FILE" && <Tag color="blue">文件</Tag>}
-          <span className="text-gray-600">{text}</span>
+          <span className={styles.textGray}>{text}</span>
         </Space>
       ),
     },

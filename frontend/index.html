@@ -4,36 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ZhugeIO Deployment Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        font-family: 'Inter', sans-serif;
-      }
-      /* Custom scrollbar for code editors */
-      .code-scroll::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      .code-scroll::-webkit-scrollbar-track {
-        background: #f1f5f9;
-      }
-      .code-scroll::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      .code-scroll::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-<link rel="stylesheet" href="/index.css">
-</head>
-  <body class="bg-slate-50 text-slate-900">
+  </head>
+  <body>
     <div id="root">
-      <div id="app-loading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f8fafc;z-index:9999">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:50%;border:3px solid #cbd5e1;border-top-color:#2563eb;animation:spin 1s linear infinite"></div>
-          <div style="font-size:12px;color:#64748b;letter-spacing:0.02em">Loading…</div>
+      <div id="app-loading" class="app-loading-container">
+        <div class="app-loading-content">
+          <div class="app-loading-spinner"></div>
+          <div class="app-loading-text">Loading…</div>
         </div>
       </div>
     </div>

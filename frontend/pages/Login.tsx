@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { login } from "../services/auth";
 import { message, Form, Input, Button, Checkbox } from "antd";
+import styles from "./Login.module.less";
 
 interface LoginProps {
   onLogin: (email: string) => void;
@@ -36,36 +37,33 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden">
+    <div className={styles.container}>
       {/* Decorative Background */}
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-slate-900 skew-y-3 transform -translate-y-16 z-0"></div>
-      <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-      <div className="absolute top-20 right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+      <div className={styles.decorativeBgTop}></div>
+      <div className={styles.blobBlue}></div>
+      <div className={styles.blobPurple}></div>
 
       {/* Top Controls */}
-      <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={toggleLanguage}
-          className="flex items-center text-slate-300 hover:text-white transition-colors text-sm font-medium border border-white/10 rounded-full px-3 py-1 bg-white/5 backdrop-blur-sm"
-        >
-          <GlobalOutlined className="w-4 h-4 mr-1.5" />
+      <div className={styles.languageToggle}>
+        <button onClick={toggleLanguage}>
+          <GlobalOutlined style={{ marginRight: 6, fontSize: 14 }} />
           {language === "en" ? "EN" : "中文"}
         </button>
       </div>
 
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl relative z-10 mx-4">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg shadow-blue-500/30">
+      <div className={styles.loginCard}>
+        <div className={styles.header}>
+          <div className={styles.logoContainer}>
             Z
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">{t.login.title}</h1>
-          <p className="text-slate-500 text-sm mt-2">
+          <h1 className={styles.title}>{t.login.title}</h1>
+          <p className={styles.subtitle}>
             Welcome back, please login to your account
           </p>
         </div>
 
-        <Form onFinish={onFinish} layout="vertical" className="space-y-6">
-          <div className="space-y-4">
+        <Form onFinish={onFinish} layout="vertical" className={styles.form}>
+          <div style={{ marginBottom: 16 }}>
             <Form.Item
               label={t.login.emailPlaceholder}
               name="email"
@@ -88,40 +86,42 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </Form.Item>
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center cursor-pointer group">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 14 }}>
+            <label className={styles.checkboxLabel}>
               <Checkbox
                 checked={autoLogin}
                 onChange={(e) => setAutoLogin(e.target.checked)}
               />
-              <span className="ml-2 block text-slate-500 group-hover:text-slate-700 transition-colors">
+              <span>
                 {t.login.autoLogin}
               </span>
             </label>
             <a
               href="#"
-              className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              className={styles.forgotPasswordLink}
             >
               {t.login.forgotPassword}
             </a>
           </div>
 
-          <Button
-            htmlType="submit"
-            type="primary"
-            size="large"
-            className="w-full flex justify-center items-center py-3 px-4 text-sm font-semibold rounded-lg shadow-lg shadow-blue-500/30"
-          >
-            <LoginOutlined className="w-4 h-4 mr-2" />
-            {t.login.loginBtn}
-          </Button>
+          <div style={{ marginTop: 24 }}>
+            <Button
+              htmlType="submit"
+              type="primary"
+              size="large"
+              className={styles.submitBtn}
+            >
+              <LoginOutlined style={{ marginRight: 8 }} />
+              {t.login.loginBtn}
+            </Button>
+          </div>
 
-          <div className="text-center text-sm text-slate-500 mt-6 pt-6 border-t border-slate-100">
+          <div className={styles.footer}>
             {t.login.noAccount}
             <Button
               type="link"
               onClick={() => navigate("/register")}
-              className="font-semibold ml-1"
+              style={{ fontWeight: 600, paddingLeft: 4 }}
             >
               {t.login.register}
             </Button>
@@ -130,9 +130,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       </div>
 
       {/* Floating Chat Bubble */}
-      <div className="absolute bottom-8 right-8 z-20">
-        <button className="bg-white p-3.5 rounded-full text-blue-600 shadow-lg hover:shadow-xl hover:bg-blue-50 transition-all transform hover:scale-110">
-          <MessageOutlined className="w-6 h-6" />
+      <div className={styles.floatingChat}>
+        <button>
+          <MessageOutlined style={{ fontSize: 24 }} />
         </button>
       </div>
     </div>

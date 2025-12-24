@@ -96,8 +96,11 @@ const MetaProjectConfigTable: React.FC<MetaProjectConfigTableProps> = ({
       dataIndex: "fileLocation",
       key: "fileLocation",
       width: 150,
+import styles from "../../styles/Detail.module.less";
+
+// ... inside columns ...
       render: (text: string) => (
-        <span style={{ fontFamily: "monospace" }}>{text}</span>
+        <span className={styles.monospace}>{text}</span>
       ),
     },
     {

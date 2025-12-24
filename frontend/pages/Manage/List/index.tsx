@@ -4,6 +4,7 @@ import { Table, Input, Select, Button, Tag } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { MOCK_DEPLOYMENTS } from "../../../constants";
+import styles from "../styles/List.module.less";
 
 const ManageListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -54,20 +55,20 @@ const ManageListPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex gap-3 mb-4">
+    <div className={styles.container}>
+      <div className={styles.toolbar}>
         <Input
           placeholder={t.manageList.searchPlaceholder}
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          style={{ width: 240 }}
+          className={styles.search}
         />
         <Select
           allowClear
           placeholder={t.manageList.environment}
           value={env}
           onChange={setEnv}
-          style={{ width: 180 }}
+          className={styles.select}
           options={Array.from(new Set(data.map((d) => d.environment))).map(
             (e) => ({ label: e, value: e })
           )}

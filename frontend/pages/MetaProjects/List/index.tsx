@@ -16,6 +16,7 @@ import {
   createProject,
   createVersion,
 } from "@/services/metaprojects";
+import styles from "../styles/List.module.less";
 
 const ProjectList: React.FC = () => {
   const navigate = useNavigate();
@@ -95,50 +96,34 @@ const ProjectList: React.FC = () => {
   );
 
   return (
-    <div
-      style={{
-        padding: "24px",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <div
-        style={{
-          marginBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Space>
+    <div className={styles.container}>
+      <div className={styles.toolbar}>
+        <div className={styles.searchBar}>
           <Input
             placeholder={t.projectList.searchPlaceholder}
-            prefix={<SearchOutlined />}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearchText(e.target.value)
+            prefix={
+              <SearchOutlined style={{ color: "var(--color-slate-400)" }} />
             }
-            style={{ width: 200 }}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onPressEnter={fetchList}
+            style={{ width: 300 }}
           />
-        </Space>
-        <Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalOpen(true)}
-          >
-            {t.projectList.newProject}
+          <Button icon={<ReloadOutlined />} onClick={fetchList}>
+            {t.manageList.resetBtn || "刷新"}
           </Button>
-        </Space>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setIsModalOpen(true)}
+          style={{ backgroundColor: "var(--color-blue-600)" }}
+        >
+          {t.projectList.newProject}
+        </Button>
       </div>
 
-      <div
-        style={{
-          flex: 1,
-          backgroundColor: "white",
-          padding: 0,
-          borderRadius: 8,
-        }}
-      >
+      <div className={styles.tableContainer}>
         {loadError ? (
           <div style={{ padding: 24, textAlign: "center" }}>
             <Space direction="vertical">
@@ -155,9 +140,9 @@ const ProjectList: React.FC = () => {
         ) : (
           <ProjectTable
             projects={filteredProjects}
+            loading={loading}
             selectedRowKeys={selectedRowKeys}
             onSelectionChange={setSelectedRowKeys}
-            loading={loading}
           />
         )}
       </div>

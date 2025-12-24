@@ -3,7 +3,7 @@ import { Card, Tabs } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../contexts/LanguageContext";
 import AccountSettings from "./components/AccountSettings";
-import "./styles/index.less";
+import styles from "./styles/Settings.module.less";
 
 const SettingsPage: React.FC = () => {
   const { t } = useLanguage();
@@ -19,7 +19,7 @@ const SettingsPage: React.FC = () => {
         </span>
       ),
       children: (
-        <div className="h-full overflow-y-auto pr-6">
+        <div className={styles.tabContent}>
           <AccountSettings />
         </div>
       ),
@@ -27,14 +27,14 @@ const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="settings-container">
+    <div className={styles.container}>
       <Card variant="borderless">
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           items={items}
           tabPlacement="start"
-          className={`h-full settings-tabs`}
+          className={styles.tabs}
         />
       </Card>
     </div>

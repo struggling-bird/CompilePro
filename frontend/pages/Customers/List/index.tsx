@@ -6,6 +6,7 @@ import type { Customer } from "../../../types";
 import { listCustomers, deleteCustomer } from "../../../services/customers";
 import CustomerToolbar from "../components/CustomerToolbar";
 import CustomerTable from "../components/CustomerTable";
+import styles from "../styles/List.module.less";
 
 const CustomerListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const CustomerListPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={styles.container}>
       <CustomerToolbar
         keyword={keyword}
         onKeywordChange={setKeyword}

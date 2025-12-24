@@ -204,15 +204,15 @@ const TemplateDetailPage: React.FC = () => {
 
   if (!template || !currentVersion) return <div>Loading...</div>;
 
+import styles from "../styles/Detail.module.less";
+
+const TemplateDetailPage: React.FC = () => {
+  // ... existing code ...
+
   return (
-    <div
-      className="bg-white h-screen flex flex-col overflow-hidden"
-      style={{
-        height: "100%",
-      }}
-    >
-      {/* Top Navigation Bar style similar to prototype */}
-      <div className="px-6 py-3 border-b flex justify-between items-center bg-white z-50 shadow-sm flex-shrink-0">
+    <div className={styles.container}>
+      {/* Top Navigation Bar */}
+      <div className={styles.header}>
         <Space size="middle">
           <Button
             type="text"
@@ -221,8 +221,8 @@ const TemplateDetailPage: React.FC = () => {
           >
             返回
           </Button>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-500">名称:</span>
+          <div className={styles.headerInfo}>
+            <span className={styles.headerLabel}>名称:</span>
             <Form form={form} layout="inline">
               <Form.Item
                 name="name"
@@ -235,7 +235,7 @@ const TemplateDetailPage: React.FC = () => {
                 />
               </Form.Item>
             </Form>
-            <span className="text-gray-500">v:{currentVersion.version}</span>
+            <span className={styles.headerLabel}>v:{currentVersion.version}</span>
           </div>
         </Space>
         <Space>
@@ -247,10 +247,10 @@ const TemplateDetailPage: React.FC = () => {
         </Space>
       </div>
 
-      <div className="p-6 max-w-7xl mx-auto w-full space-y-6 overflow-y-auto flex-1 pb-20">
+      <div className={styles.content}>
         {/* Global Config */}
-        <div className="border rounded-md bg-white p-4 shadow-sm">
-          <div className="mb-4">
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>
             <Text strong style={{ fontSize: 16 }}>
               全局配置 :
             </Text>
@@ -262,7 +262,7 @@ const TemplateDetailPage: React.FC = () => {
         </div>
 
         {/* Meta Projects */}
-        <div className="border rounded-md bg-white p-0 shadow-sm overflow-hidden">
+        <div className={styles.sectionNoPadding}>
           <MetaProjectTabs
             modules={currentVersion.modules}
             onChange={(val) => handleUpdateVersionData("modules", val)}
@@ -271,7 +271,7 @@ const TemplateDetailPage: React.FC = () => {
         </div>
 
         {/* Version Record */}
-        <div className="border rounded-md bg-white p-4 shadow-sm">
+        <div className={styles.section}>
           <div className="mb-2">
             <Text strong style={{ fontSize: 16 }}>
               版本记录 ——
@@ -320,7 +320,7 @@ const TemplateDetailPage: React.FC = () => {
           />
 
           {/* Info Note */}
-          <div className="mt-4 bg-yellow-50 p-4 border border-yellow-200 rounded text-sm text-gray-600">
+          <div className={styles.infoNote}>
             <p>增加子分支后，子分支可以修改、增加配置项。不能删除项。</p>
             <p>
               后续子分支可以rebase到主分支。也支持合并到主分支。更新或者合并后的配置项，标记出来变动的部分。方便知道子分支增加了哪些配置项。
@@ -329,20 +329,20 @@ const TemplateDetailPage: React.FC = () => {
         </div>
 
         {/* Documentation Tabs */}
-        <div className="border rounded-md bg-white p-4 shadow-sm">
+        <div className={styles.section}>
           <Tabs
             items={[
               {
                 label: "README",
                 key: "readme",
                 children: (
-                  <div className="p-2">
+                  <div className={styles.tabContent}>
                     <Input.TextArea
                       rows={8}
                       placeholder="说明文档..."
                       style={{ resize: "none" }}
                     />
-                    <p className="mt-2 text-xs text-gray-400">
+                    <p className={styles.tabHint}>
                       时间轴上可以切换查看不同的版本，下方的说明文档、部署文档、更新文档都会自动切换。
                     </p>
                   </div>

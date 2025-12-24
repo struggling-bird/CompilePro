@@ -17,6 +17,7 @@ import {
   Alert,
   Row,
   Col,
+  message,
 } from "antd";
 import { Project, VersionConfig } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,7 +36,7 @@ import {
   updateCommands,
   updateArtifacts,
 } from "@/services/metaprojects";
-import { message } from "antd";
+import styles from "../styles/Detail.module.less";
 
 const { Title, Text, Link } = Typography;
 
@@ -266,18 +267,9 @@ const ProjectDetail: React.FC = () => {
   );
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div className={styles.container}>
       {/* Header */}
-      <div
-        style={{
-          padding: "16px 24px",
-          backgroundColor: "white",
-          borderBottom: "1px solid #f0f0f0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <div className={styles.header}>
         <Space>
           <Button
             type="text"
@@ -286,7 +278,7 @@ const ProjectDetail: React.FC = () => {
           >
             {t.projectDetail.back}
           </Button>
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={4} className={styles.title}>
             {project.name}
           </Title>
           <Text type="secondary">|</Text>
@@ -296,10 +288,10 @@ const ProjectDetail: React.FC = () => {
         </Space>
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: 24 }}>
+      <div className={styles.content}>
         {/* Clone Status */}
-        <Card size="small" style={{ marginBottom: 16 }}>
-          <Space style={{ width: "100%", justifyContent: "space-between" }}>
+        <Card size="small" className={styles.statusCard}>
+          <Space className={styles.statusContainer}>
             <div>
               <Text>克隆进度：</Text>
               <Tag
@@ -314,7 +306,7 @@ const ProjectDetail: React.FC = () => {
                 {cloneStatus}
               </Tag>
               {cloneMessage ? (
-                <Text type="secondary" style={{ marginLeft: 8 }}>
+                <Text type="secondary" className={styles.cloneMsg}>
                   {cloneMessage}
                 </Text>
               ) : null}
@@ -338,11 +330,12 @@ const ProjectDetail: React.FC = () => {
             </Button>
           </Space>
         </Card>
+
         {/* Config List */}
         <Card
           title="配置列表"
           size="small"
-          style={{ marginBottom: 24 }}
+          className={styles.card}
           extra={
             <Button
               type="primary"
@@ -369,13 +362,13 @@ const ProjectDetail: React.FC = () => {
         </Card>
 
         {/* Build Commands & Version History */}
-        <Row gutter={24} style={{ marginBottom: 24 }}>
+        <Row gutter={24} className={styles.row}>
           <Col span={8}>
             <Card
               title={t.projectDetail.compilationCommands}
               size="small"
               loading={loading}
-              style={{ marginBottom: 16 }}
+              className={styles.card}
             >
               <CmdList
                 commands={
@@ -400,7 +393,7 @@ const ProjectDetail: React.FC = () => {
           <Col span={16}>
             <Card
               title={t.projectDetail.versionHistory}
-              style={{ height: "100%" }}
+              className={styles.versionHistoryCard}
               extra={
                 <Button
                   type="primary"
@@ -412,7 +405,7 @@ const ProjectDetail: React.FC = () => {
                 </Button>
               }
             >
-              <div style={{ overflowX: "auto", paddingBottom: 16 }}>
+              <div className={styles.stepsContainer}>
                 <Steps
                   current={currentStep}
                   onChange={(current) =>
@@ -427,7 +420,7 @@ const ProjectDetail: React.FC = () => {
         </Row>
 
         {/* Docs */}
-        <Card style={{ marginTop: 24 }} styles={{ body: { padding: 0 } }}>
+        <Card className={styles.tabsCard}>
           <Tabs
             tabPlacement="top"
             size="large"
@@ -437,7 +430,7 @@ const ProjectDetail: React.FC = () => {
                 key: "README",
                 label: t.projectDetail.readme,
                 children: (
-                  <div style={{ padding: 24 }}>
+                  <div className={styles.tabContent}>
                     <Title level={3}>{t.projectDetail.docsTitle}</Title>
                     <Text>{t.projectDetail.docsDesc1}</Text>
                     <br />
@@ -456,7 +449,7 @@ const ProjectDetail: React.FC = () => {
                       }
                       type="info"
                       showIcon
-                      style={{ marginTop: 16 }}
+                      className={styles.contextAlert}
                     />
                   </div>
                 ),
@@ -464,12 +457,12 @@ const ProjectDetail: React.FC = () => {
               {
                 key: "BUILD",
                 label: t.projectDetail.build,
-                children: <div style={{ padding: 24 }}>Build Doc...</div>,
+                children: <div className={styles.tabContent}>Build Doc...</div>,
               },
               {
                 key: "UPDATE",
                 label: t.projectDetail.update,
-                children: <div style={{ padding: 24 }}>Changelog...</div>,
+                children: <div className={styles.tabContent}>Changelog...</div>,
               },
             ]}
           />

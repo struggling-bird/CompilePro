@@ -5,6 +5,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { MOCK_TEAM_MEMBERS } from "../../../constants";
 import type { TeamMember } from "../../../types";
+import styles from "../styles/List.module.less";
 
 const MemberListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,13 +50,13 @@ const MemberListPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className={styles.container}>
+      <div className={styles.toolbar}>
         <Input
           placeholder={t.memberList.searchPlaceholder}
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          style={{ width: 280 }}
+          className={styles.search}
         />
         <Button
           type="primary"

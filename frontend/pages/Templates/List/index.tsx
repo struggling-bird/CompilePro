@@ -5,6 +5,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { MOCK_TEMPLATES } from "../../../constants";
 import type { ProjectTemplate } from "../../../types";
+import styles from "../styles/List.module.less";
 
 const TemplateListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -56,13 +57,13 @@ const TemplateListPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className={styles.container}>
+      <div className={styles.toolbar}>
         <Input
           placeholder={t.templateList.searchPlaceholder}
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          style={{ width: 280 }}
+          className={styles.search}
         />
         <Button
           type="primary"
