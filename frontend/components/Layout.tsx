@@ -164,20 +164,18 @@ const Layout: React.FC<LayoutProps> = ({
         className={styles.sider}
       >
         <div className={styles.logoWrapper}>
-          <div className={styles.logoIcon}>
-            Z
-          </div>
+          <div className={styles.logoIcon}>Z</div>
           <span
             className={styles.logoText}
-            style={{ 
-              opacity: isCollapsed ? 0 : 1, 
-              width: isCollapsed ? 0 : 'auto' 
+            style={{
+              opacity: isCollapsed ? 0 : 1,
+              width: isCollapsed ? 0 : "auto",
             }}
           >
             ZhugeIO
           </span>
         </div>
-        
+
         <div className={styles.collapseTrigger}>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -211,7 +209,7 @@ const Layout: React.FC<LayoutProps> = ({
           style={{ height: "calc(100% - 64px)", borderRight: 0 }}
         />
       </AntLayout.Sider>
-      
+
       <AntLayout>
         <AntLayout.Header className={styles.header}>
           <div className={styles.headerRight}>
@@ -222,9 +220,9 @@ const Layout: React.FC<LayoutProps> = ({
             >
               {language === "en" ? "EN" : "中文"}
             </Button>
-            
+
             <div className={styles.divider} />
-            
+
             <Dropdown
               menu={{
                 items: [
@@ -263,38 +261,20 @@ const Layout: React.FC<LayoutProps> = ({
                 },
               }}
             >
-              <div className={styles.userProfile}>
-                <Avatar
-                  style={{ backgroundColor: "#3b82f6" }}
-                  size="default"
-                >
-                  {userEmail.charAt(0).toUpperCase()}
-                </Avatar>
-                <div className={styles.userInfo}>
-                  <span className={styles.userName}>
-                    {userEmail.includes("@")
-                      ? userEmail.split("@")[0]
-                      : userEmail}
-                  </span>
-                  <span className={styles.userRole}>
-                    {userRoleName && userRoleName.trim()
-                      ? userRoleName
-                      : language === "zh"
-                      ? "成员"
-                      : "Member"}
-                  </span>
-                </div>
-              </div>
+              <Avatar
+                style={{ backgroundColor: "#3b82f6", cursor: "pointer" }}
+                size="default"
+              >
+                {userEmail.charAt(0).toUpperCase()}
+              </Avatar>
             </Dropdown>
           </div>
         </AntLayout.Header>
-        
+
         <AntLayout.Content className={styles.content}>
-          <div className={styles.contentInner}>
-            {children}
-          </div>
+          <div className={styles.contentInner}>{children}</div>
         </AntLayout.Content>
-        
+
         <AntLayout.Footer className={styles.footer}>
           {t.layout.footer}
         </AntLayout.Footer>
