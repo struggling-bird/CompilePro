@@ -15,6 +15,7 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, DownOutlined } from "@ant-design/icons";
 import { TemplateModuleConfig, TemplateGlobalConfig } from "../../../../types";
+import "../../styles/Detail.less";
 
 interface MetaProjectConfigTableProps {
   value?: TemplateModuleConfig[];
@@ -96,11 +97,8 @@ const MetaProjectConfigTable: React.FC<MetaProjectConfigTableProps> = ({
       dataIndex: "fileLocation",
       key: "fileLocation",
       width: 150,
-import styles from "../../styles/Detail.module.less";
-
-// ... inside columns ...
       render: (text: string) => (
-        <span className={styles.monospace}>{text}</span>
+        <span className="monospace">{text}</span>
       ),
     },
     {

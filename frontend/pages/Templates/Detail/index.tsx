@@ -13,6 +13,7 @@ import MetaProjectTabs from "./components/MetaProjectTabs";
 import VersionTimeline from "./components/VersionTimeline";
 import { ProjectTemplate, TemplateVersion } from "../../../types";
 import dayjs from "dayjs";
+import "../styles/Detail.less";
 
 const { Text } = Typography;
 
@@ -204,167 +205,174 @@ const TemplateDetailPage: React.FC = () => {
 
   if (!template || !currentVersion) return <div>Loading...</div>;
 
-import styles from "../styles/Detail.module.less";
+  const TemplateDetailPage: React.FC = () => {
+    // ... existing code ...
 
-const TemplateDetailPage: React.FC = () => {
-  // ... existing code ...
+    return (
+      <div className="container">
+        {/* Top Navigation Bar */}
+        <div className="header">
+          <Space size="middle">
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate("/templates")}
+            >
+              返回
+            </Button>
+            <div className="headerInfo">
+              <span className="headerLabel">名称:</span>
+              <Form form={form} layout="inline">
+                <Form.Item
+                  name="name"
+                  style={{ margin: 0 }}
+                  rules={[{ required: true }]}
+                >
+                  <Input
+                    placeholder="模板名称"
+                    style={{ width: 300, fontWeight: 500 }}
+                  />
+                </Form.Item>
+              </Form>
+              <span className="headerLabel">
+                v:{currentVersion.version}
+              </span>
+            </div>
+          </Space>
+          <Space>
+            <Button icon={<BuildOutlined />}>编译</Button>
+            <Button icon={<SettingOutlined />}>管理</Button>
+            <Button type="primary" icon={<SaveOutlined />} onClick={handleSave}>
+              保存设置
+            </Button>
+          </Space>
+        </div>
 
-  return (
-    <div className={styles.container}>
-      {/* Top Navigation Bar */}
-      <div className={styles.header}>
-        <Space size="middle">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/templates")}
-          >
-            返回
-          </Button>
-          <div className={styles.headerInfo}>
-            <span className={styles.headerLabel}>名称:</span>
-            <Form form={form} layout="inline">
-              <Form.Item
-                name="name"
-                style={{ margin: 0 }}
-                rules={[{ required: true }]}
-              >
-                <Input
-                  placeholder="模板名称"
-                  style={{ width: 300, fontWeight: 500 }}
-                />
-              </Form.Item>
-            </Form>
-            <span className={styles.headerLabel}>v:{currentVersion.version}</span>
+        <div className="content">
+          {/* Global Config */}
+          <div className="section">
+            <div className="sectionTitle">
+              <Text strong style={{ fontSize: 16 }}>
+                全局配置 :
+              </Text>
+            </div>
+            <GlobalConfigTable
+              value={currentVersion.globalConfigs}
+              onChange={(val) => handleUpdateVersionData("globalConfigs", val)}
+            />
           </div>
-        </Space>
-        <Space>
-          <Button icon={<BuildOutlined />}>编译</Button>
-          <Button icon={<SettingOutlined />}>管理</Button>
-          <Button type="primary" icon={<SaveOutlined />} onClick={handleSave}>
-            保存设置
-          </Button>
-        </Space>
+
+          {/* Meta Projects */}
+          <div className="sectionNoPadding">
+            <MetaProjectTabs
+              modules={currentVersion.modules}
+              onChange={(val) => handleUpdateVersionData("modules", val)}
+              globalConfigs={currentVersion.globalConfigs}
+            />
+          </div>
+
+          {/* Version Record */}
+          <div className="section">
+            <div className="mb-2">
+              <Text strong style={{ fontSize: 16 }}>
+                版本记录 ——
+              </Text>
+            </div>
+            <VersionTimeline
+              versions={template.versions}
+              currentVersionId={currentVersionId}
+              onChange={setCurrentVersionId}
+              onAddVersion={handleAddVersion}
+              onDeleteVersion={(id) => {
+                const newVersions = template.versions.filter(
+                  (v) => v.id !== id
+                );
+                setTemplate({ ...template, versions: newVersions });
+                if (currentVersionId === id && newVersions.length > 0) {
+                  setCurrentVersionId(newVersions[newVersions.length - 1].id);
+                }
+              }}
+              onDeprecateVersion={(id) => {
+                const newVersions = template.versions.map((v) =>
+                  v.id === id ? { ...v, status: "Deprecated" as const } : v
+                );
+                setTemplate({ ...template, versions: newVersions });
+              }}
+              onBranchVersion={(id) => {
+                const version = template.versions.find((v) => v.id === id);
+                if (!version) return;
+
+                const newVersion: TemplateVersion = {
+                  id: Date.now().toString(),
+                  version: `${version.version}-b1`,
+                  date: dayjs().format("YYYY.MM.DD"),
+                  status: "Active",
+                  isBranch: true,
+                  baseVersion: version.version,
+                  globalConfigs: [...version.globalConfigs],
+                  modules: JSON.parse(JSON.stringify(version.modules)),
+                };
+
+                setTemplate((prev) => ({
+                  ...prev!,
+                  versions: [...prev!.versions, newVersion],
+                }));
+                setCurrentVersionId(newVersion.id);
+                message.success("已创建分支版本");
+              }}
+            />
+
+            {/* Info Note */}
+            <div className="infoNote">
+              <p>增加子分支后，子分支可以修改、增加配置项。不能删除项。</p>
+              <p>
+                后续子分支可以rebase到主分支。也支持合并到主分支。更新或者合并后的配置项，标记出来变动的部分。方便知道子分支增加了哪些配置项。
+              </p>
+            </div>
+          </div>
+
+          {/* Documentation Tabs */}
+          <div className="section">
+            <Tabs
+              items={[
+                {
+                  label: "README",
+                  key: "readme",
+                  children: (
+                    <div className="tabContent">
+                      <Input.TextArea
+                        rows={8}
+                        placeholder="说明文档..."
+                        style={{ resize: "none" }}
+                      />
+                      <p className="tabHint">
+                        时间轴上可以切换查看不同的版本，下方的说明文档、部署文档、更新文档都会自动切换。
+                      </p>
+                    </div>
+                  ),
+                },
+                {
+                  label: "BUILD",
+                  key: "build",
+                  children: (
+                    <Input.TextArea rows={8} placeholder="编译说明..." />
+                  ),
+                },
+                {
+                  label: "UPDATE",
+                  key: "update",
+                  children: (
+                    <Input.TextArea rows={8} placeholder="更新日志..." />
+                  ),
+                },
+              ]}
+              type="card"
+            />
+          </div>
+        </div>
       </div>
-
-      <div className={styles.content}>
-        {/* Global Config */}
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>
-            <Text strong style={{ fontSize: 16 }}>
-              全局配置 :
-            </Text>
-          </div>
-          <GlobalConfigTable
-            value={currentVersion.globalConfigs}
-            onChange={(val) => handleUpdateVersionData("globalConfigs", val)}
-          />
-        </div>
-
-        {/* Meta Projects */}
-        <div className={styles.sectionNoPadding}>
-          <MetaProjectTabs
-            modules={currentVersion.modules}
-            onChange={(val) => handleUpdateVersionData("modules", val)}
-            globalConfigs={currentVersion.globalConfigs}
-          />
-        </div>
-
-        {/* Version Record */}
-        <div className={styles.section}>
-          <div className="mb-2">
-            <Text strong style={{ fontSize: 16 }}>
-              版本记录 ——
-            </Text>
-          </div>
-          <VersionTimeline
-            versions={template.versions}
-            currentVersionId={currentVersionId}
-            onChange={setCurrentVersionId}
-            onAddVersion={handleAddVersion}
-            onDeleteVersion={(id) => {
-              const newVersions = template.versions.filter((v) => v.id !== id);
-              setTemplate({ ...template, versions: newVersions });
-              if (currentVersionId === id && newVersions.length > 0) {
-                setCurrentVersionId(newVersions[newVersions.length - 1].id);
-              }
-            }}
-            onDeprecateVersion={(id) => {
-              const newVersions = template.versions.map((v) =>
-                v.id === id ? { ...v, status: "Deprecated" as const } : v
-              );
-              setTemplate({ ...template, versions: newVersions });
-            }}
-            onBranchVersion={(id) => {
-              const version = template.versions.find((v) => v.id === id);
-              if (!version) return;
-
-              const newVersion: TemplateVersion = {
-                id: Date.now().toString(),
-                version: `${version.version}-b1`,
-                date: dayjs().format("YYYY.MM.DD"),
-                status: "Active",
-                isBranch: true,
-                baseVersion: version.version,
-                globalConfigs: [...version.globalConfigs],
-                modules: JSON.parse(JSON.stringify(version.modules)),
-              };
-
-              setTemplate((prev) => ({
-                ...prev!,
-                versions: [...prev!.versions, newVersion],
-              }));
-              setCurrentVersionId(newVersion.id);
-              message.success("已创建分支版本");
-            }}
-          />
-
-          {/* Info Note */}
-          <div className={styles.infoNote}>
-            <p>增加子分支后，子分支可以修改、增加配置项。不能删除项。</p>
-            <p>
-              后续子分支可以rebase到主分支。也支持合并到主分支。更新或者合并后的配置项，标记出来变动的部分。方便知道子分支增加了哪些配置项。
-            </p>
-          </div>
-        </div>
-
-        {/* Documentation Tabs */}
-        <div className={styles.section}>
-          <Tabs
-            items={[
-              {
-                label: "README",
-                key: "readme",
-                children: (
-                  <div className={styles.tabContent}>
-                    <Input.TextArea
-                      rows={8}
-                      placeholder="说明文档..."
-                      style={{ resize: "none" }}
-                    />
-                    <p className={styles.tabHint}>
-                      时间轴上可以切换查看不同的版本，下方的说明文档、部署文档、更新文档都会自动切换。
-                    </p>
-                  </div>
-                ),
-              },
-              {
-                label: "BUILD",
-                key: "build",
-                children: <Input.TextArea rows={8} placeholder="编译说明..." />,
-              },
-              {
-                label: "UPDATE",
-                key: "update",
-                children: <Input.TextArea rows={8} placeholder="更新日志..." />,
-              },
-            ]}
-            type="card"
-          />
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 };
 
 export default TemplateDetailPage;

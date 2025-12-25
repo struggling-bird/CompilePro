@@ -21,7 +21,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {
-      const res = await login({ email: values.email, password: values.password });
+      const res = await login({
+        email: values.email,
+        password: values.password,
+      });
       localStorage.setItem("token", res.token);
       onLogin(values.email);
       navigate("/compile");
@@ -53,9 +56,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       <div className={styles.loginCard}>
         <div className={styles.header}>
-          <div className={styles.logoContainer}>
-            Z
-          </div>
+          <div className={styles.logoContainer}>Z</div>
           <h1 className={styles.title}>{t.login.title}</h1>
           <p className={styles.subtitle}>
             Welcome back, please login to your account
@@ -86,20 +87,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </Form.Item>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 14 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontSize: 14,
+            }}
+          >
             <label className={styles.checkboxLabel}>
               <Checkbox
                 checked={autoLogin}
                 onChange={(e) => setAutoLogin(e.target.checked)}
               />
-              <span>
-                {t.login.autoLogin}
-              </span>
+              <span>{t.login.autoLogin}</span>
             </label>
-            <a
-              href="#"
-              className={styles.forgotPasswordLink}
-            >
+            <a href="#" className={styles.forgotPasswordLink}>
               {t.login.forgotPassword}
             </a>
           </div>

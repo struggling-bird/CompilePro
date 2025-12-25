@@ -13,6 +13,7 @@ import {
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { TemplateGlobalConfig } from "../../../../types";
+import "../../styles/Detail.less";
 
 interface GlobalConfigTableProps {
   value?: TemplateGlobalConfig[];
@@ -83,13 +84,10 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
       title: "默认值",
       dataIndex: "defaultValue",
       key: "defaultValue",
-import styles from "../../styles/Detail.module.less";
-
-// ... inside columns ...
       render: (text: string, record: TemplateGlobalConfig) => (
         <Space>
           {record.type === "FILE" && <Tag color="blue">文件</Tag>}
-          <span className={styles.textGray}>{text}</span>
+          <span className="textGray">{text}</span>
         </Space>
       ),
     },

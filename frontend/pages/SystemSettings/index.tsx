@@ -11,7 +11,7 @@ import GitSettings from "../Settings/components/GitSettings";
 import SystemCheck from "../Settings/components/SystemCheck";
 import FileStorageSettings from "../Settings/components/FileStorageSettings";
 import WorkspaceStats from "../Settings/components/WorkspaceStats";
-import "../Settings/styles/index.less";
+import "../Settings/styles/Settings.module.less";
 
 const SystemSettingsPage: React.FC = () => {
   const { t } = useLanguage();
