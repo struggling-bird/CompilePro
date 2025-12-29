@@ -480,6 +480,7 @@ const ProjectDetail: React.FC = () => {
         visible={showConfigModal}
         projectId={projectId || ""}
         config={editingConfig}
+        enableTargetEdit
         onClose={() => {
           setShowConfigModal(false);
           setEditingConfig(undefined);

@@ -6,17 +6,15 @@ import {
   Input,
   Tree,
   Space,
-  Row,
-  Col,
   message,
   Spin,
   Form,
-  InputNumber,
 } from "antd";
 import { SaveOutlined } from "@ant-design/icons";
 import { VersionConfig } from "@/types";
 import { listProjectFiles, getFileContent } from "@/services/metaprojects";
-import FilePreview from "@/components/FilePreview";
+import TextReplacePanel from "./TextReplacePanel";
+import FileReplacePanel from "./FileReplacePanel";
 
 const { DirectoryTree } = Tree;
 
@@ -26,6 +24,7 @@ interface ConfigEditorDrawerProps {
   config?: VersionConfig;
   onClose: () => void;
   onSave: (values: any) => Promise<void>;
+  enableTargetEdit?: boolean;
 }
 
 const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
@@ -34,6 +33,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   config,
   onClose,
   onSave,
+  enableTargetEdit,
 }) => {
   const [activeTab, setActiveTab] = useState("TEXT");
   const [treeData, setTreeData] = useState<any[]>([]);
@@ -47,6 +47,14 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   const [matchCount, setMatchCount] = useState(0);
   const matchIndex = Form.useWatch("matchIndex", form) || 0;
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
+  const [uploadedTargetFile, setUploadedTargetFile] = useState<File | null>(
+    null
+  );
+  const [targetImagePreviewUrl, setTargetImagePreviewUrl] =
+    useState<string>("");
+
+  // Default to false if enableTargetEdit is undefined
+  const isTargetEditEnabled = !!enableTargetEdit;
 
   useEffect(() => {
     if (visible) {
@@ -72,10 +80,6 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
       fetchFiles();
     }
   }, [visible, config, projectId]);
-
-  // Reset match count when regex or content changes - NOW handled by FilePreview
-  // But we still reset it here to be safe if FilePreview unmounts?
-  // Actually FilePreview will call onMatchCountChange immediately.
 
   const fetchFiles = async () => {
     try {
@@ -153,12 +157,35 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
     };
   }, [activeTab, selectedFile, projectId]);
 
+  useEffect(() => {
+    const ext = uploadedTargetFile?.name.split(".").pop()?.toLowerCase();
+    const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
+      ext || ""
+    );
+    if (activeTab === "FILE" && uploadedTargetFile && isImage) {
+      const objUrl = URL.createObjectURL(uploadedTargetFile);
+      setTargetImagePreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return objUrl;
+      });
+    } else {
+      setTargetImagePreviewUrl("");
+    }
+    return () => {
+      setTargetImagePreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return "";
+      });
+    };
+  }, [activeTab, uploadedTargetFile]);
+
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+      const { textTarget, ...rest } = values;
       setSaving(true);
       await onSave({
-        ...values,
+        ...rest,
         type: activeTab,
       });
       setSaving(false);
@@ -168,187 +195,34 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
     }
   };
 
-  const renderTextTab = () => (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        padding: 8,
-      }}
-    >
-      <div style={{ padding: "8px 16px 0", borderBottom: "1px solid #f0f0f0" }}>
-        {/* Hidden but required field for selected file */}
-        <Form.Item name="fileOriginPath" rules={[{ required: true }]} hidden>
-          <Input />
-        </Form.Item>
-        <Row gutter={8}>
-          <Col span={12}>
-            <Form.Item
-              name="name"
-              label="配置名称"
-              rules={[{ required: true, message: "请输入配置名称" }]}
-              style={{ marginBottom: 6 }}
-            >
-              <Input placeholder="Config Name" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="description"
-              label="配置描述"
-              style={{ marginBottom: 6 }}
-            >
-              <Input placeholder="Description" />
-            </Form.Item>
-          </Col>
-
-          <Col span={16}>
-            <Form.Item
-              name="textOrigin"
-              label="正则表达式"
-              rules={[{ required: true, message: "请输入正则表达式" }]}
-              style={{ marginBottom: 6 }}
-            >
-              <Input placeholder="/pattern/flags" />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
-              name="matchIndex"
-              label="匹配项索引 (从0开始)"
-              initialValue={0}
-              style={{ marginBottom: 6 }}
-            >
-              <InputNumber
-                min={0}
-                max={matchCount > 0 ? matchCount - 1 : 0}
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-      </div>
-      <div
-        style={{
-          padding: "6px 16px",
-          background: "#333",
-          color: "#fff",
-          borderBottom: "1px solid #444",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: 12,
-        }}
-      >
-        <span>预览内容</span>
-        {matchCount > 0 && (
-          <span style={{ color: "#ffaa00" }}>匹配到 {matchCount} 处</span>
-        )}
-      </div>
-      <div
-        style={{
-          flex: 1,
-          backgroundColor: "#1e1e1e",
-          color: "#d4d4d4",
-          padding: 16,
-          overflow: "auto",
-          minHeight: 200,
-        }}
-      >
-        <Spin spinning={loadingContent}>
-          <FilePreview
-            content={fileContent}
-            fileName={selectedFile}
-            regexPattern={activeTab === "TEXT" ? regexPattern : undefined}
-            matchIndex={matchIndex}
-            onMatchCountChange={setMatchCount}
-          />
-        </Spin>
-      </div>
-    </div>
-  );
-
-  const renderFileTab = () => {
-    const ext = selectedFile?.split(".").pop()?.toLowerCase();
-
-    const isImageExt = (e?: string) =>
-      ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
-        (e || "").toLowerCase()
-      );
-
-    return (
-      <div style={{ padding: 16 }}>
-        <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item
-              name="name"
-              label="配置名称"
-              rules={[{ required: true, message: "请输入配置名称" }]}
-            >
-              <Input placeholder="Config Name" />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item
-              name="fileOriginPath"
-              hidden
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item name="description" label="配置描述">
-              <Input placeholder="Description" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <div style={{ marginTop: 8, fontSize: 12, color: "#666" }}>
-          文件预览
-        </div>
-        <div
-          style={{
-            marginTop: 8,
-            minHeight: 220,
-            border: "1px dashed #d9d9d9",
-            borderRadius: 4,
-            padding: 12,
-            background: "#fafafa",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {selectedFile ? (
-            isImageExt(ext) ? (
-              imagePreviewUrl ? (
-                <img
-                  src={imagePreviewUrl}
-                  alt={selectedFile}
-                  style={{ maxWidth: "100%", maxHeight: 360 }}
-                />
-              ) : (
-                <div style={{ color: "#999" }}>图片预览不可用</div>
-              )
-            ) : (
-              <div style={{ color: "#999" }}>仅支持图片类型预览</div>
-            )
-          ) : (
-            <div style={{ color: "#999" }}>请从左侧选择文件</div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   const renderContent = () => {
     switch (activeTab) {
       case "TEXT":
-        return renderTextTab();
+        return (
+          <TextReplacePanel
+            form={form}
+            fileContent={fileContent}
+            selectedFile={selectedFile}
+            loadingContent={loadingContent}
+            matchCount={matchCount}
+            matchIndex={matchIndex}
+            regexPattern={regexPattern}
+            isTargetEditEnabled={isTargetEditEnabled}
+            onMatchCountChange={setMatchCount}
+          />
+        );
       case "FILE":
-        return renderFileTab();
+        return (
+          <FileReplacePanel
+            selectedFile={selectedFile}
+            isTargetEditEnabled={isTargetEditEnabled}
+            uploadedTargetFile={uploadedTargetFile}
+            targetImagePreviewUrl={targetImagePreviewUrl}
+            imagePreviewUrl={imagePreviewUrl}
+            onUploadedTargetFileChange={setUploadedTargetFile}
+            onTargetImagePreviewUrlChange={setTargetImagePreviewUrl}
+          />
+        );
       default:
         return null;
     }
