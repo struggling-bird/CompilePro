@@ -18,7 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UserResponseDto } from './dto/user-response.dto';
-import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateUserStatusDto } from './dto/update-status.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { AuthenticatedGuard } from '../auth/authenticated.guard';
 import { AuditService } from '../audit/audit.service';
@@ -50,7 +50,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: '成功' })
   async updateStatus(
     @Param('id') id: string,
-    @Body() dto: UpdateStatusDto,
+    @Body() dto: UpdateUserStatusDto,
     @Req() req: { user: { userId: string } },
   ) {
     const result = await this.usersService.setStatus(id, dto.status);

@@ -7,7 +7,7 @@ import { VersionConfig } from './version_config.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateVersionDto } from './dto/create-version.dto';
 import { UpdateVersionDto } from './dto/update-version.dto';
-import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateVersionStatusDto } from './dto/update-status.dto';
 import { UpsertConfigDto } from './dto/upsert-config.dto';
 import { UpdateCommandsDto } from './dto/commands.dto';
 import { UpdateArtifactsDto } from './dto/update-artifacts.dto';
@@ -187,7 +187,7 @@ export class MetaprojectsService {
   async updateVersionStatus(
     projectId: string,
     versionId: string,
-    dto: UpdateStatusDto,
+    dto: UpdateVersionStatusDto,
     actorId: string,
   ) {
     const v = await this.versions

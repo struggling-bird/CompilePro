@@ -29,7 +29,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { ListQueryDto } from './dto/list-query.dto';
 import { CreateVersionDto } from './dto/create-version.dto';
 import { UpdateVersionDto } from './dto/update-version.dto';
-import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateVersionStatusDto } from './dto/update-status.dto';
 import { UpsertConfigDto } from './dto/upsert-config.dto';
 import { UpdateCommandsDto } from './dto/commands.dto';
 import { UpdateArtifactsDto } from './dto/update-artifacts.dto';
@@ -126,13 +126,13 @@ export class MetaprojectsController {
   @ApiOperation({ summary: '版本状态管理' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiParam({ name: 'versionId', description: '版本ID' })
-  @ApiBody({ type: UpdateStatusDto })
+  @ApiBody({ type: UpdateVersionStatusDto })
   @ApiResponse({ status: 200, description: '成功' })
   async updateStatus(
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
     @Req() req: { user: { userId: string } },
-    @Body() dto: UpdateStatusDto,
+    @Body() dto: UpdateVersionStatusDto,
   ) {
     return this.svc.updateVersionStatus(
       projectId,
