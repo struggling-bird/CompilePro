@@ -133,6 +133,11 @@ export interface TemplateVersion {
   status: "Active" | "Deprecated";
   globalConfigs: TemplateGlobalConfig[];
   modules: TemplateModule[];
+  buildDoc?: string;
+  updateDoc?: string;
+  description?: string;
+  versionType?: "Major" | "Minor" | "Patch" | "Hotfix" | "Branch";
+  creator?: string;
 }
 
 export interface NodeCredential {
@@ -177,8 +182,10 @@ export interface ProjectTemplate {
   latestVersion: string;
   description?: string;
   updateTime?: string;
+  updater?: string;
   author?: string;
   createdDate?: string;
+  isEnabled: boolean;
   versions: TemplateVersion[];
 }
 

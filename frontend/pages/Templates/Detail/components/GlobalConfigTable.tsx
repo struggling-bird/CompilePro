@@ -1,184 +1,114 @@
-import React, { useState } from "react";
-import {
-  Table,
-  Button,
-  Switch,
-  Input,
-  Select,
-  Modal,
-  Form,
-  Space,
-  Popconfirm,
-  Tag,
-} from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import React from "react";
+import { Table, Button, Switch, Space, Tag, Typography } from "antd";
+import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { TemplateGlobalConfig } from "../../../../types";
-import "../../styles/Detail.less";
+
+import { useLanguage } from "../../../../contexts/LanguageContext";
+
+const { Text } = Typography;
 
 interface GlobalConfigTableProps {
-  value?: TemplateGlobalConfig[];
-  onChange?: (value: TemplateGlobalConfig[]) => void;
+  configs: TemplateGlobalConfig[];
+  onEdit: (config: TemplateGlobalConfig) => void;
+  onDelete: (id: string) => void;
+  onAdd: () => void;
+  usageCounts: Record<string, number>;
 }
 
 const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
-  value = [],
-  onChange,
+  configs,
+  onEdit,
+  onDelete,
+  onAdd,
+  usageCounts,
 }) => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingItem, setEditingItem] = useState<TemplateGlobalConfig | null>(
-    null
-  );
-  const [form] = Form.useForm();
-
-  const handleAdd = () => {
-    setEditingItem(null);
-    form.resetFields();
-    form.setFieldsValue({
-      type: "TEXT",
-      isHidden: false,
-    });
-    setIsModalVisible(true);
-  };
-
-  const handleEdit = (record: TemplateGlobalConfig) => {
-    setEditingItem(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleDelete = (id: string) => {
-    const newValue = value.filter((item) => item.id !== id);
-    onChange?.(newValue);
-  };
-
-  const handleOk = async () => {
-    try {
-      const values = await form.validateFields();
-      let newValue = [...value];
-      if (editingItem) {
-        const index = newValue.findIndex((item) => item.id === editingItem.id);
-        if (index > -1) {
-          newValue[index] = { ...editingItem, ...values };
-        }
-      } else {
-        newValue.push({
-          id: Date.now().toString(),
-          ...values,
-        });
-      }
-      onChange?.(newValue);
-      setIsModalVisible(false);
-    } catch (error) {
-      console.error("Validate Failed:", error);
-    }
-  };
+  const { t } = useLanguage();
 
   const columns = [
     {
-      title: "名称",
+      title: t.templateDetail.name,
       dataIndex: "name",
       key: "name",
-      width: 150,
+      render: (text: string) => <Text strong>{text}</Text>,
     },
     {
-      title: "默认值",
+      title: t.templateDetail.defaultValue,
       dataIndex: "defaultValue",
       key: "defaultValue",
-      render: (text: string, record: TemplateGlobalConfig) => (
-        <Space>
-          {record.type === "FILE" && <Tag color="blue">文件</Tag>}
-          <span className="textGray">{text}</span>
-        </Space>
-      ),
+      render: (text: string, record: TemplateGlobalConfig) =>
+        record.type === "FILE" ? (
+          <Tag color="blue">File</Tag>
+        ) : (
+          <Text copyable>{text}</Text>
+        ),
     },
     {
-      title: "描述",
+      title: t.templateDetail.desc,
       dataIndex: "description",
       key: "description",
     },
     {
-      title: "是否隐藏",
-      dataIndex: "isHidden",
-      key: "isHidden",
-      width: 100,
-      render: (isHidden: boolean) => (isHidden ? "是" : "否"),
+      title: t.templateDetail.usedBy,
+      key: "usage",
+      render: (_: any, record: TemplateGlobalConfig) => (
+        <Tag color="geekblue">{usageCounts[record.id] || 0} Modules</Tag>
+      ),
     },
     {
-      title: "操作",
+      title: t.templateDetail.isHidden,
+      dataIndex: "isHidden",
+      key: "isHidden",
+      render: (val: boolean) =>
+        val ? t.templateDetail.yes : t.templateDetail.no,
+    },
+    {
+      title: t.templateDetail.action,
       key: "action",
-      width: 150,
       render: (_: any, record: TemplateGlobalConfig) => (
-        <Space size="small">
-          <Button type="link" size="small" onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
-          <Popconfirm
-            title="确定删除吗?"
-            onConfirm={() => handleDelete(record.id)}
-          >
-            <Button type="link" danger size="small">
-              删除
-            </Button>
-          </Popconfirm>
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(record)}
+          />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => onDelete(record.id)}
+            disabled={(usageCounts[record.id] || 0) > 0}
+          />
         </Space>
       ),
     },
   ];
 
   return (
-    <div className="bg-white">
+    <div>
+      <div
+        style={{
+          marginBottom: 8,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Button
+          size="small"
+          type="dashed"
+          icon={<PlusOutlined />}
+          onClick={onAdd}
+        >
+          {t.templateDetail.addGlobalConfig}
+        </Button>
+      </div>
       <Table
-        dataSource={value}
-        columns={columns}
         rowKey="id"
+        columns={columns as any}
+        dataSource={configs}
         pagination={false}
-        size="middle"
-        bordered
+        size="small"
+        locale={{ emptyText: t.templateDetail.noData }}
       />
-      <Button
-        type="dashed"
-        onClick={handleAdd}
-        style={{ marginTop: 8 }}
-        icon={<PlusOutlined />}
-      >
-        添加配置项
-      </Button>
-
-      <Modal
-        title={editingItem ? "编辑全局配置" : "添加全局配置"}
-        open={isModalVisible}
-        onOk={handleOk}
-        onCancel={() => setIsModalVisible(false)}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="名称"
-            rules={[{ required: true, message: "请输入名称" }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-            <Select>
-              <Select.Option value="TEXT">文本</Select.Option>
-              <Select.Option value="FILE">文件</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="defaultValue"
-            label="默认值"
-            rules={[{ required: true, message: "请输入默认值" }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item name="description" label="描述">
-            <Input.TextArea />
-          </Form.Item>
-          <Form.Item name="isHidden" label="是否隐藏" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };

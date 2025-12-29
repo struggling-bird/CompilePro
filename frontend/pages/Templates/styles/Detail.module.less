@@ -1,0 +1,63 @@
+@import '../../../assets/styles/variables.less';
+
+.container {
+  padding: 24px;
+  background-color: #fff;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+
+  .title {
+    font-size: 20px;
+    font-weight: 500;
+  }
+}
+
+.section {
+  margin-bottom: 24px;
+  
+  .sectionTitle {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.timelineContainer {
+  overflow-x: auto;
+  padding: 16px 0;
+  margin-bottom: 24px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.configTable {
+  background: #fff;
+}
+
+.moduleTabs {
+  :global {
+    .ant-tabs-nav {
+      margin-bottom: 16px;
+    }
+  }
+}
+
+.formModal {
+  :global {
+    .ant-form-item {
+      margin-bottom: 24px;
+    }
+  }
+}

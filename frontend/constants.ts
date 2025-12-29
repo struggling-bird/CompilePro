@@ -106,6 +106,10 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
     name: "Private Deployment Standard",
     latestVersion: "2.1.0",
     updateTime: "2023-06-15",
+    updater: "Admin",
+    author: "System",
+    createdDate: "2022-01-01",
+    isEnabled: true,
     description:
       "Standard suite for private cloud deployments including Webapp and SDK.",
     versions: [
@@ -114,6 +118,9 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
         version: "1.0.0",
         date: "2022.01.01",
         status: "Active",
+        readme: "## Version 1.0.0\nInitial release of the standard suite.",
+        buildDoc: "## Build Instructions\nRun `npm install` followed by `npm run build`.",
+        updateDoc: "## Update Notes\nNo breaking changes.",
         globalConfigs: [
           {
             id: "g1",
