@@ -12,6 +12,7 @@ import {
   Form,
   DatePicker,
   Card,
+  Popconfirm,
   Row,
   Col,
 } from "antd";
@@ -23,7 +24,7 @@ import {
   DownOutlined,
 } from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
-import { getTemplatesList } from "../../../services/templates";
+import { getTemplatesList, deleteTemplate } from "../../../services/templates";
 import type { ProjectTemplate } from "../../../types";
 import styles from "../styles/List.module.less";
 import dayjs from "dayjs";
@@ -154,7 +155,7 @@ const TemplateListPage: React.FC = () => {
     {
       title: t.templateList.action || "Action",
       key: "action",
-      width: 180,
+      width: 240,
       render: (_: any, record: any) => (
         <Space>
           <Button
@@ -164,11 +165,26 @@ const TemplateListPage: React.FC = () => {
           >
             {t.templateList.edit || "Edit"}
           </Button>
-          {/* Status toggle disabled until API ready */}
-          {/* <Switch
-            checked={record.isEnabled}
-            onChange={(checked) => handleToggleStatus(record.id, checked)}
-          /> */}
+          <Popconfirm
+            title="Are you sure to delete this template?"
+            onConfirm={async () => {
+              try {
+                await deleteTemplate(record.id);
+                message.success("Template deleted");
+                const values = form.getFieldsValue();
+                fetchTemplates(values, current, pageSize);
+              } catch (e) {
+                console.error(e);
+                message.error("Delete failed");
+              }
+            }}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="link" danger>
+              Delete
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },

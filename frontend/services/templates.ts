@@ -71,3 +71,9 @@ export const getTemplateVersions = async (id: string) => {
     method: "GET",
   });
 };
+
+export const deleteTemplate = async (id: string) => {
+  return request(`/apis/templates/${id}`, {
+    method: "DELETE",
+  });
+};
