@@ -9,6 +9,7 @@ import {
 import { TemplateGlobalConfig } from './entities/template-global-config.entity';
 import { TemplateModule } from './entities/template-module.entity';
 import { TemplateModuleConfig } from './entities/template-module-config.entity';
+import { User } from '../users/user.entity';
 import {
   CreateTemplateDto,
   UpdateTemplateDto,
@@ -42,19 +43,21 @@ export class TemplatesService {
     private readonly moduleRepository: Repository<TemplateModule>,
     @InjectRepository(TemplateModuleConfig)
     private readonly moduleConfigRepository: Repository<TemplateModuleConfig>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async create(
     createTemplateDto: CreateTemplateDto,
-    author: string,
+    authorId: string,
   ): Promise<Template> {
     const { initialVersion, ...templateData } = createTemplateDto;
 
     // Create template basic info
     const template = this.templateRepository.create({
       ...templateData,
-      isEnabled: true, // Default to enabled
-      author,
+      isEnabled: true,
+      author: authorId,
     });
     const savedTemplate = await this.templateRepository.save(template);
 
@@ -116,6 +119,17 @@ export class TemplatesService {
 
     const [templates, total] = await qb.getManyAndCount();
 
+    const authorIds = Array.from(
+      new Set(templates.map((t) => t.author).filter(Boolean)),
+    );
+    const authors = authorIds.length
+      ? await this.usersRepository.find({
+          where: authorIds.map((id) => ({ id })),
+        })
+      : [];
+    const authorMap = new Map<string, string>();
+    authors.forEach((u) => authorMap.set(u.id, u.username));
+
     const list: TemplateListItemSimple[] = templates.map((t) => {
       const mainActiveVersions = (t.versions ?? []).filter(
         (ver) => !ver.isBranch && ver.status === TemplateVersionStatus.ACTIVE,
@@ -129,7 +143,7 @@ export class TemplatesService {
         id: t.id,
         name: t.name,
         description: t.description,
-        author: t.author,
+        author: authorMap.get(t.author) ?? t.author,
         updater: t.updater,
         createdAt: t.createdAt,
         updatedAt: t.updatedAt,
@@ -153,6 +167,12 @@ export class TemplatesService {
     });
     if (!template) {
       throw new NotFoundException(`Template with ID ${id} not found`);
+    }
+    if (template.author) {
+      const u = await this.usersRepository.findOne({
+        where: { id: template.author },
+      });
+      if (u) template.author = u.username;
     }
     return template;
   }

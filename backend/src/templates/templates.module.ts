@@ -7,6 +7,7 @@ import { TemplateVersion } from './entities/template-version.entity';
 import { TemplateGlobalConfig } from './entities/template-global-config.entity';
 import { TemplateModule } from './entities/template-module.entity';
 import { TemplateModuleConfig } from './entities/template-module-config.entity';
+import { User } from '../users/user.entity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TemplateModuleConfig } from './entities/template-module-config.entity';
       TemplateGlobalConfig,
       TemplateModule,
       TemplateModuleConfig,
+      User,
     ]),
   ],
   controllers: [TemplatesController],

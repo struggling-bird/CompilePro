@@ -8,8 +8,15 @@ import {
   Delete,
   Req,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
 import {
   CreateTemplateDto,
@@ -44,9 +51,11 @@ import {
 // Removed local ApiResponseInterceptor to avoid double wrapping (global already applied)
 import type { Request } from 'express';
 import { TemplateListQueryDto } from './dto/list-query.dto';
+import { AuthenticatedGuard } from '../auth/authenticated.guard';
 
 interface AuthenticatedRequest extends Request {
   user?: {
+    userId?: string;
     username?: string;
     name?: string;
   };
@@ -54,6 +63,8 @@ interface AuthenticatedRequest extends Request {
 
 @ApiTags('模版管理')
 @Controller('templates')
+@UseGuards(AuthenticatedGuard)
+@ApiBearerAuth()
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
@@ -68,11 +79,8 @@ export class TemplatesController {
     @Body() createTemplateDto: CreateTemplateDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    // Assuming user info is attached to request by AuthenticatedGuard
-    // If not authenticated, we fallback to 'Unknown'
-    const user = req.user;
-    const author = user ? user.username || user.name || 'Unknown' : 'Unknown';
-    return this.templatesService.create(createTemplateDto, author);
+    const authorId = req.user?.userId ?? 'Unknown';
+    return this.templatesService.create(createTemplateDto, authorId);
   }
 
   @Get()
