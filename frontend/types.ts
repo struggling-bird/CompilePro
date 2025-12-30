@@ -138,6 +138,8 @@ export interface TemplateVersion {
   description?: string;
   versionType?: "Major" | "Minor" | "Patch" | "Hotfix" | "Branch";
   creator?: string;
+  parentId?: string;
+  children?: TemplateVersion[];
 }
 
 export interface NodeCredential {

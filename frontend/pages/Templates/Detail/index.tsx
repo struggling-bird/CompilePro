@@ -36,6 +36,28 @@ import { useLanguage } from "../../../contexts/LanguageContext";
 
 const { Title, Text } = Typography;
 
+// Helper to build version tree structure
+const processVersions = (versions: TemplateVersion[]): TemplateVersion[] => {
+  // Create a deep copy of versions to avoid mutating read-only objects from props/state directly if needed
+  // But here we want to return a new array with new objects
+  const processed = versions.map((v) => ({
+    ...v,
+    parentId: v.baseVersion, // Sync parentId with baseVersion
+    children: [] as TemplateVersion[], // Initialize children
+  }));
+
+  const versionMap = new Map<string, TemplateVersion>();
+  processed.forEach((v) => versionMap.set(v.id, v));
+
+  processed.forEach((v) => {
+    if (v.parentId && versionMap.has(v.parentId)) {
+      versionMap.get(v.parentId)!.children!.push(v);
+    }
+  });
+
+  return processed;
+};
+
 const TemplateDetailPage: React.FC = () => {
   const { t } = useLanguage();
   const { templateId } = useParams();
@@ -81,8 +103,11 @@ const TemplateDetailPage: React.FC = () => {
       if (!isNew) {
         const found = MOCK_TEMPLATES.find((t) => t.id === templateId);
         if (found) {
-          setTemplate(JSON.parse(JSON.stringify(found)));
-          const latest = found.versions[found.versions.length - 1];
+          const templateData = JSON.parse(JSON.stringify(found));
+          templateData.versions = processVersions(templateData.versions);
+          setTemplate(templateData);
+          const latest =
+            templateData.versions[templateData.versions.length - 1];
           setCurrentVersionId(latest?.id || "");
         } else {
           // Handle not found? For now just init new or show error
@@ -171,6 +196,8 @@ const TemplateDetailPage: React.FC = () => {
         date: dayjs().format("YYYY.MM.DD"),
         isBranch: false,
         baseVersion: undefined,
+        parentId: undefined,
+        children: [],
         description: values.description,
         versionType: "Major",
         status: "Active",
@@ -190,14 +217,18 @@ const TemplateDetailPage: React.FC = () => {
         date: dayjs().format("YYYY.MM.DD"),
         isBranch: values.versionType === "Branch" || parent.isBranch,
         baseVersion: parent.id,
+        parentId: parent.id,
+        children: [],
         description: values.description,
         versionType: values.versionType,
       };
     }
 
+    const updatedVersions = processVersions([...template.versions, newVer]);
+
     setTemplate({
       ...template,
-      versions: [...template.versions, newVer],
+      versions: updatedVersions,
     });
     setCurrentVersionId(newVer.id);
     message.success("New version created successfully");
@@ -218,11 +249,14 @@ const TemplateDetailPage: React.FC = () => {
         "Are you sure you want to delete this version? This action cannot be undone.",
       onOk: () => {
         const newVersions = template.versions.filter((v) => v.id !== versionId);
-        setTemplate({ ...template, versions: newVersions });
+        const processedVersions = processVersions(newVersions);
+        setTemplate({ ...template, versions: processedVersions });
 
         if (currentVersionId === versionId) {
           // Switch to another version, preferably previous one or last one
-          setCurrentVersionId(newVersions[newVersions.length - 1].id);
+          setCurrentVersionId(
+            processedVersions[processedVersions.length - 1].id
+          );
         }
         message.success("Version deleted");
       },
@@ -538,6 +572,9 @@ const TemplateDetailPage: React.FC = () => {
           onCreate={handleCreateVersion}
           versions={template.versions}
           currentVersionId={currentVersionId}
+          isParentTerminal={
+            !currentVersion?.children?.some((c) => c.versionType !== "Branch")
+          }
         />
       )}
     </div>

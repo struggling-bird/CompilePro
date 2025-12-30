@@ -9,6 +9,7 @@ interface VersionCreationModalProps {
   onCreate: (values: VersionCreationValues) => void;
   versions: TemplateVersion[];
   currentVersionId: string;
+  isParentTerminal?: boolean;
 }
 
 export interface VersionCreationValues {
@@ -24,6 +25,7 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
   onCreate,
   versions,
   currentVersionId,
+  isParentTerminal = true,
 }) => {
   const { t } = useLanguage();
   const [form] = Form.useForm();
@@ -49,16 +51,20 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
         const initialParent =
           currentVersionId ||
           (versions.length > 0 ? versions[versions.length - 1].id : "");
+
+        const defaultType = isParentTerminal ? "Patch" : "Branch";
+        setSelectedType(defaultType);
+
         // Removed setSelectedParentId
         form.setFieldsValue({
           parentVersionId: initialParent,
-          versionType: "Patch",
+          versionType: defaultType,
           description: "",
         });
-        calculateVersion(initialParent, "Patch");
+        calculateVersion(initialParent, defaultType);
       }
     }
-  }, [visible, currentVersionId, versions, isInitialVersion]);
+  }, [visible, currentVersionId, versions, isInitialVersion, isParentTerminal]);
 
   // Update full version string when suffix changes (only for Branch type)
   useEffect(() => {
@@ -176,7 +182,7 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
             label={t.templateDetail.parentVersion}
             rules={[{ required: true }]}
           >
-            <Select>
+            <Select disabled>
               {versions.map((v) => (
                 <Select.Option key={v.id} value={v.id}>
                   {v.version} {v.isBranch ? "(Branch)" : ""}
@@ -193,18 +199,22 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
             rules={[{ required: true }]}
           >
             <Select>
-              <Select.Option value="Major">
-                {t.templateDetail.types.Major}
-              </Select.Option>
-              <Select.Option value="Minor">
-                {t.templateDetail.types.Minor}
-              </Select.Option>
-              <Select.Option value="Patch">
-                {t.templateDetail.types.Patch}
-              </Select.Option>
-              <Select.Option value="Hotfix">
-                {t.templateDetail.types.Hotfix}
-              </Select.Option>
+              {isParentTerminal && (
+                <>
+                  <Select.Option value="Major">
+                    {t.templateDetail.types.Major}
+                  </Select.Option>
+                  <Select.Option value="Minor">
+                    {t.templateDetail.types.Minor}
+                  </Select.Option>
+                  <Select.Option value="Patch">
+                    {t.templateDetail.types.Patch}
+                  </Select.Option>
+                  <Select.Option value="Hotfix">
+                    {t.templateDetail.types.Hotfix}
+                  </Select.Option>
+                </>
+              )}
               <Select.Option value="Branch">
                 {t.templateDetail.types.Branch}
               </Select.Option>
