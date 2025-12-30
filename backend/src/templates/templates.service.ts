@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Template } from './entities/template.entity';
 import { TemplateVersion } from './entities/template-version.entity';
 import { TemplateGlobalConfig } from './entities/template-global-config.entity';
@@ -37,7 +37,6 @@ export class TemplatesService {
     private readonly moduleRepository: Repository<TemplateModule>,
     @InjectRepository(TemplateModuleConfig)
     private readonly moduleConfigRepository: Repository<TemplateModuleConfig>,
-    private readonly dataSource: DataSource,
   ) {}
 
   async create(
@@ -65,10 +64,15 @@ export class TemplatesService {
       // Update latest version field if needed (though we compute it on list, some legacy/cache fields might need it)
       savedTemplate.latestVersion = version.version;
       await this.templateRepository.save(savedTemplate);
+
+      // Attach the created version to the returned object
+      savedTemplate.versions = [version];
+    } else {
+      savedTemplate.versions = [];
     }
 
-    // Return full object with relations
-    return this.findOne(savedTemplate.id);
+    // Return template with initial version (if created)
+    return savedTemplate;
   }
 
   async findAll(): Promise<Template[]> {

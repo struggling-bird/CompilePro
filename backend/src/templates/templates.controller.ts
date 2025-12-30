@@ -30,6 +30,7 @@ import {
 } from './dto/create-module-config.dto';
 import {
   TemplateResponseDto,
+  TemplateCreateResponseDto,
   TemplateListResponseDto,
   TemplateVersionResponseDto,
   GlobalConfigResponseDto,
@@ -57,7 +58,7 @@ export class TemplatesController {
   @ApiResponse({
     status: 201,
     description: '创建成功',
-    type: TemplateResponseDto,
+    type: TemplateCreateResponseDto,
   })
   create(
     @Body() createTemplateDto: CreateTemplateDto,
