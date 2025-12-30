@@ -28,6 +28,14 @@ import {
   CreateModuleConfigDto,
   UpdateModuleConfigDto,
 } from './dto/create-module-config.dto';
+import {
+  TemplateResponseDto,
+  TemplateListResponseDto,
+  TemplateVersionResponseDto,
+  GlobalConfigResponseDto,
+  ModuleResponseDto,
+  ModuleConfigResponseDto,
+} from './dto/response.dto';
 import { ApiResponseInterceptor } from '../shared/api-response.interceptor';
 import type { Request } from 'express';
 
@@ -46,7 +54,11 @@ export class TemplatesController {
 
   @Post()
   @ApiOperation({ summary: '创建模版' })
-  @ApiResponse({ status: 201, description: '创建成功' })
+  @ApiResponse({
+    status: 201,
+    description: '创建成功',
+    type: TemplateResponseDto,
+  })
   create(
     @Body() createTemplateDto: CreateTemplateDto,
     @Req() req: AuthenticatedRequest,
@@ -60,6 +72,11 @@ export class TemplatesController {
 
   @Get()
   @ApiOperation({ summary: '获取模版列表' })
+  @ApiResponse({
+    status: 200,
+    description: '获取成功',
+    type: TemplateListResponseDto,
+  })
   findAll() {
     return this.templatesService.findAll();
   }
@@ -67,6 +84,11 @@ export class TemplatesController {
   @Get(':id')
   @ApiOperation({ summary: '获取模版详情' })
   @ApiParam({ name: 'id', description: '模版ID' })
+  @ApiResponse({
+    status: 200,
+    description: '获取成功',
+    type: TemplateResponseDto,
+  })
   findOne(@Param('id') id: string) {
     return this.templatesService.findOne(id);
   }
@@ -74,6 +96,11 @@ export class TemplatesController {
   @Patch(':id')
   @ApiOperation({ summary: '更新模版' })
   @ApiParam({ name: 'id', description: '模版ID' })
+  @ApiResponse({
+    status: 200,
+    description: '更新成功',
+    type: TemplateResponseDto,
+  })
   update(
     @Param('id') id: string,
     @Body() updateTemplateDto: UpdateTemplateDto,
@@ -84,6 +111,7 @@ export class TemplatesController {
   @Delete(':id')
   @ApiOperation({ summary: '删除模版' })
   @ApiParam({ name: 'id', description: '模版ID' })
+  @ApiResponse({ status: 200, description: '删除成功' })
   remove(@Param('id') id: string) {
     return this.templatesService.remove(id);
   }
@@ -93,6 +121,11 @@ export class TemplatesController {
   @Post(':id/versions')
   @ApiOperation({ summary: '添加版本' })
   @ApiParam({ name: 'id', description: '模版ID' })
+  @ApiResponse({
+    status: 201,
+    description: '添加成功',
+    type: TemplateVersionResponseDto,
+  })
   addVersion(
     @Param('id') id: string,
     @Body() createVersionDto: CreateTemplateVersionDto,
@@ -103,6 +136,11 @@ export class TemplatesController {
   @Patch('versions/:versionId')
   @ApiOperation({ summary: '更新版本' })
   @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiResponse({
+    status: 200,
+    description: '更新成功',
+    type: TemplateVersionResponseDto,
+  })
   updateVersion(
     @Param('versionId') versionId: string,
     @Body() updateVersionDto: UpdateTemplateVersionDto,
@@ -113,6 +151,7 @@ export class TemplatesController {
   @Delete('versions/:versionId')
   @ApiOperation({ summary: '删除版本' })
   @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiResponse({ status: 200, description: '删除成功' })
   deleteVersion(@Param('versionId') versionId: string) {
     return this.templatesService.deleteVersion(versionId);
   }
@@ -122,6 +161,11 @@ export class TemplatesController {
   @Post('versions/:versionId/global-configs')
   @ApiOperation({ summary: '添加全局配置' })
   @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiResponse({
+    status: 201,
+    description: '添加成功',
+    type: GlobalConfigResponseDto,
+  })
   addGlobalConfig(
     @Param('versionId') versionId: string,
     @Body() createConfigDto: CreateGlobalConfigDto,
@@ -132,6 +176,11 @@ export class TemplatesController {
   @Patch('global-configs/:configId')
   @ApiOperation({ summary: '更新全局配置' })
   @ApiParam({ name: 'configId', description: '配置ID' })
+  @ApiResponse({
+    status: 200,
+    description: '更新成功',
+    type: GlobalConfigResponseDto,
+  })
   updateGlobalConfig(
     @Param('configId') configId: string,
     @Body() updateConfigDto: UpdateGlobalConfigDto,
@@ -142,6 +191,7 @@ export class TemplatesController {
   @Delete('global-configs/:configId')
   @ApiOperation({ summary: '删除全局配置' })
   @ApiParam({ name: 'configId', description: '配置ID' })
+  @ApiResponse({ status: 200, description: '删除成功' })
   deleteGlobalConfig(@Param('configId') configId: string) {
     return this.templatesService.deleteGlobalConfig(configId);
   }
@@ -151,6 +201,11 @@ export class TemplatesController {
   @Post('versions/:versionId/modules')
   @ApiOperation({ summary: '添加模块' })
   @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiResponse({
+    status: 201,
+    description: '添加成功',
+    type: ModuleResponseDto,
+  })
   addModule(
     @Param('versionId') versionId: string,
     @Body() createModuleDto: CreateModuleDto,
@@ -161,6 +216,11 @@ export class TemplatesController {
   @Patch('modules/:moduleId')
   @ApiOperation({ summary: '更新模块' })
   @ApiParam({ name: 'moduleId', description: '模块ID' })
+  @ApiResponse({
+    status: 200,
+    description: '更新成功',
+    type: ModuleResponseDto,
+  })
   updateModule(
     @Param('moduleId') moduleId: string,
     @Body() updateModuleDto: UpdateModuleDto,
@@ -171,6 +231,7 @@ export class TemplatesController {
   @Delete('modules/:moduleId')
   @ApiOperation({ summary: '删除模块' })
   @ApiParam({ name: 'moduleId', description: '模块ID' })
+  @ApiResponse({ status: 200, description: '删除成功' })
   deleteModule(@Param('moduleId') moduleId: string) {
     return this.templatesService.deleteModule(moduleId);
   }
@@ -180,6 +241,11 @@ export class TemplatesController {
   @Post('modules/:moduleId/configs')
   @ApiOperation({ summary: '添加模块配置' })
   @ApiParam({ name: 'moduleId', description: '模块ID' })
+  @ApiResponse({
+    status: 201,
+    description: '添加成功',
+    type: ModuleConfigResponseDto,
+  })
   addModuleConfig(
     @Param('moduleId') moduleId: string,
     @Body() createConfigDto: CreateModuleConfigDto,
@@ -190,6 +256,11 @@ export class TemplatesController {
   @Patch('module-configs/:configId')
   @ApiOperation({ summary: '更新模块配置' })
   @ApiParam({ name: 'configId', description: '配置ID' })
+  @ApiResponse({
+    status: 200,
+    description: '更新成功',
+    type: ModuleConfigResponseDto,
+  })
   updateModuleConfig(
     @Param('configId') configId: string,
     @Body() updateConfigDto: UpdateModuleConfigDto,
@@ -200,6 +271,7 @@ export class TemplatesController {
   @Delete('module-configs/:configId')
   @ApiOperation({ summary: '删除模块配置' })
   @ApiParam({ name: 'configId', description: '配置ID' })
+  @ApiResponse({ status: 200, description: '删除成功' })
   deleteModuleConfig(@Param('configId') configId: string) {
     return this.templatesService.deleteModuleConfig(configId);
   }
