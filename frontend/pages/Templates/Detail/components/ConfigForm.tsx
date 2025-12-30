@@ -1,5 +1,15 @@
 import React, { useEffect } from "react";
-import { Modal, Form, Input, Select, Switch, Radio } from "antd";
+import {
+  Modal,
+  Form,
+  Input,
+  Select,
+  Switch,
+  Radio,
+  Upload,
+  Button,
+} from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 import { TemplateGlobalConfig, TemplateModuleConfig } from "../../../../types";
 
 import { useLanguage } from "../../../../contexts/LanguageContext";
@@ -39,6 +49,20 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
     }
   }, [visible, initialValues, form]);
 
+  const getTitle = () => {
+    if (initialValues?.id) {
+      return mode === "GLOBAL" ? "编辑全局配置" : "编辑模块配置";
+    }
+    return mode === "GLOBAL" ? "创建全局配置" : "创建模块配置";
+  };
+
+  const normFile = (e: any) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e?.fileList;
+  };
+
   const handleOk = () => {
     form.validateFields().then((values) => {
       onSave({ ...initialValues, ...values });
@@ -48,11 +72,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
   return (
     <Modal
       open={visible}
-      title={
-        initialValues?.id
-          ? t.templateDetail.editTitle
-          : t.templateDetail.newTitle
-      }
+      title={getTitle()}
       onCancel={onCancel}
       onOk={handleOk}
       destroyOnClose
@@ -79,13 +99,37 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
               </Radio.Group>
             </Form.Item>
             <Form.Item
-              name="defaultValue"
-              label={t.templateDetail.defaultValue}
-              rules={[
-                { required: true, message: "Please input default value" },
-              ]}
+              noStyle
+              shouldUpdate={(prev, current) => prev.type !== current.type}
             >
-              <Input placeholder={t.templateDetail.defaultValue} />
+              {({ getFieldValue }) => {
+                const type = getFieldValue("type");
+                return type === "FILE" ? (
+                  <Form.Item
+                    name="defaultValue"
+                    label={t.templateDetail.defaultValue}
+                    valuePropName="fileList"
+                    getValueFromEvent={normFile}
+                    rules={[
+                      { required: true, message: "Please upload a file" },
+                    ]}
+                  >
+                    <Upload action="/upload.do" listType="text" maxCount={1}>
+                      <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                    </Upload>
+                  </Form.Item>
+                ) : (
+                  <Form.Item
+                    name="defaultValue"
+                    label={t.templateDetail.defaultValue}
+                    rules={[
+                      { required: true, message: "Please input default value" },
+                    ]}
+                  >
+                    <Input placeholder={t.templateDetail.defaultValue} />
+                  </Form.Item>
+                );
+              }}
             </Form.Item>
           </>
         )}
