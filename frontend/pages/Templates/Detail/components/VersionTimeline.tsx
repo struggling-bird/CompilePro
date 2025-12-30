@@ -76,79 +76,6 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
     // Create a map for quick lookup
     const versionMap = new Map(versions.map((v) => [v.id, v]));
 
-    // --- Dynamic Color Assignment Logic ---
-    const MAIN_COLOR = "#1890ff"; // Blue for Main Line
-    // Palette for branches (excluding Blue #1890ff)
-    const PALETTE = [
-      "#722ed1", // Purple
-      "#faad14", // Yellow/Orange
-      "#eb2f96", // Magenta
-      "#13c2c2", // Cyan
-      "#f5222d", // Red
-      "#fa8c16", // Orange
-      "#a0d911", // Lime
-    ];
-
-    const nodeColorMap = new Map<string, string>();
-    const parentContinuedMap = new Map<string, boolean>();
-    let paletteIndex = 0;
-
-    const getNextColor = () => {
-      const color = PALETTE[paletteIndex % PALETTE.length];
-      paletteIndex++;
-      return color;
-    };
-
-    // First pass: Assign colors
-    sortedVersions.forEach((v) => {
-      if (!v.isBranch) {
-        nodeColorMap.set(v.id, MAIN_COLOR);
-      } else {
-        // It is a branch node
-        const parentId = v.baseVersion;
-        if (!parentId || !versionMap.has(parentId)) {
-          // Orphan branch? New color
-          nodeColorMap.set(v.id, getNextColor());
-        } else {
-          const parent = versionMap.get(parentId);
-          const parentColor = nodeColorMap.get(parentId) || MAIN_COLOR;
-
-          if (!parent.isBranch) {
-            // Parent is Main, so this starts a new branch
-            nodeColorMap.set(v.id, getNextColor());
-          } else {
-            // Parent is Branch
-            // Check if this child continues the parent's branch
-            // Heuristic: First child that hasn't been claimed continues the color
-            // UNLESS names are very different? (Simpler: just use first child for now)
-
-            if (!parentContinuedMap.get(parentId)) {
-              // Inherit color
-              nodeColorMap.set(v.id, parentColor);
-              parentContinuedMap.set(parentId, true);
-            } else {
-              // Parent already continued by another sibling -> Divergence -> New Color
-              nodeColorMap.set(v.id, getNextColor());
-            }
-          }
-        }
-      }
-    });
-
-    // --- Manual Layout Algorithm ---
-    // 1. Determine Lanes (Y-axis)
-    // Lane 0 is reserved for Main Branch (!isBranch)
-    // Other lanes are dynamically assigned.
-
-    const nodeLaneMap = new Map<string, number>();
-    let maxLaneIndex = 0;
-
-    // Helper: Get next available lane
-    const getNextLane = () => {
-      maxLaneIndex++;
-      return maxLaneIndex;
-    };
-
     // Build Adjacency List (Parent -> Children)
     const childrenMap = new Map<string, string[]>();
     // Also track roots
@@ -166,6 +93,103 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
       }
     });
 
+    // Determine "Main Successor" for each node to decide inheritance
+    const mainSuccessorMap = new Map<string, string>();
+    versionMap.forEach((v) => {
+      const childrenIds = childrenMap.get(v.id) || [];
+      if (childrenIds.length > 0) {
+        // Priority:
+        // 1. Non-Branch child (Major/Minor/Patch)
+        // 2. If all are Branch (forks), then no one inherits? Or just the first one?
+        //    If it's a "New Branch", it should be a fork (new color/lane).
+        //    So if ALL children are "Branch" type, then the parent branch stops here (or effectively ends).
+        //    Wait, if I create a branch from a branch, the parent branch still exists.
+        //    But if I don't add any more commits to the parent branch, it just ends visually.
+        //    So: Only Non-Branch children inherit the color/lane.
+
+        const nonBranchChild = childrenIds.find((childId) => {
+          const child = versionMap.get(childId);
+          return child?.versionType !== "Branch";
+        });
+
+        if (nonBranchChild) {
+          mainSuccessorMap.set(v.id, nonBranchChild);
+        } else {
+          // All children are branches. None inherit.
+          // Exception: If the parent is NOT a branch (Main Line), and it only has Branch children.
+          // Then the Main Line visually stops. This is correct.
+        }
+      }
+    });
+
+    // --- Dynamic Color Assignment Logic ---
+    const MAIN_COLOR = "#1890ff"; // Blue for Main Line
+    // Palette for branches (excluding Blue #1890ff)
+    const PALETTE = [
+      "#722ed1", // Purple
+      "#faad14", // Yellow/Orange
+      "#eb2f96", // Magenta
+      "#13c2c2", // Cyan
+      "#f5222d", // Red
+      "#fa8c16", // Orange
+      "#a0d911", // Lime
+    ];
+
+    const nodeColorMap = new Map<string, string>();
+    let paletteIndex = 0;
+
+    const getNextColor = () => {
+      const color = PALETTE[paletteIndex % PALETTE.length];
+      paletteIndex++;
+      return color;
+    };
+
+    // First pass: Assign colors
+    // We should traverse from roots to propagate colors
+    const assignColors = (nodeId: string, parentColor: string | null) => {
+      const node = versionMap.get(nodeId);
+      if (!node) return;
+
+      let myColor = parentColor;
+
+      if (!parentColor) {
+        // Root or New Branch start
+        myColor = !node.isBranch ? MAIN_COLOR : getNextColor();
+      }
+
+      nodeColorMap.set(nodeId, myColor!);
+
+      // Propagate to children
+      const children = childrenMap.get(nodeId) || [];
+      const successorId = mainSuccessorMap.get(nodeId);
+
+      children.forEach((childId) => {
+        if (childId === successorId) {
+          // Inherit color
+          assignColors(childId, myColor);
+        } else {
+          // New Branch -> New Color
+          assignColors(childId, null);
+        }
+      });
+    };
+
+    roots.forEach((rootId) => assignColors(rootId, null));
+
+    // --- Manual Layout Algorithm ---
+    // 1. Determine Lanes (Y-axis)
+    // Lane 0 is reserved for Main Branch (!isBranch)
+    // Other lanes are dynamically assigned.
+
+    const nodeLaneMap = new Map<string, number>();
+    let maxLaneIndex = 0;
+
+    // Helper: Get next available lane
+    const getNextLane = () => {
+      maxLaneIndex++;
+      return maxLaneIndex;
+    };
+
     // DFS to assign Lanes
     const assignLanes = (nodeId: string, currentLane: number) => {
       nodeLaneMap.set(nodeId, currentLane);
@@ -173,40 +197,7 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
       const children = childrenMap.get(nodeId) || [];
       if (children.length === 0) return;
 
-      // Determine which child continues the current lane
-      // Heuristic:
-      // 1. If current is Main (Lane 0), look for a Main child.
-      // 2. If current is Branch, look for a child that is NOT a new branch (continuing).
-      //    (Or if multiple branches, maybe pick the one with same name prefix? For now: first child that is !isBranch or matches logic)
-
-      let successorId: string | null = null;
-      const node = versionMap.get(nodeId);
-
-      if (currentLane === 0) {
-        // Main Branch: Prefer child that is NOT a branch
-        const mainChild = children.find(
-          (childId) => !versionMap.get(childId)?.isBranch
-        );
-        if (mainChild) {
-          successorId = mainChild;
-        } else if (children.length > 0) {
-          // If Main only has branch children, none inherit Lane 0 (Main stops? Rare)
-          // Or maybe the "main" flow continues into a branch?
-          // User req: "Main branch as baseline". So if no !isBranch child, Main stops here.
-        }
-      } else {
-        // Branch Lane: Prefer child that continues this branch
-        // Simple: The first child that is also a branch (or whatever logic defines "continuation")
-        // If we have parentContinuedMap logic from color, we can reuse it?
-        // Let's use a simple heuristic: First child gets the lane, others get new lanes.
-        // BUT: if child is explicitly a "New Branch" (how do we know? isBranch is true for all branch nodes)
-        // Assumption: If child.isBranch is true, it *is* on a branch.
-        // If parent and child are both isBranch, they are on the same branch unless divergence.
-        // Let's just pick the first child as successor.
-        if (children.length > 0) {
-          successorId = children[0];
-        }
-      }
+      const successorId = mainSuccessorMap.get(nodeId);
 
       // Process Successor
       if (successorId) {
