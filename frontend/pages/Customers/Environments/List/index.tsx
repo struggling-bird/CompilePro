@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, Table, message, Modal, Input, Form, Breadcrumb } from "antd";
+import {
+  Button,
+  Table,
+  message,
+  Modal,
+  Input,
+  Breadcrumb,
+  Card,
+  Space,
+} from "antd";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useLanguage } from "../../../../contexts/LanguageContext";
 import { Environment } from "../../../../types";
 import {
@@ -100,42 +110,55 @@ const EnvironmentList: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 flex flex-col h-full">
-      <div className="mb-4 flex justify-between items-center">
-        <Breadcrumb
-          items={[
-            {
-              title: (
-                <a onClick={() => navigate("/customers")}>
-                  {t.layout.customers}
-                </a>
-              ),
-            },
-            { title: t.environment.title },
-          ]}
+    <div style={{ padding: 24 }}>
+      <Breadcrumb
+        className="mb-4"
+        items={[
+          {
+            title: (
+              <a onClick={() => navigate("/customers")}>{t.layout.customers}</a>
+            ),
+          },
+          { title: t.environment.title },
+        ]}
+      />
+
+      <div
+        style={{
+          padding: "16px 24px",
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          background: "#fff",
+          borderRadius: 8,
+        }}
+      >
+        <Input
+          prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+          placeholder={t.environment.searchPlaceholder}
+          allowClear
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 280 }}
         />
         <Button
           type="primary"
+          icon={<PlusOutlined />}
           onClick={() => navigate(`/customers/${customerId}/environments/new`)}
         >
           {t.environment.add}
         </Button>
       </div>
-      <div className="mb-4">
-        <Input.Search
-          placeholder={t.environment.searchPlaceholder}
-          allowClear
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ width: 300 }}
+
+      <div className="bg-white rounded-lg">
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={filteredEnvs}
+          loading={loading}
+          pagination={{ pageSize: 10 }}
         />
       </div>
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={filteredEnvs}
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
     </div>
   );
 };

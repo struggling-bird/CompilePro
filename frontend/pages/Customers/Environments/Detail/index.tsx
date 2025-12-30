@@ -9,7 +9,16 @@ import {
   message,
   Modal,
   Breadcrumb,
+  Card,
+  Space,
+  Row,
+  Col,
 } from "antd";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { useLanguage } from "../../../../contexts/LanguageContext";
 import { EnvironmentNode } from "../../../../types";
 import {
@@ -179,7 +188,7 @@ const EnvironmentDetail: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 flex flex-col h-full overflow-auto">
+    <div style={{ padding: 24, height: "100%", overflow: "auto" }}>
       <Breadcrumb
         className="mb-4"
         items={[
@@ -203,61 +212,79 @@ const EnvironmentDetail: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-lg p-6 mb-4">
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
-          <h3 className="text-lg font-medium text-slate-900">
-            {t.environment.basicInfo}
-          </h3>
-          <Button type="primary" onClick={onSaveEnv} loading={saving}>
+      <Card
+        title={t.environment.basicInfo}
+        extra={
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            onClick={onSaveEnv}
+            loading={saving}
+          >
             {t.environment.save}
           </Button>
-        </div>
+        }
+        bordered={false}
+        style={{ marginBottom: 24 }}
+      >
         <Form form={form} layout="vertical">
-          <div className="grid grid-cols-2 gap-4">
-            <Form.Item
-              name="name"
-              label={t.environment.name}
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="url"
-              label={t.environment.url}
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item name="account" label={t.environment.account}>
-              <Input />
-            </Form.Item>
-            <Form.Item name="password" label={t.environment.password}>
-              <Input.Password />
-            </Form.Item>
-            <Form.Item
-              name="supportRemote"
-              label={t.environment.supportRemote}
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-            <Form.Item name="remoteMethod" label={t.environment.remoteMethod}>
-              <Input.TextArea rows={1} />
-            </Form.Item>
-          </div>
-          <Form.Item name="remark" label={t.environment.remark}>
-            <Input.TextArea rows={2} />
-          </Form.Item>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label={t.environment.name}
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="url"
+                label={t.environment.url}
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="account" label={t.environment.account}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="password" label={t.environment.password}>
+                <Input.Password />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="supportRemote"
+                label={t.environment.supportRemote}
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="remoteMethod" label={t.environment.remoteMethod}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="remark" label={t.environment.remark}>
+                <Input.TextArea rows={2} />
+              </Form.Item>
+            </Col>
+          </Row>
         </Form>
-      </div>
+      </Card>
 
       {!isNew && (
-        <div className="bg-white rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
-            <h3 className="text-lg font-medium text-slate-900">
-              {t.environment.nodes}
-            </h3>
-            <div className="flex space-x-2">
+        <Card
+          title={t.environment.nodes}
+          extra={
+            <Space>
               <Input.Search
                 placeholder={t.environment.nodeSearchPlaceholder}
                 allowClear
@@ -269,6 +296,7 @@ const EnvironmentDetail: React.FC = () => {
               />
               <Button
                 type="primary"
+                icon={<PlusOutlined />}
                 onClick={() => {
                   setCurrentNode(undefined);
                   setNodeModalVisible(true);
@@ -276,8 +304,10 @@ const EnvironmentDetail: React.FC = () => {
               >
                 {t.environment.addNode}
               </Button>
-            </div>
-          </div>
+            </Space>
+          }
+          bordered={false}
+        >
           <Table
             rowKey="id"
             columns={nodeColumns}
@@ -304,7 +334,7 @@ const EnvironmentDetail: React.FC = () => {
               },
             }}
           />
-        </div>
+        </Card>
       )}
 
       <NodeModal
