@@ -362,6 +362,26 @@ const TemplateDetailPage: React.FC = () => {
           onCreateBranchFrom={handleCreateBranchFrom}
           onMerge={handleMerge}
           onDelete={handleDeleteVersion}
+          onStatusChange={(versionId, status, reason) => {
+            if (!template) return;
+            // Update version status
+            const newVersions = template.versions.map((v) => {
+              if (v.id === versionId) {
+                return {
+                  ...v,
+                  status,
+                  description: reason
+                    ? `${v.description || ""}\n[Deprecated Reason]: ${reason}`
+                    : v.description,
+                };
+              }
+              return v;
+            });
+            setTemplate({ ...template, versions: newVersions });
+            message.success(
+              `Version ${status === "Deprecated" ? "disabled" : "enabled"}`
+            );
+          }}
         />
       </div>
 
