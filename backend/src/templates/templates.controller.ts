@@ -30,7 +30,7 @@ import {
 } from './dto/create-module-config.dto';
 import {
   TemplateCreateResponseDto,
-  TemplateListResponseDto,
+  TemplateListPaginatedResponseDto,
   TemplateVersionResponseDto,
   GlobalConfigResponseDto,
   ModuleResponseDto,
@@ -80,7 +80,7 @@ export class TemplatesController {
   @ApiResponse({
     status: 200,
     description: '获取成功',
-    type: TemplateListResponseDto,
+    type: TemplateListPaginatedResponseDto,
   })
   findAll(@Query() q: TemplateListQueryDto) {
     return this.templatesService.findAll(q);

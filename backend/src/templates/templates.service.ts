@@ -80,7 +80,10 @@ export class TemplatesService {
     return savedTemplate;
   }
 
-  async findAll(q?: TemplateListQueryDto): Promise<TemplateListItemSimple[]> {
+  async findAll(q?: TemplateListQueryDto): Promise<{
+    items: TemplateListItemSimple[];
+    meta: { total: number; page: number; pageSize: number };
+  }> {
     const qb = this.templateRepository.createQueryBuilder('t');
 
     qb.leftJoinAndSelect('t.versions', 'v');
@@ -107,7 +110,11 @@ export class TemplatesService {
 
     qb.orderBy('t.updatedAt', 'DESC');
 
-    const templates = await qb.getMany();
+    const page = Number(q?.page ?? 1);
+    const pageSize = Number(q?.pageSize ?? 10);
+    qb.skip((page - 1) * pageSize).take(pageSize);
+
+    const [templates, total] = await qb.getManyAndCount();
 
     const list: TemplateListItemSimple[] = templates.map((t) => {
       const mainActiveVersions = (t.versions ?? []).filter(
@@ -130,7 +137,14 @@ export class TemplatesService {
       } as TemplateListItemSimple;
     });
 
-    return list;
+    return {
+      items: list,
+      meta: {
+        total,
+        page,
+        pageSize,
+      },
+    };
   }
 
   async findOne(id: string): Promise<Template> {

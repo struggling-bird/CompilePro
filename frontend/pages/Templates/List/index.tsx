@@ -1,56 +1,135 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Table, Input, Button, Tag, Switch, Space, message, Typography } from "antd";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Input,
+  Button,
+  Tag,
+  Switch,
+  Space,
+  message,
+  Typography,
+  Form,
+  DatePicker,
+  Card,
+  Row,
+  Col,
+} from "antd";
+import {
+  PlusOutlined,
+  SearchOutlined,
+  ReloadOutlined,
+  UpOutlined,
+  DownOutlined,
+} from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
-import { MOCK_TEMPLATES } from "../../../constants";
+import { getTemplatesList } from "../../../services/templates";
 import type { ProjectTemplate } from "../../../types";
 import styles from "../styles/List.module.less";
+import dayjs from "dayjs";
 
 const { Text } = Typography;
+const { RangePicker } = DatePicker;
 
 const TemplateListPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [keyword, setKeyword] = useState("");
-  const [data, setData] = useState<ProjectTemplate[]>(MOCK_TEMPLATES);
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+  const [expand, setExpand] = useState(false);
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  const handleToggleStatus = (id: string, checked: boolean) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isEnabled: checked } : item
-      )
-    );
-    message.success(checked ? "Template Enabled" : "Template Disabled");
+  const fetchTemplates = async (
+    values: any = {},
+    page: number = current,
+    size: number = pageSize
+  ) => {
+    setLoading(true);
+    try {
+      const query: any = {};
+      if (values.name) query.name = values.name;
+      if (values.author) query.author = values.author;
+      if (values.description) query.description = values.description;
+      if (values.createTime) {
+        query.createdFrom = values.createTime[0].toISOString();
+        query.createdTo = values.createTime[1].toISOString();
+      }
+      if (values.updateTime) {
+        query.updatedFrom = values.updateTime[0].toISOString();
+        query.updatedTo = values.updateTime[1].toISOString();
+      }
+      query.page = page;
+      query.pageSize = size;
+
+      const res = await getTemplatesList(query);
+      setData(res.items || []);
+      setTotal(res.meta?.total || 0);
+      setCurrent(res.meta?.page || page);
+      setPageSize(res.meta?.pageSize || size);
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to fetch templates");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredData = useMemo(() => {
-    const k = keyword.trim().toLowerCase();
-    if (!k) return data;
-    return data.filter((item) =>
-      item.name.toLowerCase().includes(k)
-    );
-  }, [data, keyword]);
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const onFinish = (values: any) => {
+    setCurrent(1);
+    fetchTemplates(values, 1, pageSize);
+  };
+
+  const handleReset = () => {
+    form.resetFields();
+    fetchTemplates();
+  };
+
+  const handleToggleStatus = (id: string, checked: boolean) => {
+    // API to toggle status not implemented yet in this turn?
+    // Just mock for now or disable
+    message.info("Toggle status not implemented yet");
+  };
 
   const columns = [
     {
       title: t.templateList.name || "Template Name",
       dataIndex: "name",
       key: "name",
-      sorter: (a: ProjectTemplate, b: ProjectTemplate) => a.name.localeCompare(b.name),
       render: (text: string) => <Text strong>{text}</Text>,
+    },
+    {
+      title: t.templateList.description || "Description",
+      dataIndex: "description",
+      key: "description",
+      ellipsis: true,
     },
     {
       title: t.templateList.latestVersion || "Latest Version",
       dataIndex: "latestVersion",
       key: "latestVersion",
-      render: (text: string) => <Tag color="blue" className={styles.versionTag}>v{text}</Tag>,
+      render: (text: string) =>
+        text ? (
+          <Tag color="blue" className={styles.versionTag}>
+            v{text}
+          </Tag>
+        ) : (
+          "-"
+        ),
     },
     {
       title: "Update Time",
-      dataIndex: "updateTime",
-      key: "updateTime",
-      width: 160,
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      width: 180,
+      render: (val: string) =>
+        val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
     {
       title: "Updater",
@@ -66,15 +145,17 @@ const TemplateListPage: React.FC = () => {
     },
     {
       title: t.templateList.createdDate || "Create Time",
-      dataIndex: "createdDate",
-      key: "createdDate",
-      width: 160,
+      dataIndex: "createdAt",
+      key: "createdAt",
+      width: 180,
+      render: (val: string) =>
+        val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
     {
       title: t.templateList.action || "Action",
       key: "action",
       width: 180,
-      render: (_: any, record: ProjectTemplate) => (
+      render: (_: any, record: any) => (
         <Space>
           <Button
             type="link"
@@ -83,12 +164,11 @@ const TemplateListPage: React.FC = () => {
           >
             {t.templateList.edit || "Edit"}
           </Button>
-          <Switch
-            checkedChildren="ON"
-            unCheckedChildren="OFF"
+          {/* Status toggle disabled until API ready */}
+          {/* <Switch
             checked={record.isEnabled}
             onChange={(checked) => handleToggleStatus(record.id, checked)}
-          />
+          /> */}
         </Space>
       ),
     },
@@ -96,17 +176,97 @@ const TemplateListPage: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.toolbar}>
-        <div className={styles.left}>
-          <Input
-            placeholder={t.templateList.searchPlaceholder || "Search templates..."}
-            prefix={<SearchOutlined />}
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            className={styles.search}
-            allowClear
-          />
-        </div>
+      <Card className={styles.searchCard} bordered={false}>
+        <Form form={form} onFinish={onFinish}>
+          <Row gutter={[16, 16]}>
+            <Col span={6}>
+              <Form.Item name="name" label="Name" style={{ marginBottom: 0 }}>
+                <Input placeholder="Template Name" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                name="author"
+                label="Author"
+                style={{ marginBottom: 0 }}
+              >
+                <Input placeholder="Creator" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                name="description"
+                label="Desc"
+                style={{ marginBottom: 0 }}
+              >
+                <Input placeholder="Description" allowClear />
+              </Form.Item>
+            </Col>
+            {!expand && (
+              <Col span={6} style={{ textAlign: "right" }}>
+                <Space>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    icon={<SearchOutlined />}
+                  >
+                    Search
+                  </Button>
+                  <Button onClick={handleReset} icon={<ReloadOutlined />}>
+                    Reset
+                  </Button>
+                  <Button type="link" onClick={() => setExpand(true)}>
+                    Expand <DownOutlined />
+                  </Button>
+                </Space>
+              </Col>
+            )}
+
+            {expand && (
+              <>
+                <Col span={6}>
+                  <Form.Item
+                    name="createTime"
+                    label="Create Time"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <RangePicker style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item
+                    name="updateTime"
+                    label="Update Time"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <RangePicker style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col span={12} style={{ textAlign: "right" }}>
+                  <Space>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      icon={<SearchOutlined />}
+                    >
+                      Search
+                    </Button>
+                    <Button onClick={handleReset} icon={<ReloadOutlined />}>
+                      Reset
+                    </Button>
+                    <Button type="link" onClick={() => setExpand(false)}>
+                      Collapse <UpOutlined />
+                    </Button>
+                  </Space>
+                </Col>
+              </>
+            )}
+          </Row>
+        </Form>
+      </Card>
+
+      <div className={styles.toolbar} style={{ marginTop: 16 }}>
+        <div className={styles.left}></div>
         <Button
           type="primary"
           icon={<PlusOutlined />}
@@ -115,11 +275,24 @@ const TemplateListPage: React.FC = () => {
           {t.templateList.newTemplate || "New Template"}
         </Button>
       </div>
+
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={filteredData}
-        pagination={{ pageSize: 10, showTotal: (total) => `Total ${total} items` }}
+        dataSource={data}
+        loading={loading}
+        pagination={{
+          current,
+          pageSize,
+          total,
+          showTotal: (t) => `Total ${t} items`,
+          onChange: (page, size) => {
+            setCurrent(page);
+            setPageSize(size || pageSize);
+            const values = form.getFieldsValue();
+            fetchTemplates(values, page, size || pageSize);
+          },
+        }}
       />
     </div>
   );

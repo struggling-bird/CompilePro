@@ -91,6 +91,30 @@ export class TemplateListResponseDto extends ApiResponseDto<
   declare data: TemplateListItemSimple[];
 }
 
+export class PaginationMetaDto {
+  @ApiProperty({ description: '总数' })
+  total: number;
+
+  @ApiProperty({ description: '页码' })
+  page: number;
+
+  @ApiProperty({ description: '每页数量' })
+  pageSize: number;
+}
+
+export class TemplateListPaginatedData {
+  @ApiProperty({ type: [TemplateListItemSimple] })
+  items: TemplateListItemSimple[];
+
+  @ApiProperty({ type: PaginationMetaDto })
+  meta: PaginationMetaDto;
+}
+
+export class TemplateListPaginatedResponseDto extends ApiResponseDto<TemplateListPaginatedData> {
+  @ApiProperty({ type: TemplateListPaginatedData })
+  declare data: TemplateListPaginatedData;
+}
+
 export class TemplateVersionResponseDto extends ApiResponseDto<TemplateVersion> {
   @ApiProperty({ type: TemplateVersion })
   declare data: TemplateVersion;
