@@ -72,6 +72,13 @@ export const getTemplateVersions = async (id: string) => {
   });
 };
 
+export const updateTemplate = async (id: string, payload: any) => {
+  return request(`/apis/templates/${id}`, {
+    method: "PATCH",
+    data: payload,
+  });
+};
+
 export const deleteTemplate = async (id: string) => {
   return request(`/apis/templates/${id}`, {
     method: "DELETE",

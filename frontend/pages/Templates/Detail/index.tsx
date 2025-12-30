@@ -9,11 +9,12 @@ import {
   Tabs,
   Modal,
   Drawer,
+  Input,
 } from "antd";
 import {
   ArrowLeftOutlined,
-  SaveOutlined,
   BranchesOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { MOCK_TEMPLATES } from "../../../constants";
 import {
@@ -37,6 +38,7 @@ import {
   createTemplate,
   getTemplateDetail,
   getTemplateVersions,
+  updateTemplate,
 } from "../../../services/templates";
 
 const { Title, Text } = Typography;
@@ -70,6 +72,8 @@ const TemplateDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [template, setTemplate] = useState<ProjectTemplate | null>(null);
   const [currentVersionId, setCurrentVersionId] = useState<string>("");
+  const [editingName, setEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
 
   // Config Modal State
   const [modalVisible, setModalVisible] = useState(false);
@@ -401,11 +405,35 @@ const TemplateDetailPage: React.FC = () => {
     });
   };
 
-  const handleSaveTemplate = () => {
-    message.loading("Saving template...", 1).then(() => {
-      message.success("Template saved successfully!");
-      // Here you would call API to save 'template' state
-    });
+  const handleStartEdit = () => {
+    if (template) {
+      setTempName(template.name);
+      setEditingName(true);
+    }
+  };
+
+  const handleSaveName = async () => {
+    if (!template) return;
+    if (tempName === template.name) {
+      setEditingName(false);
+      return;
+    }
+
+    if (template.id === "new") {
+      setTemplate({ ...template, name: tempName });
+      setEditingName(false);
+      return;
+    }
+
+    try {
+      await updateTemplate(template.id, { name: tempName });
+      setTemplate({ ...template, name: tempName });
+      message.success(t.templateDetail.updateSuccess);
+      setEditingName(false);
+    } catch (e) {
+      console.error(e);
+      message.error(t.templateDetail.updateFailed);
+    }
   };
 
   if (loading || !template)
@@ -426,33 +454,39 @@ const TemplateDetailPage: React.FC = () => {
           >
             {t.templateDetail.back}
           </Button>
-          <Title level={4} style={{ margin: 0 }}>
-            {template.id === "new" && template.name === "New Template"
-              ? t.templateDetail.newTitle
-              : template.name}{" "}
-            {currentVersion && (
-              <Text
-                type="secondary"
-                style={{
-                  fontSize: 14,
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-                onClick={() => setVersionDrawerOpen(true)}
-              >
-                v{currentVersion.version} <BranchesOutlined />
-              </Text>
-            )}
-          </Title>
+          {editingName ? (
+            <Input
+              value={tempName}
+              onChange={(e) => setTempName(e.target.value)}
+              onBlur={handleSaveName}
+              onPressEnter={handleSaveName}
+              className={styles.titleInput}
+              autoFocus
+            />
+          ) : (
+            <div className={styles.titleText} onClick={handleStartEdit}>
+              <Title level={4} style={{ margin: 0 }}>
+                {template.id === "new" && template.name === "New Template"
+                  ? t.templateDetail.newTitle
+                  : template.name}
+              </Title>
+              <EditOutlined className={styles.editIcon} />
+            </div>
+          )}
+          {currentVersion && (
+            <Text
+              type="secondary"
+              style={{
+                fontSize: 14,
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+              onClick={() => setVersionDrawerOpen(true)}
+            >
+              v{currentVersion.version} <BranchesOutlined />
+            </Text>
+          )}
         </Space>
-        <Button
-          type="primary"
-          icon={<SaveOutlined />}
-          onClick={handleSaveTemplate}
-          disabled={!currentVersion} // Disable save if no version
-        >
-          {t.templateDetail.save}
-        </Button>
       </div>
 
       <Drawer

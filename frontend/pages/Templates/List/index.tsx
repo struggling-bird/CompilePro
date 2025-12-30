@@ -166,23 +166,23 @@ const TemplateListPage: React.FC = () => {
             {t.templateList.edit || "Edit"}
           </Button>
           <Popconfirm
-            title="Are you sure to delete this template?"
+            title={t.templateList.deleteConfirm || "Are you sure to delete this template?"}
             onConfirm={async () => {
               try {
                 await deleteTemplate(record.id);
-                message.success("Template deleted");
+                message.success(t.templateList.deleteSuccess || "Template deleted");
                 const values = form.getFieldsValue();
                 fetchTemplates(values, current, pageSize);
               } catch (e) {
                 console.error(e);
-                message.error("Delete failed");
+                message.error(t.templateList.deleteFailed || "Delete failed");
               }
             }}
-            okText="Yes"
-            cancelText="No"
+            okText={t.templateDetail.yes || "Yes"}
+            cancelText={t.templateDetail.no || "No"}
           >
             <Button type="link" danger>
-              Delete
+              {t.templateList.delete || "Delete"}
             </Button>
           </Popconfirm>
         </Space>

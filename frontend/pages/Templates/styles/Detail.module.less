@@ -21,6 +21,45 @@
   }
 }
 
+.titleInput {
+  font-size: 20px !important;
+  font-weight: 500;
+  border: none !important;
+  border-bottom: 1px solid #1890ff !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  width: 300px;
+  margin: 0 !important;
+
+  &:focus {
+    box-shadow: none !important;
+    border-bottom: 2px solid #1890ff !important;
+  }
+}
+
+.titleText {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  
+  &:hover {
+    color: #1890ff;
+    .editIcon {
+      opacity: 1;
+    }
+  }
+}
+
+.editIcon {
+  margin-left: 8px;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  color: #1890ff;
+}
+
 .section {
   margin-bottom: 24px;
   
