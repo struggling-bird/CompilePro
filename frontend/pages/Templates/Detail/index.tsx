@@ -1,7 +1,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, message, Space, Typography, Spin, Tabs, Modal } from "antd";
-import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
+import {
+  Button,
+  message,
+  Space,
+  Typography,
+  Spin,
+  Tabs,
+  Modal,
+  Drawer,
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  BranchesOutlined,
+} from "@ant-design/icons";
 import { MOCK_TEMPLATES } from "../../../constants";
 import {
   ProjectTemplate,
@@ -43,6 +56,8 @@ const TemplateDetailPage: React.FC = () => {
 
   // Version Creation Modal
   const [versionModalVisible, setVersionModalVisible] = useState(false);
+  // Version Drawer State
+  const [versionDrawerOpen, setVersionDrawerOpen] = useState(false);
 
   useEffect(() => {
     // Determine the actual ID from URL.
@@ -75,23 +90,16 @@ const TemplateDetailPage: React.FC = () => {
         }
       } else {
         // Init new template
-        const newVer: TemplateVersion = {
-          id: "v1",
-          version: "1.0.0",
-          date: dayjs().format("YYYY.MM.DD"),
-          status: "Active",
-          globalConfigs: [],
-          modules: [],
-          isBranch: false,
-        };
+        // Force user to create initial version via modal
         setTemplate({
           id: "new",
           name: "New Template",
-          latestVersion: "1.0.0",
+          latestVersion: "",
           isEnabled: true,
-          versions: [newVer],
+          versions: [], // Empty versions initially
         });
-        setCurrentVersionId("v1");
+        setCurrentVersionId("");
+        setVersionModalVisible(true);
       }
       setLoading(false);
     }, 500);
@@ -152,21 +160,40 @@ const TemplateDetailPage: React.FC = () => {
 
   const handleCreateVersion = (values: VersionCreationValues) => {
     if (!template) return;
-    const parent = template.versions.find(
-      (v) => v.id === values.parentVersionId
-    );
-    if (!parent) return;
 
-    const newVer: TemplateVersion = {
-      ...JSON.parse(JSON.stringify(parent)),
-      id: `v${Date.now()}`,
-      version: values.version,
-      date: dayjs().format("YYYY.MM.DD"),
-      isBranch: values.versionType === "Branch" || parent.isBranch,
-      baseVersion: parent.id,
-      description: values.description,
-      versionType: values.versionType,
-    };
+    let newVer: TemplateVersion;
+
+    if (template.versions.length === 0) {
+      // Initial Version Creation
+      newVer = {
+        id: `v${Date.now()}`,
+        version: values.version, // Should be "1.0.0"
+        date: dayjs().format("YYYY.MM.DD"),
+        isBranch: false,
+        baseVersion: undefined,
+        description: values.description,
+        versionType: "Major",
+        status: "Active",
+        globalConfigs: [],
+        modules: [],
+      };
+    } else {
+      const parent = template.versions.find(
+        (v) => v.id === values.parentVersionId
+      );
+      if (!parent) return;
+
+      newVer = {
+        ...JSON.parse(JSON.stringify(parent)),
+        id: `v${Date.now()}`,
+        version: values.version,
+        date: dayjs().format("YYYY.MM.DD"),
+        isBranch: values.versionType === "Branch" || parent.isBranch,
+        baseVersion: parent.id,
+        description: values.description,
+        versionType: values.versionType,
+      };
+    }
 
     setTemplate({
       ...template,
@@ -323,7 +350,9 @@ const TemplateDetailPage: React.FC = () => {
     return (
       <Spin size="large" style={{ display: "block", margin: "100px auto" }} />
     );
-  if (!currentVersion) return <div>Version not found</div>;
+  // Allow rendering if we are in "new template" mode (empty versions) to show the modal
+  if (!currentVersion && template.versions.length > 0)
+    return <div>Version not found</div>;
 
   return (
     <div className={styles.container}>
@@ -339,21 +368,39 @@ const TemplateDetailPage: React.FC = () => {
             {template.id === "new" && template.name === "New Template"
               ? t.templateDetail.newTitle
               : template.name}{" "}
-            <Text type="secondary" style={{ fontSize: 14 }}>
-              v{currentVersion.version}
-            </Text>
+            {currentVersion && (
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 14,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+                onClick={() => setVersionDrawerOpen(true)}
+              >
+                v{currentVersion.version} <BranchesOutlined />
+              </Text>
+            )}
           </Title>
         </Space>
         <Button
           type="primary"
           icon={<SaveOutlined />}
           onClick={handleSaveTemplate}
+          disabled={!currentVersion} // Disable save if no version
         >
           {t.templateDetail.save}
         </Button>
       </div>
 
-      <div className={styles.section}>
+      <Drawer
+        title="Version Graph"
+        placement="bottom"
+        onClose={() => setVersionDrawerOpen(false)}
+        open={versionDrawerOpen}
+        destroyOnHidden
+        size={510}
+      >
         <VersionTimeline
           versions={template.versions}
           currentVersionId={currentVersionId}
@@ -383,100 +430,111 @@ const TemplateDetailPage: React.FC = () => {
             );
           }}
         />
-      </div>
+      </Drawer>
 
-      <div className={styles.section}>
-        <div className={styles.sectionTitle}>
-          <span>{t.templateDetail.globalConfigTitle}</span>
-        </div>
-        <div className={styles.configTable}>
-          <GlobalConfigTable
-            configs={currentVersion.globalConfigs}
-            usageCounts={usageCounts}
-            onAdd={() => handleGlobalConfig("ADD")}
-            onEdit={(c) => handleGlobalConfig("EDIT", c)}
-            onDelete={(id) => handleGlobalConfig("DELETE", { id } as any)}
-          />
-        </div>
-      </div>
+      {currentVersion && (
+        <>
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>
+              <span>{t.templateDetail.globalConfigTitle}</span>
+            </div>
+            <div className={styles.configTable}>
+              <GlobalConfigTable
+                configs={currentVersion.globalConfigs}
+                usageCounts={usageCounts}
+                onAdd={() => handleGlobalConfig("ADD")}
+                onEdit={(c) => handleGlobalConfig("EDIT", c)}
+                onDelete={(id) => handleGlobalConfig("DELETE", { id } as any)}
+              />
+            </div>
+          </div>
 
-      <div className={styles.section}>
-        <div className={styles.sectionTitle}>
-          <span>{t.templateDetail.moduleConfigTitle}</span>
-        </div>
-        <div className={styles.moduleTabs}>
-          <ModuleTabs
-            modules={currentVersion.modules}
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>
+              <span>{t.templateDetail.moduleConfigTitle}</span>
+            </div>
+            <div className={styles.moduleTabs}>
+              <ModuleTabs
+                modules={currentVersion.modules}
+                globalConfigs={currentVersion.globalConfigs}
+                onAddModule={handleAddModule}
+                onAddConfig={(mid) => handleModuleConfig(mid, "ADD")}
+                onEditConfig={(mid, c) => handleModuleConfig(mid, "EDIT", c)}
+                onDeleteConfig={(mid, cid) =>
+                  handleModuleConfig(mid, "DELETE", { id: cid } as any)
+                }
+              />
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>
+              <span>{t.templateDetail.docsTitle}</span>
+            </div>
+            <Tabs
+              items={[
+                {
+                  key: "build",
+                  label: t.templateDetail.build,
+                  children: (
+                    <div
+                      style={{
+                        padding: 16,
+                        background: "#fafafa",
+                        borderRadius: 4,
+                        minHeight: 200,
+                      }}
+                    >
+                      <div>
+                        {currentVersion.buildDoc || t.templateDetail.noData}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: "update",
+                  label: t.templateDetail.update,
+                  children: (
+                    <div
+                      style={{
+                        padding: 16,
+                        background: "#fafafa",
+                        borderRadius: 4,
+                        minHeight: 200,
+                      }}
+                    >
+                      <div>
+                        {currentVersion.updateDoc || t.templateDetail.noData}
+                      </div>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          </div>
+
+          <ConfigForm
+            visible={modalVisible}
+            mode={modalMode}
+            initialValues={editingConfig}
             globalConfigs={currentVersion.globalConfigs}
-            onAddModule={handleAddModule}
-            onAddConfig={(mid) => handleModuleConfig(mid, "ADD")}
-            onEditConfig={(mid, c) => handleModuleConfig(mid, "EDIT", c)}
-            onDeleteConfig={(mid, cid) =>
-              handleModuleConfig(mid, "DELETE", { id: cid } as any)
-            }
+            onCancel={() => setModalVisible(false)}
+            onSave={handleSaveModal}
           />
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionTitle}>
-          <span>{t.templateDetail.docsTitle}</span>
-        </div>
-        <Tabs
-          items={[
-            {
-              key: "build",
-              label: t.templateDetail.build,
-              children: (
-                <div
-                  style={{
-                    padding: 16,
-                    background: "#fafafa",
-                    borderRadius: 4,
-                    minHeight: 200,
-                  }}
-                >
-                  <div>
-                    {currentVersion.buildDoc || t.templateDetail.noData}
-                  </div>
-                </div>
-              ),
-            },
-            {
-              key: "update",
-              label: t.templateDetail.update,
-              children: (
-                <div
-                  style={{
-                    padding: 16,
-                    background: "#fafafa",
-                    borderRadius: 4,
-                    minHeight: 200,
-                  }}
-                >
-                  <div>
-                    {currentVersion.updateDoc || t.templateDetail.noData}
-                  </div>
-                </div>
-              ),
-            },
-          ]}
-        />
-      </div>
-
-      <ConfigForm
-        visible={modalVisible}
-        mode={modalMode}
-        initialValues={editingConfig}
-        globalConfigs={currentVersion.globalConfigs}
-        onCancel={() => setModalVisible(false)}
-        onSave={handleSaveModal}
-      />
+        </>
+      )}
 
       {template && (
         <VersionCreationModal
           visible={versionModalVisible}
-          onCancel={() => setVersionModalVisible(false)}
+          onCancel={() => {
+            // If cancelling initial creation, maybe navigate back?
+            if (template.versions.length === 0) {
+              navigate("/templates");
+            } else {
+              setVersionModalVisible(false);
+            }
+          }}
           onCreate={handleCreateVersion}
           versions={template.versions}
           currentVersionId={currentVersionId}

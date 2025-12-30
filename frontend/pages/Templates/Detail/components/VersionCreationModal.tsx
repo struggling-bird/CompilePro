@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Input, Select, Button } from "antd";
+import { Modal, Form, Input, Select, Space } from "antd";
 import { useLanguage } from "../../../../contexts/LanguageContext";
 import { TemplateVersion } from "../../../../types";
 
@@ -27,116 +27,123 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
 }) => {
   const { t } = useLanguage();
   const [form] = Form.useForm();
-  const [selectedParentId, setSelectedParentId] =
-    useState<string>(currentVersionId);
+  // selectedParentId was unused
   const [selectedType, setSelectedType] =
     useState<VersionCreationValues["versionType"]>("Patch");
+  const [branchSuffix, setBranchSuffix] = useState<string>("branch");
+  const [baseVersionPrefix, setBaseVersionPrefix] = useState<string>("");
+
+  const isInitialVersion = versions.length === 0;
 
   // Effect to update parent ID when prop changes or modal opens
   useEffect(() => {
     if (visible) {
-      const initialParent =
-        currentVersionId ||
-        (versions.length > 0 ? versions[versions.length - 1].id : "");
-      setSelectedParentId(initialParent);
-      form.setFieldsValue({
-        parentVersionId: initialParent,
-        versionType: "Patch",
-        description: "",
-      });
-      calculateVersion(initialParent, "Patch");
+      if (isInitialVersion) {
+        form.setFieldsValue({
+          parentVersionId: undefined,
+          versionType: "Major",
+          version: "1.0.0",
+          description: "Initial version",
+        });
+      } else {
+        const initialParent =
+          currentVersionId ||
+          (versions.length > 0 ? versions[versions.length - 1].id : "");
+        // Removed setSelectedParentId
+        form.setFieldsValue({
+          parentVersionId: initialParent,
+          versionType: "Patch",
+          description: "",
+        });
+        calculateVersion(initialParent, "Patch");
+      }
     }
-  }, [visible, currentVersionId, versions]);
+  }, [visible, currentVersionId, versions, isInitialVersion]);
+
+  // Update full version string when suffix changes (only for Branch type)
+  useEffect(() => {
+    if (selectedType === "Branch" && baseVersionPrefix) {
+      const fullVersion = `${baseVersionPrefix}-${branchSuffix}`;
+      form.setFieldsValue({ version: fullVersion });
+    }
+  }, [branchSuffix, selectedType, baseVersionPrefix]);
 
   const calculateVersion = (
     parentId: string,
     type: VersionCreationValues["versionType"]
   ) => {
+    if (isInitialVersion) return;
     const parent = versions.find((v) => v.id === parentId);
     if (!parent) return;
 
     let newVer = "";
 
     if (parent.isBranch) {
-      // Handle branch version increment: keep base branch name, increment suffix
-      // e.g., 1.1.0-branch -> 1.1.0-branch.1
-      // e.g., 1.1.0-branch.1 -> 1.1.0-branch.2
+      // ... (Existing branch increment logic - simplified for now as user focuses on New Branch creation)
+      // If creating a New Branch FROM a Branch, usually we append another suffix or just increment?
+      // User requirement focuses on "Select New Branch type -> Edit Suffix".
+      // Let's keep standard logic for non-New-Branch types.
+      // If type is Branch (creating sub-branch), we handle it in switch below or here?
+      // Actually, if parent is branch, and we select "Branch", it's a sub-branch.
+    }
 
-      // Regex to match "base-suffix.number" or "base-suffix"
-      // Try to find the last numeric part
-      const lastDotIndex = parent.version.lastIndexOf(".");
-      const lastPart = parent.version.substring(lastDotIndex + 1);
+    // Reset base prefix
+    setBaseVersionPrefix(parent.version);
 
-      if (/^\d+$/.test(lastPart) && lastDotIndex !== -1) {
-        // It ends with a number, increment it
-        const num = parseInt(lastPart);
-        const prefix = parent.version.substring(0, lastDotIndex);
-        // Check if the prefix itself looks like a semantic version (x.y.z)
-        // If parent is 1.0.0, last part is 0, prefix is 1.0.
-        // Wait, standard semver is x.y.z.
-        // If parent is "1.1.0-branch", last part is "branch" (NaN).
-        // If parent is "1.1.0-branch.1", last part is "1".
-
-        // We need to be careful not to increment patch version of semver if it's not a branch suffix.
-        // But here parent.isBranch is true.
-        // Let's assume branch version format is always "something-branchname" or "something-branchname.N"
-
-        // A safer heuristic: does it look like a prerelease/build number?
-        // If type is "Branch", we append/increment suffix.
-        // If type is "Major"/"Minor"/"Patch" on a branch? usually invalid or means merging back?
-        // User request says: "generated version number should be based on baseline version number increment"
-        // "like 1.1.0-branch -> 1.1.0-branch.1"
-
-        newVer = `${prefix}.${num + 1}`;
-      } else {
-        // No numeric suffix, append .1
-        newVer = `${parent.version}.1`;
-      }
-
-      // If user explicitly selects "Major"/"Minor" on a branch, maybe we should warn or reset?
-      // But for now, let's strictly follow the user's specific request for branch behavior:
-      // "支线的原始版本号部分是不变的"
-      // This implies we ignore the 'type' (Major/Minor/Patch) logic if it's a branch?
-      // Or maybe 'Patch' means increment the suffix?
-
-      // Let's implement the specific request logic:
-      // If parent is branch, just increment the suffix regardless of type (or map type to suffix increment)
-      // But if type is 'Branch', maybe create a sub-branch?
-      // The user example "1.1.0-branch -> 1.1.0-branch.1" corresponds to a "Patch" or "Minor" update on that branch?
-      // Let's assume standard behavior for now: if parent is branch, we are releasing a new version ON that branch.
+    if (type === "Branch") {
+      // New Branch Logic
+      setBaseVersionPrefix(parent.version);
+      setBranchSuffix("branch"); // Default suffix
+      newVer = `${parent.version}-branch`;
     } else {
-      // Standard SemVer logic for non-branch parents
+      // Standard SemVer logic for non-branch parents (or incrementing existing branch)
+      // ... (Existing logic)
       const versionParts = parent.version.split(/[-.]/);
       const major = parseInt(versionParts[0]) || 0;
       const minor = parseInt(versionParts[1]) || 0;
       const patch = parseInt(versionParts[2]) || 0;
 
-      switch (type) {
-        case "Major":
-          newVer = `${major + 1}.0.0`;
-          break;
-        case "Minor":
-          newVer = `${major}.${minor + 1}.0`;
-          break;
-        case "Patch":
-          newVer = `${major}.${minor}.${patch + 1}`;
-          break;
-        case "Hotfix":
-          newVer = `${major}.${minor}.${patch + 1}-hotfix`;
-          break;
-        case "Branch":
-          newVer = `${parent.version}-branch`;
-          break;
-        default:
-          newVer = parent.version;
+      // If parent is branch (e.g. 1.0.0-branch), we need to parse carefully.
+      // But for simple types:
+
+      if (parent.isBranch) {
+        // Heuristic for branch increment
+        // ... (Reuse existing logic or simplify)
+        // For now let's just use existing logic for non-Branch types
+        const lastDotIndex = parent.version.lastIndexOf(".");
+        const lastPart = parent.version.substring(lastDotIndex + 1);
+        if (/^\d+$/.test(lastPart) && lastDotIndex !== -1) {
+          const num = parseInt(lastPart);
+          const prefix = parent.version.substring(0, lastDotIndex);
+          newVer = `${prefix}.${num + 1}`;
+        } else {
+          newVer = `${parent.version}.1`;
+        }
+      } else {
+        switch (type) {
+          case "Major":
+            newVer = `${major + 1}.0.0`;
+            break;
+          case "Minor":
+            newVer = `${major}.${minor + 1}.0`;
+            break;
+          case "Patch":
+            newVer = `${major}.${minor}.${patch + 1}`;
+            break;
+          case "Hotfix":
+            newVer = `${major}.${minor}.${patch + 1}-hotfix`;
+            break;
+          default:
+            newVer = parent.version;
+        }
       }
     }
+
     form.setFieldsValue({ version: newVer });
   };
 
   const handleValuesChange = (changedValues: any, allValues: any) => {
     if (changedValues.parentVersionId) {
-      setSelectedParentId(changedValues.parentVersionId);
       calculateVersion(changedValues.parentVersionId, allValues.versionType);
     }
     if (changedValues.versionType) {
@@ -163,51 +170,89 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
       destroyOnClose
     >
       <Form form={form} layout="vertical" onValuesChange={handleValuesChange}>
-        <Form.Item
-          name="parentVersionId"
-          label={t.templateDetail.parentVersion}
-          rules={[{ required: true }]}
-        >
-          <Select>
-            {versions.map((v) => (
-              <Select.Option key={v.id} value={v.id}>
-                {v.version} {v.isBranch ? "(Branch)" : ""}
+        {!isInitialVersion && (
+          <Form.Item
+            name="parentVersionId"
+            label={t.templateDetail.parentVersion}
+            rules={[{ required: true }]}
+          >
+            <Select>
+              {versions.map((v) => (
+                <Select.Option key={v.id} value={v.id}>
+                  {v.version} {v.isBranch ? "(Branch)" : ""}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        )}
+
+        {!isInitialVersion && (
+          <Form.Item
+            name="versionType"
+            label={t.templateDetail.versionType}
+            rules={[{ required: true }]}
+          >
+            <Select>
+              <Select.Option value="Major">
+                {t.templateDetail.types.Major}
               </Select.Option>
-            ))}
-          </Select>
+              <Select.Option value="Minor">
+                {t.templateDetail.types.Minor}
+              </Select.Option>
+              <Select.Option value="Patch">
+                {t.templateDetail.types.Patch}
+              </Select.Option>
+              <Select.Option value="Hotfix">
+                {t.templateDetail.types.Hotfix}
+              </Select.Option>
+              <Select.Option value="Branch">
+                {t.templateDetail.types.Branch}
+              </Select.Option>
+            </Select>
+          </Form.Item>
+        )}
+
+        <Form.Item label={t.templateDetail.versionNumber} required>
+          {selectedType === "Branch" && !isInitialVersion ? (
+            <Space.Compact style={{ width: "100%" }}>
+              <Input
+                style={{ width: "60%", color: "#666", cursor: "not-allowed" }}
+                value={`${baseVersionPrefix}-`}
+                disabled
+              />
+              <Form.Item
+                name="branchSuffix" // Use a temporary field for validation
+                noStyle
+                rules={[
+                  { required: true, message: "Please input branch name" },
+                  {
+                    pattern: /^[a-zA-Z0-9_]+$/,
+                    message: "Only alphanumeric and underscore allowed",
+                  },
+                ]}
+                initialValue="branch"
+              >
+                <Input
+                  style={{ width: "40%" }}
+                  placeholder="branch_name"
+                  value={branchSuffix}
+                  onChange={(e) => setBranchSuffix(e.target.value)}
+                />
+              </Form.Item>
+            </Space.Compact>
+          ) : (
+            <Form.Item name="version" noStyle rules={[{ required: true }]}>
+              <Input disabled={!isInitialVersion} />
+            </Form.Item>
+          )}
         </Form.Item>
 
-        <Form.Item
-          name="versionType"
-          label={t.templateDetail.versionType}
-          rules={[{ required: true }]}
-        >
-          <Select>
-            <Select.Option value="Major">
-              {t.templateDetail.types.Major}
-            </Select.Option>
-            <Select.Option value="Minor">
-              {t.templateDetail.types.Minor}
-            </Select.Option>
-            <Select.Option value="Patch">
-              {t.templateDetail.types.Patch}
-            </Select.Option>
-            <Select.Option value="Hotfix">
-              {t.templateDetail.types.Hotfix}
-            </Select.Option>
-            <Select.Option value="Branch">
-              {t.templateDetail.types.Branch}
-            </Select.Option>
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          name="version"
-          label={t.templateDetail.versionNumber}
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
+        {/* Hidden field to store full version string for Branch type submission */}
+        {selectedType === "Branch" && (
+          <Form.Item name="version" hidden>
+            <Input />
+          </Form.Item>
+        )}
 
         <Form.Item name="description" label={t.templateDetail.versionDesc}>
           <Input.TextArea rows={4} />
