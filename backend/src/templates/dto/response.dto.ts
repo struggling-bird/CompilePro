@@ -1,4 +1,4 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dto/api-response.dto';
 import { Template } from '../entities/template.entity';
 import { TemplateVersion } from '../entities/template-version.entity';
@@ -54,9 +54,24 @@ export class TemplateResponseDto extends ApiResponseDto<Template> {
   declare data: Template;
 }
 
-export class TemplateListResponseDto extends ApiResponseDto<Template[]> {
-  @ApiProperty({ type: [Template] })
-  declare data: Template[];
+export class TemplateListItemSimple extends PickType(Template, [
+  'id',
+  'name',
+  'description',
+  'author',
+  'updater',
+  'createdAt',
+  'updatedAt',
+] as const) {
+  @ApiPropertyOptional({ description: '最新主线可用版本号' })
+  latestVersion?: string;
+}
+
+export class TemplateListResponseDto extends ApiResponseDto<
+  TemplateListItemSimple[]
+> {
+  @ApiProperty({ type: [TemplateListItemSimple] })
+  declare data: TemplateListItemSimple[];
 }
 
 export class TemplateVersionResponseDto extends ApiResponseDto<TemplateVersion> {

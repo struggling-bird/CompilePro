@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Template } from './entities/template.entity';
-import { TemplateVersion } from './entities/template-version.entity';
+import {
+  TemplateVersion,
+  TemplateVersionStatus,
+} from './entities/template-version.entity';
 import { TemplateGlobalConfig } from './entities/template-global-config.entity';
 import { TemplateModule } from './entities/template-module.entity';
 import { TemplateModuleConfig } from './entities/template-module-config.entity';
@@ -23,6 +26,8 @@ import {
   CreateModuleConfigDto,
   UpdateModuleConfigDto,
 } from './dto/create-module-config.dto';
+import { TemplateListQueryDto } from './dto/list-query.dto';
+import type { TemplateListItemSimple } from './dto/response.dto';
 
 @Injectable()
 export class TemplatesService {
@@ -75,24 +80,57 @@ export class TemplatesService {
     return savedTemplate;
   }
 
-  async findAll(): Promise<Template[]> {
-    const templates = await this.templateRepository.find({
-      relations: ['versions'],
-      order: {
-        updatedAt: 'DESC',
-      },
+  async findAll(q?: TemplateListQueryDto): Promise<TemplateListItemSimple[]> {
+    const qb = this.templateRepository.createQueryBuilder('t');
+
+    qb.leftJoinAndSelect('t.versions', 'v');
+
+    if (q?.name) qb.andWhere('t.name LIKE :name', { name: `%${q.name}%` });
+    if (q?.author)
+      qb.andWhere('t.author LIKE :author', { author: `%${q.author}%` });
+    if (q?.description)
+      qb.andWhere('t.description LIKE :description', {
+        description: `%${q.description}%`,
+      });
+    if (q?.createdFrom)
+      qb.andWhere('t.createdAt >= :createdFrom', {
+        createdFrom: q.createdFrom,
+      });
+    if (q?.createdTo)
+      qb.andWhere('t.createdAt <= :createdTo', { createdTo: q.createdTo });
+    if (q?.updatedFrom)
+      qb.andWhere('t.updatedAt >= :updatedFrom', {
+        updatedFrom: q.updatedFrom,
+      });
+    if (q?.updatedTo)
+      qb.andWhere('t.updatedAt <= :updatedTo', { updatedTo: q.updatedTo });
+
+    qb.orderBy('t.updatedAt', 'DESC');
+
+    const templates = await qb.getMany();
+
+    const list: TemplateListItemSimple[] = templates.map((t) => {
+      const mainActiveVersions = (t.versions ?? []).filter(
+        (ver) => !ver.isBranch && ver.status === TemplateVersionStatus.ACTIVE,
+      );
+      const latest = mainActiveVersions.sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      )[mainActiveVersions.length - 1]?.version;
+
+      return {
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        author: t.author,
+        updater: t.updater,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
+        latestVersion: latest ?? t.latestVersion ?? undefined,
+      } as TemplateListItemSimple;
     });
 
-    // Compute latest version dynamically for list view
-    // Requirement: latest enabled main version
-    // For now we just pick the last one or rely on what was stored.
-    // Ideally we should implement a proper strategy to find "latest enabled".
-    // Since we still store 'latestVersion' column, we can rely on it if we maintain it correctly,
-    // OR we re-compute it here. Let's re-compute to be safe if column gets out of sync.
-
-    // However, updating the entity in findAll is expensive.
-    // Let's assume the 'latestVersion' column IS maintained by update/addVersion logic.
-    return templates;
+    return list;
   }
 
   async findOne(id: string): Promise<Template> {

@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   Req,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
@@ -39,6 +40,7 @@ import {
 } from './dto/response.dto';
 import { ApiResponseInterceptor } from '../shared/api-response.interceptor';
 import type { Request } from 'express';
+import { TemplateListQueryDto } from './dto/list-query.dto';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -78,8 +80,8 @@ export class TemplatesController {
     description: '获取成功',
     type: TemplateListResponseDto,
   })
-  findAll() {
-    return this.templatesService.findAll();
+  findAll(@Query() q: TemplateListQueryDto) {
+    return this.templatesService.findAll(q);
   }
 
   @Get(':id')
