@@ -32,6 +32,12 @@ import { FileEntity } from './storage/file.entity';
 import { StorageConfigModule } from './storage-config/storage-config.module';
 import { StorageConfig } from './storage-config/entities/storage-config.entity';
 import { StorageConfigHistory } from './storage-config/entities/storage-config-history.entity';
+import { TemplatesModule } from './templates/templates.module';
+import { Template } from './templates/entities/template.entity';
+import { TemplateVersion } from './templates/entities/template-version.entity';
+import { TemplateGlobalConfig } from './templates/entities/template-global-config.entity';
+import { TemplateModule as TemplateModuleEntity } from './templates/entities/template-module.entity';
+import { TemplateModuleConfig } from './templates/entities/template-module-config.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -99,6 +105,11 @@ import { APP_GUARD } from '@nestjs/core';
           FileEntity,
           StorageConfig,
           StorageConfigHistory,
+          Template,
+          TemplateVersion,
+          TemplateGlobalConfig,
+          TemplateModuleEntity,
+          TemplateModuleConfig,
         ],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
@@ -128,6 +139,7 @@ import { APP_GUARD } from '@nestjs/core';
     MetaprojectsModule,
     WorkspaceModule,
     StorageModule,
+    TemplatesModule,
   ],
   controllers: [],
   providers: [
