@@ -3,8 +3,8 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsBoolean,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateTemplateVersionDto } from './create-template-version.dto';
@@ -20,21 +20,6 @@ export class CreateTemplateDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ description: '是否启用', default: true })
-  @IsBoolean()
-  @IsOptional()
-  isEnabled?: boolean;
-
-  @ApiPropertyOptional({ description: '最新版本号' })
-  @IsString()
-  @IsOptional()
-  latestVersion?: string;
-
-  @ApiPropertyOptional({ description: '作者' })
-  @IsString()
-  @IsOptional()
-  author?: string;
-
   @ApiPropertyOptional({
     type: CreateTemplateVersionDto,
     description: '初始版本信息（可选）',
@@ -45,4 +30,9 @@ export class CreateTemplateDto {
   initialVersion?: CreateTemplateVersionDto;
 }
 
-export class UpdateTemplateDto extends CreateTemplateDto {}
+export class UpdateTemplateDto extends CreateTemplateDto {
+  @ApiPropertyOptional({ description: '是否启用' })
+  @IsBoolean()
+  @IsOptional()
+  isEnabled?: boolean;
+}

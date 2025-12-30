@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseInterceptors,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
@@ -28,6 +29,14 @@ import {
   UpdateModuleConfigDto,
 } from './dto/create-module-config.dto';
 import { ApiResponseInterceptor } from '../shared/api-response.interceptor';
+import type { Request } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    username?: string;
+    name?: string;
+  };
+}
 
 @ApiTags('模版管理')
 @Controller('templates')
@@ -38,8 +47,15 @@ export class TemplatesController {
   @Post()
   @ApiOperation({ summary: '创建模版' })
   @ApiResponse({ status: 201, description: '创建成功' })
-  create(@Body() createTemplateDto: CreateTemplateDto) {
-    return this.templatesService.create(createTemplateDto);
+  create(
+    @Body() createTemplateDto: CreateTemplateDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    // Assuming user info is attached to request by AuthenticatedGuard
+    // If not authenticated, we fallback to 'Unknown'
+    const user = req.user;
+    const author = user ? user.username || user.name || 'Unknown' : 'Unknown';
+    return this.templatesService.create(createTemplateDto, author);
   }
 
   @Get()

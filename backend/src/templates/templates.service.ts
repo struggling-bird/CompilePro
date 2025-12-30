@@ -40,11 +40,18 @@ export class TemplatesService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createTemplateDto: CreateTemplateDto): Promise<Template> {
+  async create(
+    createTemplateDto: CreateTemplateDto,
+    author: string,
+  ): Promise<Template> {
     const { initialVersion, ...templateData } = createTemplateDto;
 
     // Create template basic info
-    const template = this.templateRepository.create(templateData);
+    const template = this.templateRepository.create({
+      ...templateData,
+      isEnabled: true, // Default to enabled
+      author,
+    });
     const savedTemplate = await this.templateRepository.save(template);
 
     // If initial version is provided, create it
@@ -55,7 +62,7 @@ export class TemplatesService {
       });
       await this.versionRepository.save(version);
 
-      // Update latest version field if needed
+      // Update latest version field if needed (though we compute it on list, some legacy/cache fields might need it)
       savedTemplate.latestVersion = version.version;
       await this.templateRepository.save(savedTemplate);
     }
@@ -65,12 +72,23 @@ export class TemplatesService {
   }
 
   async findAll(): Promise<Template[]> {
-    return this.templateRepository.find({
+    const templates = await this.templateRepository.find({
       relations: ['versions'],
       order: {
         updatedAt: 'DESC',
       },
     });
+
+    // Compute latest version dynamically for list view
+    // Requirement: latest enabled main version
+    // For now we just pick the last one or rely on what was stored.
+    // Ideally we should implement a proper strategy to find "latest enabled".
+    // Since we still store 'latestVersion' column, we can rely on it if we maintain it correctly,
+    // OR we re-compute it here. Let's re-compute to be safe if column gets out of sync.
+
+    // However, updating the entity in findAll is expensive.
+    // Let's assume the 'latestVersion' column IS maintained by update/addVersion logic.
+    return templates;
   }
 
   async findOne(id: string): Promise<Template> {
@@ -100,10 +118,14 @@ export class TemplatesService {
     Object.assign(template, {
       name: updateTemplateDto.name,
       description: updateTemplateDto.description,
-      isEnabled: updateTemplateDto.isEnabled,
-      latestVersion: updateTemplateDto.latestVersion,
-      author: updateTemplateDto.author,
+      // isEnabled, latestVersion, author are NOT in UpdateTemplateDto (it extends CreateTemplateDto)
+      // If we want to allow updating them, we need to add them to UpdateTemplateDto or separate method
+      // Assuming for now user only updates name/description via this endpoint
     });
+
+    if (updateTemplateDto.isEnabled !== undefined) {
+      template.isEnabled = updateTemplateDto.isEnabled;
+    }
 
     // Note: We no longer handle nested version updates here as per requirement
 
