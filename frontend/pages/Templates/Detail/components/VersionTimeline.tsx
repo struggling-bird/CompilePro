@@ -522,6 +522,12 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
   const selectedNode = versions.find((v) => v.id === contextMenuState.nodeId);
   const isDeprecated = selectedNode?.status === "Deprecated";
 
+  // Check if selected node has children (is not a leaf node)
+  const hasChildren = useMemo(() => {
+    if (!contextMenuState.nodeId) return false;
+    return versions.some((v) => v.baseVersion === contextMenuState.nodeId);
+  }, [contextMenuState.nodeId, versions]);
+
   const contextMenuItems = [
     {
       key: "branch",
@@ -539,8 +545,20 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
     },
     {
       key: "delete",
-      label: t.templateDetail.delete,
+      label: (
+        <Tooltip
+          title={
+            hasChildren
+              ? "Cannot delete version with downstream dependencies"
+              : ""
+          }
+          placement="right"
+        >
+          <span>{t.templateDetail.delete}</span>
+        </Tooltip>
+      ),
       danger: true,
+      disabled: hasChildren, // Only allow deleting leaf nodes
     },
   ];
 
