@@ -30,13 +30,17 @@ import {
   UpdateModuleConfigDto,
 } from './dto/create-module-config.dto';
 import {
-  TemplateResponseDto,
   TemplateCreateResponseDto,
   TemplateListResponseDto,
   TemplateVersionResponseDto,
   GlobalConfigResponseDto,
   ModuleResponseDto,
   ModuleConfigResponseDto,
+  TemplateDetailResponseDto,
+  TemplateVersionListResponseDto,
+  GlobalConfigListResponseDto,
+  ModuleConfigListResponseDto,
+  VersionDocsResponseDto,
 } from './dto/response.dto';
 import { ApiResponseInterceptor } from '../shared/api-response.interceptor';
 import type { Request } from 'express';
@@ -90,7 +94,7 @@ export class TemplatesController {
   @ApiResponse({
     status: 200,
     description: '获取成功',
-    type: TemplateResponseDto,
+    type: TemplateDetailResponseDto,
   })
   findOne(@Param('id') id: string) {
     return this.templatesService.findOne(id);
@@ -102,7 +106,7 @@ export class TemplatesController {
   @ApiResponse({
     status: 200,
     description: '更新成功',
-    type: TemplateResponseDto,
+    type: TemplateDetailResponseDto,
   })
   update(
     @Param('id') id: string,
@@ -134,6 +138,18 @@ export class TemplatesController {
     @Body() createVersionDto: CreateTemplateVersionDto,
   ) {
     return this.templatesService.addVersion(id, createVersionDto);
+  }
+
+  @Get(':id/versions')
+  @ApiOperation({ summary: '版本列表（基础信息）' })
+  @ApiParam({ name: 'id', description: '模版ID' })
+  @ApiResponse({
+    status: 200,
+    description: '成功',
+    type: TemplateVersionListResponseDto,
+  })
+  listVersions(@Param('id') id: string) {
+    return this.templatesService.listVersionsByTemplate(id);
   }
 
   @Patch('versions/:versionId')
@@ -174,6 +190,18 @@ export class TemplatesController {
     @Body() createConfigDto: CreateGlobalConfigDto,
   ) {
     return this.templatesService.addGlobalConfig(versionId, createConfigDto);
+  }
+
+  @Get('versions/:versionId/global-configs')
+  @ApiOperation({ summary: '查询版本全局配置' })
+  @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiResponse({
+    status: 200,
+    description: '成功',
+    type: GlobalConfigListResponseDto,
+  })
+  listGlobalConfigs(@Param('versionId') versionId: string) {
+    return this.templatesService.listGlobalConfigs(versionId);
   }
 
   @Patch('global-configs/:configId')
@@ -256,6 +284,22 @@ export class TemplatesController {
     return this.templatesService.addModuleConfig(moduleId, createConfigDto);
   }
 
+  @Get('versions/:versionId/modules/:moduleId/configs')
+  @ApiOperation({ summary: '查询元项目编辑配置项清单' })
+  @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiParam({ name: 'moduleId', description: '模块ID' })
+  @ApiResponse({
+    status: 200,
+    description: '成功',
+    type: ModuleConfigListResponseDto,
+  })
+  listModuleConfigs(
+    @Param('versionId') versionId: string,
+    @Param('moduleId') moduleId: string,
+  ) {
+    return this.templatesService.listModuleConfigs(versionId, moduleId);
+  }
+
   @Patch('module-configs/:configId')
   @ApiOperation({ summary: '更新模块配置' })
   @ApiParam({ name: 'configId', description: '配置ID' })
@@ -277,5 +321,17 @@ export class TemplatesController {
   @ApiResponse({ status: 200, description: '删除成功' })
   deleteModuleConfig(@Param('configId') configId: string) {
     return this.templatesService.deleteModuleConfig(configId);
+  }
+
+  @Get('versions/:versionId/docs')
+  @ApiOperation({ summary: '查询版本文档' })
+  @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiResponse({
+    status: 200,
+    description: '成功',
+    type: VersionDocsResponseDto,
+  })
+  getVersionDocs(@Param('versionId') versionId: string) {
+    return this.templatesService.getVersionDocs(versionId);
   }
 }

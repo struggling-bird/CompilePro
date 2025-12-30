@@ -136,13 +136,6 @@ export class TemplatesService {
   async findOne(id: string): Promise<Template> {
     const template = await this.templateRepository.findOne({
       where: { id },
-      relations: [
-        'versions',
-        'versions.globalConfigs',
-        'versions.modules',
-        'versions.modules.configs',
-        'versions.children', // Load children versions for branching
-      ],
     });
     if (!template) {
       throw new NotFoundException(`Template with ID ${id} not found`);
@@ -185,7 +178,12 @@ export class TemplatesService {
     templateId: string,
     createVersionDto: CreateTemplateVersionDto,
   ): Promise<TemplateVersion> {
-    const template = await this.findOne(templateId);
+    const template = await this.templateRepository.findOne({
+      where: { id: templateId },
+    });
+    if (!template) {
+      throw new NotFoundException(`Template with ID ${templateId} not found`);
+    }
 
     const version = this.versionRepository.create({
       ...createVersionDto,
@@ -193,6 +191,50 @@ export class TemplatesService {
     });
 
     return this.versionRepository.save(version);
+  }
+
+  async listVersionsByTemplate(templateId: string): Promise<TemplateVersion[]> {
+    return this.versionRepository.find({
+      where: { templateId },
+      order: { createdAt: 'DESC' },
+      relations: [],
+    });
+  }
+
+  async listGlobalConfigs(versionId: string): Promise<TemplateGlobalConfig[]> {
+    return this.globalConfigRepository.find({
+      where: { versionId },
+      order: { name: 'ASC' },
+    });
+  }
+
+  async listModuleConfigs(
+    versionId: string,
+    moduleId: string,
+  ): Promise<TemplateModuleConfig[]> {
+    const module = await this.moduleRepository.findOne({
+      where: { id: moduleId },
+    });
+    if (!module || module.versionId !== versionId) {
+      throw new NotFoundException(
+        `Module with ID ${moduleId} not found for version ${versionId}`,
+      );
+    }
+    return this.moduleConfigRepository.find({
+      where: { moduleId, isHidden: false },
+      order: { name: 'ASC' },
+    });
+  }
+
+  async getVersionDocs(
+    versionId: string,
+  ): Promise<{ buildDoc?: string; updateDoc?: string }> {
+    const version = await this.versionRepository.findOne({
+      where: { id: versionId },
+    });
+    if (!version)
+      throw new NotFoundException(`Version with ID ${versionId} not found`);
+    return { buildDoc: version.buildDoc, updateDoc: version.updateDoc };
   }
 
   async updateVersion(
