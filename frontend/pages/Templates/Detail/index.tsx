@@ -33,6 +33,11 @@ import VersionCreationModal, {
 import styles from "../styles/Detail.module.less";
 import dayjs from "dayjs";
 import { useLanguage } from "../../../contexts/LanguageContext";
+import {
+  createTemplate,
+  getTemplateDetail,
+  getTemplateVersions,
+} from "../../../services/templates";
 
 const { Title, Text } = Typography;
 
@@ -82,52 +87,67 @@ const TemplateDetailPage: React.FC = () => {
   const [versionDrawerOpen, setVersionDrawerOpen] = useState(false);
 
   useEffect(() => {
-    // Determine the actual ID from URL.
-    // If route is /templates/new, templateId will be undefined if we strictly follow param matching,
-    // BUT since we defined /templates/:templateId, "new" is matched as templateId.
-    // However, we also defined /templates/new explicitly BEFORE /templates/:templateId in routes config.
-    // Let's check how router behaves.
-    // If the path is exactly /templates/new, param might be empty depending on router setup.
-
-    // In our routes config:
-    // { path: "/templates/new", component: Pages.TemplateDetail } -> templateId param is undefined here
-    // { path: "/templates/:templateId", component: Pages.TemplateDetail } -> templateId param is "something"
-
-    // So we should check if templateId exists. If undefined, it means "new".
-    // If templateId === "new", it also means "new" (if caught by the dynamic route).
-
     const isNew = !templateId || templateId === "new";
 
-    setLoading(true);
-    setTimeout(() => {
-      if (!isNew) {
-        const found = MOCK_TEMPLATES.find((t) => t.id === templateId);
-        if (found) {
-          const templateData = JSON.parse(JSON.stringify(found));
-          templateData.versions = processVersions(templateData.versions);
-          setTemplate(templateData);
+    const fetchData = async () => {
+      setLoading(true);
+      if (!isNew && templateId) {
+        try {
+          const [basicInfo, versions] = await Promise.all([
+            getTemplateDetail(templateId),
+            getTemplateVersions(templateId),
+          ]);
+
+          // Map backend versions to frontend structure
+          const mappedVersions = ((versions as any[]) || []).map((v: any) => ({
+            ...v,
+            date: v.createdAt,
+            globalConfigs: [],
+            modules: [],
+            children: [],
+          }));
+
+          const templateData = {
+            ...(basicInfo as any),
+            versions: processVersions(mappedVersions),
+          };
+          setTemplate(templateData as any);
+
+          // Find latest version or use stored latestVersion
+          // backend basicInfo has latestVersion string (version number), but here we need ID.
+          // We can find by version number if needed, or just take the last one in list (sorted by time)
           const latest =
-            templateData.versions[templateData.versions.length - 1];
+            templateData.versions.length > 0
+              ? templateData.versions[0] // Assuming backend sorts DESC, first is latest?
+              : // Wait, backend listVersions sorts DESC (createdAt DESC).
+                // So first element is latest.
+                undefined;
+
           setCurrentVersionId(latest?.id || "");
-        } else {
-          // Handle not found? For now just init new or show error
-          message.error("Template not found");
+        } catch (err) {
+          console.error(err);
+          message.error("Failed to load template");
         }
       } else {
         // Init new template
-        // Force user to create initial version via modal
         setTemplate({
           id: "new",
           name: "New Template",
           latestVersion: "",
           isEnabled: true,
           versions: [], // Empty versions initially
+          author: "",
+          updateTime: "",
+          updater: "",
+          createdDate: "",
         });
         setCurrentVersionId("");
         setVersionModalVisible(true);
       }
       setLoading(false);
-    }, 500);
+    };
+
+    fetchData();
   }, [templateId]);
 
   const currentVersion = useMemo(() => {
@@ -183,46 +203,54 @@ const TemplateDetailPage: React.FC = () => {
     }
   };
 
-  const handleCreateVersion = (values: VersionCreationValues) => {
+  const handleCreateVersion = async (values: VersionCreationValues) => {
     if (!template) return;
 
-    let newVer: TemplateVersion;
-
     if (template.versions.length === 0) {
-      // Initial Version Creation
-      newVer = {
-        id: `v${Date.now()}`,
-        version: values.version, // Should be "1.0.0"
-        date: dayjs().format("YYYY.MM.DD"),
-        isBranch: false,
-        baseVersion: undefined,
-        parentId: undefined,
-        children: [],
-        description: values.description,
-        versionType: "Major",
-        status: "Active",
-        globalConfigs: [],
-        modules: [],
-      };
-    } else {
-      const parent = template.versions.find(
-        (v) => v.id === values.parentVersionId
-      );
-      if (!parent) return;
-
-      newVer = {
-        ...JSON.parse(JSON.stringify(parent)),
-        id: `v${Date.now()}`,
-        version: values.version,
-        date: dayjs().format("YYYY.MM.DD"),
-        isBranch: values.versionType === "Branch" || parent.isBranch,
-        baseVersion: parent.id,
-        parentId: parent.id,
-        children: [],
-        description: values.description,
-        versionType: values.versionType,
-      };
+      // Initial Version Creation (New Template)
+      try {
+        setLoading(true);
+        const res: any = await createTemplate({
+          name: values.templateName!,
+          description: values.templateDescription,
+          initialVersion: {
+            version: values.version,
+            description: values.description,
+            versionType: values.versionType,
+          },
+        });
+        message.success("Template created successfully");
+        setVersionModalVisible(false);
+        // Navigate to real ID. API returns { data: { id: ... } }
+        const newId = res.data?.id || res.id;
+        navigate(`/templates/${newId}`, { replace: true });
+      } catch (err) {
+        console.error(err);
+        message.error("Failed to create template");
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
+
+    let newVer: TemplateVersion;
+    const parent = template.versions.find(
+      (v) => v.id === values.parentVersionId
+    );
+    if (!parent) return;
+
+    newVer = {
+      ...JSON.parse(JSON.stringify(parent)),
+      id: `v${Date.now()}`,
+      version: values.version,
+      date: dayjs().format("YYYY.MM.DD"),
+      isBranch: values.versionType === "Branch" || parent.isBranch,
+      baseVersion: parent.id,
+      parentId: parent.id,
+      children: [],
+      description: values.description,
+      versionType: values.versionType,
+    };
 
     const updatedVersions = processVersions([...template.versions, newVer]);
 

@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UseInterceptors,
   Req,
   Query,
 } from '@nestjs/common';
@@ -42,7 +41,7 @@ import {
   ModuleConfigListResponseDto,
   VersionDocsResponseDto,
 } from './dto/response.dto';
-import { ApiResponseInterceptor } from '../shared/api-response.interceptor';
+// Removed local ApiResponseInterceptor to avoid double wrapping (global already applied)
 import type { Request } from 'express';
 import { TemplateListQueryDto } from './dto/list-query.dto';
 
@@ -55,7 +54,6 @@ interface AuthenticatedRequest extends Request {
 
 @ApiTags('模版管理')
 @Controller('templates')
-@UseInterceptors(ApiResponseInterceptor)
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 

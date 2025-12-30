@@ -17,6 +17,8 @@ export interface VersionCreationValues {
   versionType: "Major" | "Minor" | "Patch" | "Hotfix" | "Branch";
   version: string;
   description: string;
+  templateName?: string;
+  templateDescription?: string;
 }
 
 const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
@@ -46,6 +48,8 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
           versionType: "Major",
           version: "1.0.0",
           description: "Initial version",
+          templateName: "",
+          templateDescription: "",
         });
       } else {
         const initialParent =
@@ -176,6 +180,29 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
       destroyOnClose
     >
       <Form form={form} layout="vertical" onValuesChange={handleValuesChange}>
+        {isInitialVersion && (
+          <>
+            <Form.Item
+              name="templateName"
+              label={t.templateList.name || "Template Name"}
+              rules={[
+                { required: true, message: "Please input template name" },
+              ]}
+            >
+              <Input placeholder="Enter template name" />
+            </Form.Item>
+            <Form.Item
+              name="templateDescription"
+              label={t.templateList.description || "Template Description"}
+            >
+              <Input.TextArea
+                rows={2}
+                placeholder="Enter template description"
+              />
+            </Form.Item>
+          </>
+        )}
+
         {!isInitialVersion && (
           <Form.Item
             name="parentVersionId"
