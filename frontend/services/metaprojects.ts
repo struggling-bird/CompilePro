@@ -70,6 +70,12 @@ export const getProjectDetail = async (
   });
 };
 
+export const deleteProject = async (projectId: string): Promise<void> => {
+  await request(`/apis/metaprojects/${projectId}`, {
+    method: "DELETE",
+  });
+};
+
 export const getCloneStatus = async (
   projectId: string
 ): Promise<{ status: string; message?: string }> => {

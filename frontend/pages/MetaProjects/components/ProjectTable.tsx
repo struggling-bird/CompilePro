@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Button, Space, Typography } from "antd";
+import { Table, Button, Space, Typography, Popconfirm, message } from "antd";
 import {
   EditOutlined,
   FileTextOutlined,
@@ -17,6 +17,7 @@ interface ProjectTableProps {
   loading?: boolean;
   selectedRowKeys: React.Key[];
   onSelectionChange: (selectedRowKeys: React.Key[]) => void;
+  onDelete?: (id: string) => Promise<void> | void;
 }
 
 const ProjectTable: React.FC<ProjectTableProps> = ({
@@ -24,6 +25,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   loading,
   selectedRowKeys,
   onSelectionChange,
+  onDelete,
 }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -68,13 +70,31 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       title: t.projectList.action,
       key: "action",
       render: (_: any, record: Project) => (
-        <Button
-          type="link"
-          icon={<EditOutlined />}
-          onClick={() => navigate(`/meta-projects/${record.id}`)}
-        >
-          {t.projectList.edit}
-        </Button>
+        <Space>
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/meta-projects/${record.id}`)}
+          >
+            {t.projectList.edit}
+          </Button>
+          <Popconfirm
+            title={t.projectList.deleteConfirm || "确认删除该项目？"}
+            onConfirm={async () => {
+              try {
+                await onDelete?.(record.id);
+              } catch (e: any) {
+                message.error(e?.message || (t.common?.success ? t.common.success : "删除失败"));
+              }
+            }}
+            okText={t.templateDetail?.yes || "确定"}
+            cancelText={t.templateDetail?.no || "取消"}
+          >
+            <Button type="link" danger>
+              {t.projectDetail?.delete || "删除"}
+            </Button>
+          </Popconfirm>
+        </Space>
       ),
       align: "right" as const,
     },

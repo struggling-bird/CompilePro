@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Input, Space } from "antd";
+import { Button, Input, Space, Popconfirm, message } from "antd";
 import {
   PlusOutlined,
   SettingOutlined,
@@ -15,6 +15,7 @@ import {
   listProjects,
   createProject,
   createVersion,
+  deleteProject,
 } from "@/services/metaprojects";
 import styles from "../styles/List.module.less";
 
@@ -95,6 +96,28 @@ const ProjectList: React.FC = () => {
     p.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  const handleDeleteOne = async (id: string) => {
+    try {
+      await deleteProject(id);
+      message.success(t.common?.success || "删除成功");
+      fetchList();
+    } catch (err: any) {
+      message.error(err?.message || "删除失败");
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (!selectedRowKeys.length) return;
+    try {
+      await Promise.all(selectedRowKeys.map((id) => deleteProject(String(id))));
+      message.success(t.common?.success || "删除成功");
+      setSelectedRowKeys([]);
+      fetchList();
+    } catch (err: any) {
+      message.error(err?.message || "删除失败");
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.toolbar}>
@@ -113,14 +136,26 @@ const ProjectList: React.FC = () => {
             {t.manageList.resetBtn || "刷新"}
           </Button>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalOpen(true)}
-          style={{ backgroundColor: "var(--color-blue-600)" }}
-        >
-          {t.projectList.newProject}
-        </Button>
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalOpen(true)}
+            style={{ backgroundColor: "var(--color-blue-600)" }}
+          >
+            {t.projectList.newProject}
+          </Button>
+          <Popconfirm
+            title={t.projectList.deleteConfirm || "确认删除选中的项目？"}
+            onConfirm={handleBatchDelete}
+            okText={t.templateDetail?.yes || "确定"}
+            cancelText={t.templateDetail?.no || "取消"}
+          >
+            <Button danger disabled={!selectedRowKeys.length}> 
+              {t.projectDetail?.delete || "删除"}
+            </Button>
+          </Popconfirm>
+        </Space>
       </div>
 
       <div className={styles.tableContainer}>
@@ -143,6 +178,7 @@ const ProjectList: React.FC = () => {
             loading={loading}
             selectedRowKeys={selectedRowKeys}
             onSelectionChange={setSelectedRowKeys}
+            onDelete={handleDeleteOne}
           />
         )}
       </div>
