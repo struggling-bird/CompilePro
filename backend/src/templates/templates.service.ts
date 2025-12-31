@@ -13,7 +13,6 @@ import {
 import { TemplateModule } from './entities/template-module.entity';
 import { TemplateModuleConfig } from './entities/template-module-config.entity';
 import { User } from '../users/user.entity';
-import { FileEntity } from '../storage/file.entity';
 import { StorageService } from '../storage/storage.service';
 import {
   CreateTemplateDto,
@@ -50,8 +49,6 @@ export class TemplatesService {
     private readonly moduleConfigRepository: Repository<TemplateModuleConfig>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    @InjectRepository(FileEntity)
-    private readonly fileRepository: Repository<FileEntity>,
     private readonly storageService: StorageService,
   ) {}
 
@@ -369,7 +366,15 @@ export class TemplatesService {
 
     if (config.type === ConfigType.FILE && config.defaultValue) {
       try {
-        await this.storageService.deleteFile(config.defaultValue, userId);
+        const file = await this.storageService.getFile(config.defaultValue);
+        if (file) {
+          // Use file's owner ID to ensure quota refund and permission check passes
+          // If file has no owner (system file), fallback to current user (might fail but safe default)
+          await this.storageService.deleteFile(
+            config.defaultValue,
+            file.userId || userId,
+          );
+        }
       } catch (e) {
         console.warn(`Failed to delete file ${config.defaultValue}: ${e}`);
       }

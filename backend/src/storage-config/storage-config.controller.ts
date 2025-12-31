@@ -25,9 +25,9 @@ export class StorageConfigController {
   update(
     @Param('key') key: string,
     @Body() dto: UpdateConfigDto,
-    @Req() req: { user: { id: string } },
+    @Req() req: { user: { userId: string } },
   ) {
-    return this.configService.update(key, dto, req.user.id);
+    return this.configService.update(key, dto, req.user.userId);
   }
 
   @Get()

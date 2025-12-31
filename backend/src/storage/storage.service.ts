@@ -212,8 +212,13 @@ export class StorageService {
   }
 
   async deleteFile(id: string, userId: string): Promise<void> {
-    const file = await this.fileRepository.findOne({ where: { id, userId } });
+    const file = await this.fileRepository.findOne({ where: { id } });
     if (!file) throw new NotFoundException('文件不存在');
+
+    // Allow deletion if userId matches OR if file has no owner (legacy/bugged files)
+    if (file.userId && file.userId !== userId) {
+      throw new NotFoundException('文件不存在');
+    }
 
     if (file.isFolder) {
       const count = await this.fileRepository.count({
@@ -229,7 +234,9 @@ export class StorageService {
         this.logger.error(`Failed to delete physical file: ${e}`);
       }
 
-      await this.usersService.updateStorageUsage(userId, -file.size);
+      if (file.userId) {
+        await this.usersService.updateStorageUsage(file.userId, -file.size);
+      }
 
       await this.fileRepository.remove(file);
     }

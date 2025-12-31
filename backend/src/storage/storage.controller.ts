@@ -68,11 +68,11 @@ export class StorageController {
   })
   async createFolder(
     @Body() body: { name: string; parentId?: string },
-    @Req() req: { user: { id: string } },
+    @Req() req: { user: { userId: string } },
   ) {
     return this.storageService.createFolder(
       body.name,
-      req.user.id,
+      req.user.userId,
       body.parentId,
     );
   }
@@ -83,9 +83,9 @@ export class StorageController {
   @ApiQuery({ name: 'parentId', required: false })
   async listFiles(
     @Query('parentId') parentId: string,
-    @Req() req: { user: { id: string } },
+    @Req() req: { user: { userId: string } },
   ) {
-    return this.storageService.listFiles(req.user.id, parentId);
+    return this.storageService.listFiles(req.user.userId, parentId);
   }
 
   @Get('files/:id')
@@ -101,9 +101,9 @@ export class StorageController {
   async renameFile(
     @Param('id') id: string,
     @Body('name') name: string,
-    @Req() req: { user: { id: string } },
+    @Req() req: { user: { userId: string } },
   ) {
-    return this.storageService.renameFile(id, name, req.user.id);
+    return this.storageService.renameFile(id, name, req.user.userId);
   }
 
   @Delete('files/:id')
@@ -111,16 +111,16 @@ export class StorageController {
   @ApiOperation({ summary: '删除文件' })
   async deleteFile(
     @Param('id') id: string,
-    @Req() req: { user: { id: string } },
+    @Req() req: { user: { userId: string } },
   ) {
-    return this.storageService.deleteFile(id, req.user.id);
+    return this.storageService.deleteFile(id, req.user.userId);
   }
 
   @Get('quota')
   @UseGuards(AuthenticatedGuard)
   @ApiOperation({ summary: '获取存储配额' })
-  async getQuota(@Req() req: { user: { id: string } }) {
-    return this.analysisService.getQuotaInfo(req.user.id);
+  async getQuota(@Req() req: { user: { userId: string } }) {
+    return this.analysisService.getQuotaInfo(req.user.userId);
   }
 
   @Put('quota')
@@ -129,10 +129,10 @@ export class StorageController {
   @ApiBody({ type: UpdateQuotaDto })
   async updateQuota(
     @Body() dto: UpdateQuotaDto,
-    @Req() req: { user: { id: string } },
+    @Req() req: { user: { userId: string } },
   ) {
     return this.analysisService.updateQuota(
-      req.user.id,
+      req.user.userId,
       dto.total,
       dto.warningThreshold,
     );
@@ -141,22 +141,22 @@ export class StorageController {
   @Get('analysis/trends')
   @UseGuards(AuthenticatedGuard)
   @ApiOperation({ summary: '获取存储趋势' })
-  async getTrends(@Req() req: { user: { id: string } }) {
-    return this.analysisService.getStorageTrends(req.user.id);
+  async getTrends(@Req() req: { user: { userId: string } }) {
+    return this.analysisService.getStorageTrends(req.user.userId);
   }
 
   @Get('analysis/types')
   @UseGuards(AuthenticatedGuard)
   @ApiOperation({ summary: '获取文件类型分布' })
-  async getTypes(@Req() req: { user: { id: string } }) {
-    return this.analysisService.getFileTypeDistribution(req.user.id);
+  async getTypes(@Req() req: { user: { userId: string } }) {
+    return this.analysisService.getFileTypeDistribution(req.user.userId);
   }
 
   @Get('analysis/hot-files')
   @UseGuards(AuthenticatedGuard)
   @ApiOperation({ summary: '获取热点文件' })
-  async getHotFiles(@Req() req: { user: { id: string } }) {
-    return this.analysisService.getHotFiles(req.user.id);
+  async getHotFiles(@Req() req: { user: { userId: string } }) {
+    return this.analysisService.getHotFiles(req.user.userId);
   }
 
   @Post('upload')
@@ -209,13 +209,13 @@ export class StorageController {
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Query('isTemp') isTemp: boolean = false,
     @Body() body: { parentId?: string },
-    @Req() req: { user?: { id?: string } },
+    @Req() req: { user?: { userId?: string } },
   ) {
     if (!files || files.length === 0) {
       throw new BadRequestException('未上传文件');
     }
 
-    const userId: string | undefined = req.user?.id;
+    const userId: string | undefined = req.user?.userId;
 
     const uploadedFiles = await Promise.all(
       files.map((file) =>

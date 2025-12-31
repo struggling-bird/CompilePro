@@ -66,8 +66,9 @@ const FileExplorer: React.FC = () => {
       await deleteFile(id);
       message.success(t.common?.success || "Deleted successfully");
       fetchFiles(currentFolderId);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      message.error(error.message || "Delete failed");
     }
   };
 
