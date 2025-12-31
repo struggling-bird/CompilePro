@@ -3,14 +3,12 @@ import {
   Table,
   Breadcrumb,
   Button,
-  Modal,
-  Image,
   Space,
   Card,
-  Empty,
   Popconfirm,
   message,
 } from "antd";
+import FilePreviewModal from "../../../../components/FilePreview/FilePreviewModal";
 import dayjs from "dayjs";
 import {
   FolderOutlined,
@@ -42,7 +40,7 @@ const FileExplorer: React.FC = () => {
   >([{ name: "Home" }]);
   const [loading, setLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
-  const [previewContent, setPreviewContent] = useState<React.ReactNode>(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   const fetchFiles = async (parentId?: string) => {
     setLoading(true);
@@ -60,51 +58,7 @@ const FileExplorer: React.FC = () => {
 
   const handlePreview = (file: FileItem) => {
     setPreviewFile(file);
-    const ext = file.extension?.toLowerCase();
-
-    if (["png", "jpg", "jpeg", "gif"].includes(ext || "")) {
-      const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
-      setPreviewContent(
-        <div className="flex justify-center">
-          <Image
-            src={`${BASE}/apis/storage/preview/${file.id}?w=800`}
-            alt={file.name}
-            style={{ maxWidth: "100%" }}
-          />
-        </div>
-      );
-    } else if (["txt", "js", "json", "css", "md"].includes(ext || "")) {
-      setPreviewContent(
-        <div className="bg-gray-50 p-4 rounded border border-gray-200 overflow-auto max-h-[500px] font-mono text-sm">
-          <pre>{`// This is a mock preview for ${file.name}\n\nfunction demo() {\n  console.log("Hello World");\n  return true;\n}\n\n// End of file`}</pre>
-        </div>
-      );
-    } else if (ext === "pdf") {
-      const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
-      setPreviewContent(
-        <div className="h-[500px] flex items-center justify-center bg-gray-100 border border-dashed border-gray-300 rounded">
-          <div className="text-center">
-            <FilePdfOutlined style={{ fontSize: 48, color: "#ff4d4f" }} />
-            <p className="mt-4 text-gray-500">PDF Preview Placeholder</p>
-            <Button
-              type="primary"
-              className="mt-2"
-              onClick={() =>
-                window.open(`${BASE}/apis/storage/download/${file.id}`)
-              }
-            >
-              Download to view
-            </Button>
-          </div>
-        </div>
-      );
-    } else {
-      setPreviewContent(
-        <div className="h-[300px] flex items-center justify-center">
-          <Empty description={t.settings.previewNotAvailable} />
-        </div>
-      );
-    }
+    setPreviewVisible(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -167,8 +121,10 @@ const FileExplorer: React.FC = () => {
       title: t.settings.modifiedTime,
       dataIndex: "updatedAt",
       key: "updatedAt",
-      width: 150,
+      width: 180,
       className: "text-gray-500",
+      render: (val: string) =>
+        val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
     {
       title: t.settings.action,
@@ -253,32 +209,11 @@ const FileExplorer: React.FC = () => {
         />
       </Card>
 
-      <Modal
-        title={previewFile?.name}
-        open={!!previewFile}
-        onCancel={() => setPreviewFile(null)}
-        width={800}
-        footer={[
-          <Button key="close" onClick={() => setPreviewFile(null)}>
-            {t.settings.close}
-          </Button>,
-          <Button
-            key="download"
-            type="primary"
-            icon={<DownloadOutlined />}
-            onClick={() => {
-              const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
-              if (previewFile) {
-                window.open(`${BASE}/apis/storage/download/${previewFile.id}`);
-              }
-            }}
-          >
-            {t.settings.download ?? "Download"}
-          </Button>,
-        ]}
-      >
-        {previewContent}
-      </Modal>
+      <FilePreviewModal
+        visible={previewVisible}
+        file={previewFile}
+        onCancel={() => setPreviewVisible(false)}
+      />
     </div>
   );
 };
