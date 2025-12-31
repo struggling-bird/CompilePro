@@ -327,7 +327,7 @@ export class TemplatesService {
   async listGlobalConfigs(versionId: string): Promise<TemplateGlobalConfig[]> {
     return this.globalConfigRepository.find({
       where: { versionId },
-      order: { name: 'ASC' },
+      order: { createdAt: 'DESC' },
     });
   }
 

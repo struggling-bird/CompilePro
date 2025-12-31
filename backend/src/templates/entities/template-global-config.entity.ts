@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { TemplateVersion } from './template-version.entity';
@@ -41,6 +42,10 @@ export class TemplateGlobalConfig {
   @ApiProperty({ description: '是否隐藏', default: false })
   @Column({ default: false })
   isHidden: boolean;
+
+  @ApiProperty({ description: '创建时间' })
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
   @ManyToOne(() => TemplateVersion, (version) => version.globalConfigs, {
     onDelete: 'CASCADE',

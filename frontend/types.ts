@@ -101,6 +101,7 @@ export interface TemplateGlobalConfig {
   defaultValue: string;
   description: string;
   isHidden: boolean;
+  createdAt: string;
 }
 
 export interface TemplateModuleConfig {

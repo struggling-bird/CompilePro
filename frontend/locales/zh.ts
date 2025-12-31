@@ -111,6 +111,7 @@ export default {
       logo: "Logo文件替换",
       package: "依赖更新",
     },
+    createdAt: "创建时间",
   },
   manageList: {
     version: "版本",

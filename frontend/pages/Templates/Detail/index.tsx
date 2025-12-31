@@ -396,7 +396,7 @@ const TemplateDetailPage: React.FC = () => {
           });
 
           const newConfig = res.data || res;
-          const newGlobalConfigs = [...currentVersion.globalConfigs, newConfig];
+          const newGlobalConfigs = [newConfig, ...currentVersion.globalConfigs];
 
           updateCurrentVersion({
             ...currentVersion,

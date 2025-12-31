@@ -95,6 +95,14 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
         val ? t.templateDetail.yes : t.templateDetail.no,
     },
     {
+      title: t.templateDetail.createdAt,
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text: string) => (
+        <Text>{text ? new Date(text).toLocaleString() : "-"}</Text>
+      ),
+    },
+    {
       title: t.templateDetail.action,
       key: "action",
       render: (_: any, record: TemplateGlobalConfig) => (

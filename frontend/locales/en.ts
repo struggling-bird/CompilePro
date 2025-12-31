@@ -113,6 +113,7 @@ export default {
       logo: "Logo replacement",
       package: "Dependency updates",
     },
+    createdAt: "CREATED AT",
   },
   manageList: {
     version: "VERSION",
