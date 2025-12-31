@@ -364,6 +364,7 @@ export default {
     other: "Other",
     selectCustomer: "Select Customer",
     selectEnvironment: "Select Environment",
+    addConfig: "Add Config Item",
   },
   customerList: {
     searchPlaceholder: "Search customers...",

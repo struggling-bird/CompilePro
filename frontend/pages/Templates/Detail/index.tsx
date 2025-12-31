@@ -23,8 +23,8 @@ import {
   TemplateModuleConfig,
 } from "../../../types";
 import VersionTimeline from "./components/VersionTimeline";
-import GlobalConfigTable from "./components/GlobalConfigTable";
-import ModuleTabs from "./components/ModuleTabs";
+import GlobalConfigTable from "../../../components/GlobalConfigTable";
+import ModuleTabs from "../../../components/ModuleTabs";
 import ConfigForm from "./components/ConfigForm";
 import VersionCreationModal, {
   VersionCreationValues,

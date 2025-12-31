@@ -361,6 +361,7 @@ export default {
     other: "其它",
     selectCustomer: "选择客户",
     selectEnvironment: "选择环境",
+    addConfig: "添加配置项",
   },
   customerList: {
     searchPlaceholder: "搜索客户...",

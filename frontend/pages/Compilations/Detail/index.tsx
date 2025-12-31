@@ -38,8 +38,8 @@ import {
 } from "../../../types";
 import { TemplateListItem } from "../../../services/templates";
 import styles from "../styles/Detail.module.less";
-import GlobalConfigValueTable from "./components/GlobalConfigValueTable";
-import ModuleConfigValueTabs from "./components/ModuleConfigValueTabs";
+import GlobalConfigTable from "../../../components/GlobalConfigTable";
+import ModuleTabs from "../../../components/ModuleTabs";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -432,17 +432,18 @@ const CompilationDetail: React.FC = () => {
           {/* Configuration Section */}
           <div className={styles.configSection}>
             <Card
-              title={t.compilationDetail.globalConfigTitle}
+              title={null}
               className={styles.card}
               bordered={false}
               bodyStyle={{ padding: 0 }}
             >
               <div style={{ padding: "0 24px 24px" }}>
                 {selectedTemplateVersion ? (
-                  <GlobalConfigValueTable
+                  <GlobalConfigTable
                     configs={selectedTemplateVersion.globalConfigs}
+                    mode="INSTANCE"
                     values={globalConfigs}
-                    onChange={handleGlobalConfigChange}
+                    onValueChange={handleGlobalConfigChange}
                   />
                 ) : (
                   <div className={styles.emptyState}>
@@ -461,11 +462,13 @@ const CompilationDetail: React.FC = () => {
             >
               <div style={{ padding: "0 24px 24px" }}>
                 {selectedTemplateVersion ? (
-                  <ModuleConfigValueTabs
+                  <ModuleTabs
                     modules={selectedTemplateVersion.modules}
                     globalConfigs={selectedTemplateVersion.globalConfigs}
+                    mode="INSTANCE"
+                    globalConfigValues={globalConfigs}
                     values={moduleConfigs}
-                    onChange={handleModuleConfigChange}
+                    onValueChange={handleModuleConfigChange}
                   />
                 ) : (
                   <div className={styles.emptyState}>
