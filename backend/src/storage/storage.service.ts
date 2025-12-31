@@ -19,6 +19,7 @@ import { createHash, randomBytes, createCipheriv } from 'crypto';
 import { AuditService } from '../audit/audit.service';
 import { StorageConfigService } from '../storage-config/storage-config.service';
 import { UsersService } from '../users/users.service';
+import * as path from 'path';
 
 @Injectable()
 export class StorageService {
@@ -252,6 +253,30 @@ export class StorageService {
       checksumMd5: file.checksumMd5,
       checksumSha256: file.checksumSha256,
     };
+  }
+
+  async promoteFile(id: string): Promise<void> {
+    const file = await this.fileRepository.findOne({ where: { id } });
+    if (!file) throw new NotFoundException('File not found');
+
+    if (!file.isTemp) return;
+
+    const targetFolder = this.buildPathRule(file.mimetype);
+    // Use path.join but ensure forward slashes for cross-platform compatibility if needed,
+    // though LocalStorageStrategy handles it.
+    // However, buildPathRule returns "type/y/m/d".
+    // file.path currently is "temp/filename".
+    // We want new path "type/y/m/d/filename".
+    const newPath = path.join(targetFolder, file.filename);
+
+    const strategy = this.strategyResolver.resolve(file.storageType);
+    await strategy.move(file.path, newPath);
+
+    file.isTemp = false;
+    file.expiresAt = null as unknown as Date;
+    file.path = newPath;
+
+    await this.fileRepository.save(file);
   }
 
   async generateThumbnail(

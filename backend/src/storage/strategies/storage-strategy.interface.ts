@@ -51,4 +51,11 @@ export interface StorageStrategy {
    * @param path 文件路径
    */
   exists(path: string): Promise<boolean>;
+
+  /**
+   * 移动文件
+   * @param sourcePath 源文件路径
+   * @param destinationPath 目标文件路径
+   */
+  move(sourcePath: string, destinationPath: string): Promise<void>;
 }

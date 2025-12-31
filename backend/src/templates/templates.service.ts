@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Template } from './entities/template.entity';
@@ -304,15 +300,7 @@ export class TemplatesService {
   // --- Global Config Methods ---
 
   private async bindFile(fileId: string): Promise<void> {
-    const file = await this.fileRepository.findOne({ where: { id: fileId } });
-    if (!file) {
-      throw new BadRequestException(`File with ID ${fileId} not found`);
-    }
-    if (file.isTemp) {
-      file.isTemp = false;
-      file.expiresAt = null as unknown as Date;
-      await this.fileRepository.save(file);
-    }
+    await this.storageService.promoteFile(fileId);
   }
 
   async addGlobalConfig(

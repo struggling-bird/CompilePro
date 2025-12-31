@@ -117,6 +117,23 @@ export class LocalStorageStrategy implements StorageStrategy {
     }
   }
 
+  async move(sourcePath: string, destinationPath: string): Promise<void> {
+    const src = path.join(this.uploadRoot, sourcePath);
+    const dest = path.join(this.uploadRoot, destinationPath);
+    const destDir = path.dirname(dest);
+
+    if (!fs.existsSync(destDir)) {
+      await fs.promises.mkdir(destDir, { recursive: true });
+    }
+
+    try {
+      await fs.promises.rename(src, dest);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new InternalServerErrorException(`移动文件失败: ${msg}`);
+    }
+  }
+
   async exists(relativePath: string): Promise<boolean> {
     const fullPath = path.join(this.uploadRoot, relativePath);
     try {

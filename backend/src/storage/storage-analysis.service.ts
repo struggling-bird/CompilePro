@@ -48,34 +48,52 @@ export class StorageAnalysisService {
   async getStorageTrends(userId: string): Promise<StorageTrend[]> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
 
+    // 1. Get initial total size before the 30-day window
+    const initialStats = (await this.fileRepository
+      .createQueryBuilder('file')
+      .where('file.userId = :userId', { userId })
+      .andWhere('file.createdAt < :date', { date: thirtyDaysAgo })
+      .select('SUM(file.size)', 'total')
+      .getRawOne()) as { total: string };
+
+    let currentTotal = Number(initialStats?.total || 0);
+
+    // 2. Get daily changes (uploads) within the last 30 days
     const files = await this.fileRepository
       .createQueryBuilder('file')
       .where('file.userId = :userId', { userId })
-      .andWhere('file.created_at >= :date', { date: thirtyDaysAgo })
-      .select(['file.created_at', 'file.size'])
+      .andWhere('file.createdAt >= :date', { date: thirtyDaysAgo })
+      .select(['file.createdAt', 'file.size'])
+      .orderBy('file.createdAt', 'ASC')
       .getMany();
 
-    const trendMap = new Map<string, number>();
-
+    const dailyChanges = new Map<string, number>();
     files.forEach((f) => {
       const date = f.createdAt.toISOString().split('T')[0];
-      const current = trendMap.get(date) || 0;
-      trendMap.set(date, current + f.size);
+      const current = dailyChanges.get(date) || 0;
+      dailyChanges.set(date, current + f.size);
     });
 
+    // 3. Generate the trend array
     const trends: StorageTrend[] = [];
-    for (let i = 0; i < 30; i++) {
+    // Start from 29 days ago up to today
+    for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
+
+      const dailyChange = dailyChanges.get(dateStr) || 0;
+      currentTotal += dailyChange;
+
       trends.push({
         date: dateStr,
-        size: (trendMap.get(dateStr) || 0) / (1024 * 1024), // MB
+        size: Number((currentTotal / (1024 * 1024)).toFixed(2)), // MB
       });
     }
 
-    return trends.reverse();
+    return trends;
   }
 
   async getFileTypeDistribution(userId: string): Promise<FileTypeStat[]> {

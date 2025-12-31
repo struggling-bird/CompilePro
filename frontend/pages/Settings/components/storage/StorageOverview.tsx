@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col, Table, Spin } from "antd";
 import { Pie, Area } from "@ant-design/plots";
+import dayjs from "dayjs";
 import {
   getStorageTrends,
   getFileTypeDistribution,
@@ -75,6 +76,7 @@ const StorageOverview: React.FC = () => {
       title: t.settings.lastAccessed,
       dataIndex: "lastAccessed",
       key: "lastAccessed",
+      render: (val: string) => (val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-"),
     },
   ];
 
@@ -97,8 +99,8 @@ const StorageOverview: React.FC = () => {
                   data: trends,
                   xField: "date",
                   yField: "size",
-                  color: "#1890ff",
-                  areaStyle: { fillOpacity: 0.2 },
+                  style: { fill: "#1890ff", fillOpacity: 0.2 },
+                  shapeField: 'smooth',
                 } as any)}
               />
             </div>
@@ -114,10 +116,12 @@ const StorageOverview: React.FC = () => {
                   colorField: "type",
                   radius: 0.8,
                   label: {
-                    text: (d: any) => `${d.type}\n${d.size.toFixed(1)}MB`,
+                    text: "size",
                     position: "outside",
                   },
-                  interactions: [{ type: "element-active" }],
+                  legend: {
+                    position: "bottom",
+                  },
                 } as any)}
               />
             </div>
