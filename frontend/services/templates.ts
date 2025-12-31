@@ -124,3 +124,10 @@ export const listModules = async (versionId: string) => {
     method: "GET",
   });
 };
+
+export const updateModuleConfig = async (configId: string, payload: any) => {
+  return request(`/apis/templates/module-configs/${configId}`, {
+    method: "PATCH",
+    data: payload,
+  });
+};

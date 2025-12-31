@@ -42,6 +42,7 @@ export interface VersionConfig {
   matchIndex?: number;
   fileOriginPath?: string;
   description?: string;
+  textTarget?: string;
 }
 
 export interface DeploymentConfig {

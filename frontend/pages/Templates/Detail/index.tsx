@@ -31,6 +31,7 @@ import VersionCreationModal, {
 } from "./components/VersionCreationModal";
 import AddModuleModal from "./components/AddModuleModal";
 import SwitchModuleVersionModal from "./components/SwitchModuleVersionModal";
+import ConfigEditorDrawer from "../../MetaProjects/components/ConfigEditorDrawer";
 import styles from "../styles/Detail.module.less";
 import dayjs from "dayjs";
 import { useLanguage } from "../../../contexts/LanguageContext";
@@ -44,6 +45,7 @@ import {
   deleteGlobalConfig,
   addModule,
   listModules,
+  updateModuleConfig,
 } from "../../../services/templates";
 import { listConfigs } from "../../../services/metaprojects";
 
@@ -98,6 +100,8 @@ const TemplateDetailPage: React.FC = () => {
 
   // Add Module Modal
   const [addModuleModalVisible, setAddModuleModalVisible] = useState(false);
+  // Module Config Drawer
+  const [moduleDrawerVisible, setModuleDrawerVisible] = useState(false);
   // Switch Module Version Modal
   const [switchModalVisible, setSwitchModalVisible] = useState(false);
   const [switchTargetModuleId, setSwitchTargetModuleId] = useState<
@@ -394,10 +398,96 @@ const TemplateDetailPage: React.FC = () => {
       });
       updateCurrentVersion({ ...currentVersion, modules: updatedModules });
     } else {
-      setModalMode("MODULE");
       setActiveModuleId(moduleId);
       setEditingConfig(config);
-      setModalVisible(true);
+      setModuleDrawerVisible(true);
+      // setModalMode("MODULE");
+      // setModalVisible(true);
+    }
+  };
+
+  const handleModuleDrawerSave = async (values: any) => {
+    if (!currentVersion || !activeModuleId) return;
+
+    try {
+      let mappingValue = "";
+      if (values.type === "TEXT") {
+        mappingValue = values.textTarget || "";
+      } else if (values.type === "FILE") {
+        if (values.uploadedTargetFile) {
+          const formData = new FormData();
+          formData.append("files", values.uploadedTargetFile);
+          const token = localStorage.getItem("token");
+          const res = await fetch("/apis/storage/upload?isTemp=true", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          });
+          const data = await res.json();
+          // Support multiple response formats
+          let fileId = "";
+          if (Array.isArray(data)) {
+            fileId = data[0]?.id;
+          } else if (data.data && Array.isArray(data.data)) {
+            fileId = data.data[0]?.id;
+          } else if (data.id) {
+            fileId = data.id;
+          }
+          mappingValue = fileId;
+        } else {
+          // If no new file uploaded, keep existing mappingValue
+          // Check if editingConfig is TemplateModuleConfig
+          mappingValue =
+            (editingConfig as TemplateModuleConfig)?.mappingValue || "";
+        }
+      }
+
+      if (editingConfig?.id && !editingConfig.id.startsWith("c")) {
+        await updateModuleConfig(editingConfig.id, {
+          name: values.name,
+          description: values.description,
+          fileLocation: values.fileOriginPath,
+          regex: values.textOrigin || "",
+          mappingType: "MANUAL",
+          mappingValue: mappingValue,
+          isHidden: false,
+        });
+      }
+
+      const newConfig: TemplateModuleConfig = {
+        id: editingConfig?.id || `c${Date.now()}`,
+        name: values.name,
+        description: values.description,
+        fileLocation: values.fileOriginPath,
+        regex: values.textOrigin || "",
+        mappingType: "MANUAL",
+        mappingValue: mappingValue,
+        isHidden: false,
+        isSelected: true,
+      };
+
+      const updatedModules = currentVersion.modules.map((m) => {
+        if (m.id === activeModuleId) {
+          let newConfigs = [...m.configs];
+          if (editingConfig?.id) {
+            newConfigs = newConfigs.map((c) =>
+              c.id === editingConfig.id ? newConfig : c
+            );
+          } else {
+            newConfigs.push(newConfig);
+          }
+          return { ...m, configs: newConfigs };
+        }
+        return m;
+      });
+      updateCurrentVersion({ ...currentVersion, modules: updatedModules });
+      setModuleDrawerVisible(false);
+      message.success("Module config saved");
+    } catch (e) {
+      console.error(e);
+      message.error("Failed to save module config");
     }
   };
 
@@ -775,6 +865,33 @@ const TemplateDetailPage: React.FC = () => {
             globalConfigs={currentVersion.globalConfigs}
             onCancel={() => setModalVisible(false)}
             onSave={handleSaveModal}
+          />
+          <ConfigEditorDrawer
+            visible={moduleDrawerVisible}
+            projectId={
+              currentVersion.modules.find((m) => m.id === activeModuleId)
+                ?.projectId || ""
+            }
+            config={
+              editingConfig
+                ? {
+                    id: editingConfig.id,
+                    name: editingConfig.name,
+                    type: (editingConfig as TemplateModuleConfig).regex
+                      ? "TEXT"
+                      : "FILE",
+                    textOrigin: (editingConfig as TemplateModuleConfig).regex,
+                    fileOriginPath: (editingConfig as TemplateModuleConfig)
+                      .fileLocation,
+                    description: editingConfig.description,
+                    textTarget: (editingConfig as TemplateModuleConfig)
+                      .mappingValue,
+                  }
+                : undefined
+            }
+            onClose={() => setModuleDrawerVisible(false)}
+            onSave={handleModuleDrawerSave}
+            enableTargetEdit={true}
           />
         </>
       )}

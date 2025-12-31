@@ -57,10 +57,21 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
         render: (_: any, r: TemplateModuleConfig) => {
           if (r.mappingType === "GLOBAL")
             return getGlobalConfigName(r.mappingValue);
-          if (r.mappingType === "MANUAL")
-            return <Tag>{t.templateDetail.manualInput}</Tag>;
+          if (r.mappingType === "MANUAL") {
+            // For FILE type, mappingValue might be a file ID
+            // Simple heuristic: if it looks like a UUID, maybe show "File ID: ..." or just the value
+            // But user asked for "real target value"
+            // If it's empty, show manual input placeholder
+            if (!r.mappingValue) return <Tag>{t.templateDetail.manualInput}</Tag>;
+            return <Text copyable>{r.mappingValue}</Text>;
+          }
           return <Text code>{r.mappingValue}</Text>;
         },
+      },
+      {
+        title: t.templateDetail.desc,
+        dataIndex: "description",
+        key: "description",
       },
       {
         title: t.templateDetail.fileLocation,

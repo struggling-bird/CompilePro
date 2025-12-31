@@ -184,10 +184,21 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
       const values = await form.validateFields();
       const { textTarget, ...rest } = values;
       setSaving(true);
-      await onSave({
+
+      const payload: any = {
         ...rest,
         type: activeTab,
-      });
+      };
+
+      if (isTargetEditEnabled) {
+        if (activeTab === "TEXT") {
+          payload.textTarget = textTarget;
+        } else if (activeTab === "FILE") {
+          payload.uploadedTargetFile = uploadedTargetFile;
+        }
+      }
+
+      await onSave(payload);
       setSaving(false);
     } catch (err) {
       console.error(err);
