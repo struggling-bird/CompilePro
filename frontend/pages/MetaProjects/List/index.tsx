@@ -146,7 +146,7 @@ const ProjectList: React.FC = () => {
             {t.projectList.newProject}
           </Button>
           <Popconfirm
-            title={t.projectList.deleteConfirm || "确认删除选中的项目？"}
+            title={t.projectList.deleteConfirm || "确认删除选中的项目及其工作空间文件？"}
             onConfirm={handleBatchDelete}
             okText={t.templateDetail?.yes || "确定"}
             cancelText={t.templateDetail?.no || "取消"}

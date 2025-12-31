@@ -47,7 +47,8 @@ export default {
     buildDoc: "BUILD DOC",
     action: "ACTION",
     edit: "Edit",
-    deleteConfirm: "Are you sure to delete this project?",
+    deleteConfirm:
+      "Are you sure to delete this project and its workspace files?",
     deselectAll: "Deselect All",
     selectAll: "Select All",
     applySelection: "Apply Selection",

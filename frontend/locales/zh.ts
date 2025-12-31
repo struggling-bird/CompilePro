@@ -47,7 +47,7 @@ export default {
     buildDoc: "部署文档",
     action: "操作",
     edit: "编辑",
-    deleteConfirm: "确认删除该项目？",
+    deleteConfirm: "确认删除该项目及其工作空间文件？",
     deselectAll: "取消全选",
     selectAll: "全选",
     applySelection: "应用选中",

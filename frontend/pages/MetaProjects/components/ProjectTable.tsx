@@ -79,7 +79,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             {t.projectList.edit}
           </Button>
           <Popconfirm
-            title={t.projectList.deleteConfirm || "确认删除该项目？"}
+            title={t.projectList.deleteConfirm || "确认删除该项目及其工作空间文件？"}
             onConfirm={async () => {
               try {
                 await onDelete?.(record.id);
