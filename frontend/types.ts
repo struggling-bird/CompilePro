@@ -1,6 +1,5 @@
 export enum TabView {
   META_PROJECTS = "META_PROJECTS",
-  MANAGE = "MANAGE",
   TEMPLATES = "TEMPLATES",
   CUSTOMERS = "CUSTOMERS",
   MEMBERS = "MEMBERS",
@@ -45,19 +44,6 @@ export interface VersionConfig {
   textTarget?: string;
   mappingType?: "GLOBAL" | "MANUAL" | "FIXED";
   mappingValue?: string;
-}
-
-export interface DeploymentConfig {
-  id: string;
-  name: string;
-  type: "Private" | "Public" | "Hybrid";
-  lastBuildTime: string;
-  lastBuildStatus: "Success" | "Failed" | "Pending" | "Idle";
-  lastBuilder: string;
-  projects: string[]; // IDs of projects included
-  customerId?: string;
-  environment?: string;
-  customerName?: string;
 }
 
 export interface User {

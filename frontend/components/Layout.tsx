@@ -69,12 +69,7 @@ const Layout: React.FC<LayoutProps> = ({
       icon: LayoutOutlined,
       tab: TabView.TEMPLATES,
     },
-    {
-      id: "manage",
-      labelKey: "manage",
-      icon: HddOutlined,
-      tab: TabView.MANAGE,
-    },
+    
     {
       id: "customers",
       labelKey: "customers",
@@ -198,7 +193,7 @@ const Layout: React.FC<LayoutProps> = ({
               onTabChange(k);
               if (k === TabView.META_PROJECTS) navigate("/meta-projects");
               else if (k === TabView.TEMPLATES) navigate("/templates");
-              else if (k === TabView.MANAGE) navigate("/manage");
+              
               else if (k === TabView.CUSTOMERS) navigate("/customers");
               else if (k === TabView.MEMBERS) navigate("/members");
               else if (k === TabView.ROLES) navigate("/roles");

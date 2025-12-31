@@ -20,10 +20,7 @@ const Pages = {
   MetaProjectDetail: lazy(() => import("../pages/MetaProjects/Detail")),
   TemplateList: lazy(() => import("../pages/Templates/List")),
   TemplateDetail: lazy(() => import("../pages/Templates/Detail")),
-  ManageList: lazy(() => import("../pages/Manage/List")),
-  DeploymentDetail: lazy(() => import("../pages/Manage/DeploymentDetail")),
-  BuildHistory: lazy(() => import("../pages/Manage/BuildHistory")),
-  BuildExecution: lazy(() => import("../pages/Manage/BuildExecution")),
+
   CustomerList: lazy(() => import("../pages/Customers/List")),
   CustomerDetail: lazy(() => import("../pages/Customers/Detail")),
   EnvironmentList: lazy(() => import("../pages/Customers/Environments/List")),
@@ -67,27 +64,6 @@ export const routes: RouteItem[] = [
     path: "/templates/:templateId",
     component: Pages.TemplateDetail,
     meta: { auth: "private", tab: TabView.TEMPLATES },
-  },
-
-  {
-    path: "/manage",
-    component: Pages.ManageList,
-    meta: { auth: "private", tab: TabView.MANAGE },
-  },
-  {
-    path: "/manage/new",
-    component: Pages.DeploymentDetail,
-    meta: { auth: "private", tab: TabView.MANAGE },
-  },
-  {
-    path: "/manage/:deployId",
-    component: Pages.DeploymentDetail,
-    meta: { auth: "private", tab: TabView.MANAGE },
-  },
-  {
-    path: "/manage/:deployId/history",
-    component: Pages.BuildHistory,
-    meta: { auth: "private", tab: TabView.MANAGE },
   },
 
   {
@@ -153,11 +129,6 @@ export const routes: RouteItem[] = [
     meta: { auth: "private", tab: TabView.ROLES },
   },
 
-  {
-    path: "/build/:deployId",
-    component: Pages.BuildExecution,
-    meta: { auth: "private", tab: TabView.MANAGE },
-  },
   {
     path: "/settings",
     component: Pages.SettingsPage,

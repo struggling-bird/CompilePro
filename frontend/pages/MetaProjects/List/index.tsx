@@ -133,7 +133,7 @@ const ProjectList: React.FC = () => {
             style={{ width: 300 }}
           />
           <Button icon={<ReloadOutlined />} onClick={fetchList}>
-            {t.manageList.resetBtn || "刷新"}
+            {t.settings?.refresh || "刷新"}
           </Button>
         </div>
         <Space>
@@ -146,12 +146,15 @@ const ProjectList: React.FC = () => {
             {t.projectList.newProject}
           </Button>
           <Popconfirm
-            title={t.projectList.deleteConfirm || "确认删除选中的项目及其工作空间文件？"}
+            title={
+              t.projectList.deleteConfirm ||
+              "确认删除选中的项目及其工作空间文件？"
+            }
             onConfirm={handleBatchDelete}
             okText={t.templateDetail?.yes || "确定"}
             cancelText={t.templateDetail?.no || "取消"}
           >
-            <Button danger disabled={!selectedRowKeys.length}> 
+            <Button danger disabled={!selectedRowKeys.length}>
               {t.projectDetail?.delete || "删除"}
             </Button>
           </Popconfirm>

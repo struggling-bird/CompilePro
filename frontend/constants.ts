@@ -1,13 +1,4 @@
-import {
-  Project,
-  DeploymentConfig,
-  ProjectTemplate,
-  Customer,
-  TeamMember,
-  BuildRecord,
-  Role,
-  Permission,
-} from "./types";
+import { Project, ProjectTemplate, Customer, TeamMember, BuildRecord, Role, Permission } from "./types";
 
 export const MOCK_PROJECTS: Project[] = [
   {
@@ -67,38 +58,7 @@ export const MOCK_PROJECTS: Project[] = [
   },
 ];
 
-export const MOCK_DEPLOYMENTS: DeploymentConfig[] = [
-  {
-    id: "d1",
-    name: "Sunshine Insurance Private Cloud",
-    type: "Private",
-    lastBuildTime: "18.03.12 15:20",
-    lastBuildStatus: "Success",
-    lastBuilder: "Zhang San",
-    projects: ["1"],
-    customerId: "c1",
-  },
-  {
-    id: "d2",
-    name: "Online Environment",
-    type: "Public",
-    lastBuildTime: "19.03.21 10:30",
-    lastBuildStatus: "Idle",
-    lastBuilder: "Li Si",
-    projects: ["1", "2"],
-    customerId: "c2",
-  },
-  {
-    id: "d3",
-    name: "Test Environment",
-    type: "Hybrid",
-    lastBuildTime: "19.03.21 10:30",
-    lastBuildStatus: "Failed",
-    lastBuilder: "Wang Wu",
-    projects: ["2"],
-    customerId: "c2",
-  },
-];
+ 
 
 export const MOCK_TEMPLATES: ProjectTemplate[] = [
   {
