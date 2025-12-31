@@ -384,7 +384,7 @@ const TemplateDetailPage: React.FC = () => {
 
   const handleModuleConfig = (
     moduleId: string,
-    action: "ADD" | "EDIT" | "DELETE",
+    action: "EDIT" | "DELETE",
     config?: TemplateModuleConfig
   ) => {
     if (!currentVersion || !template) return;
@@ -397,12 +397,10 @@ const TemplateDetailPage: React.FC = () => {
         return m;
       });
       updateCurrentVersion({ ...currentVersion, modules: updatedModules });
-    } else {
+    } else if (action === "EDIT") {
       setActiveModuleId(moduleId);
       setEditingConfig(config);
       setModuleDrawerVisible(true);
-      // setModalMode("MODULE");
-      // setModalVisible(true);
     }
   };
 
@@ -804,7 +802,6 @@ const TemplateDetailPage: React.FC = () => {
                 modules={currentVersion.modules}
                 globalConfigs={currentVersion.globalConfigs}
                 onAddModule={handleAddModule}
-                onAddConfig={(mid) => handleModuleConfig(mid, "ADD")}
                 onEditConfig={(mid, c) => handleModuleConfig(mid, "EDIT", c)}
                 onDeleteConfig={(mid, cid) =>
                   handleModuleConfig(mid, "DELETE", { id: cid } as any)

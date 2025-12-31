@@ -14,7 +14,6 @@ const { Text } = Typography;
 interface ModuleTabsProps {
   modules: TemplateModule[];
   globalConfigs: TemplateGlobalConfig[];
-  onAddConfig: (moduleId: string) => void;
   onEditConfig: (moduleId: string, config: TemplateModuleConfig) => void;
   onDeleteConfig: (moduleId: string, configId: string) => void;
   onAddModule: () => void;
@@ -24,7 +23,6 @@ interface ModuleTabsProps {
 const ModuleTabs: React.FC<ModuleTabsProps> = ({
   modules,
   globalConfigs,
-  onAddConfig,
   onEditConfig,
   onDeleteConfig,
   onAddModule,
@@ -62,7 +60,8 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
             // Simple heuristic: if it looks like a UUID, maybe show "File ID: ..." or just the value
             // But user asked for "real target value"
             // If it's empty, show manual input placeholder
-            if (!r.mappingValue) return <Tag>{t.templateDetail.manualInput}</Tag>;
+            if (!r.mappingValue)
+              return <Tag>{t.templateDetail.manualInput}</Tag>;
             return <Text copyable>{r.mappingValue}</Text>;
           }
           return <Text code>{r.mappingValue}</Text>;
@@ -108,16 +107,6 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
 
     return (
       <div>
-        <div style={{ marginBottom: 12, textAlign: "right" }}>
-          <Button
-            size="small"
-            type="dashed"
-            icon={<PlusOutlined />}
-            onClick={() => onAddConfig(module.id)}
-          >
-            {t.templateDetail.addGlobalConfig}
-          </Button>
-        </div>
         <Table
           rowKey="id"
           columns={columns as any}
