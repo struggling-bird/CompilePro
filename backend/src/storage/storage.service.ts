@@ -193,6 +193,12 @@ export class StorageService {
       .getMany();
   }
 
+  async getFile(id: string): Promise<FileEntity> {
+    const file = await this.fileRepository.findOne({ where: { id } });
+    if (!file) throw new NotFoundException('File not found');
+    return file;
+  }
+
   async renameFile(
     id: string,
     name: string,

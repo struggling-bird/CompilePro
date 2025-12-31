@@ -88,6 +88,13 @@ export class StorageController {
     return this.storageService.listFiles(req.user.id, parentId);
   }
 
+  @Get('files/:id')
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: '获取文件详情' })
+  async getFile(@Param('id') id: string) {
+    return this.storageService.getFile(id);
+  }
+
   @Put('files/:id/rename')
   @UseGuards(AuthenticatedGuard)
   @ApiOperation({ summary: '重命名文件' })

@@ -104,6 +104,23 @@ export const deleteFile = async (id: string): Promise<void> => {
   });
 };
 
+export const getFile = async (id: string): Promise<FileItem> => {
+  const f = await request<any>(`/apis/storage/files/${id}`, {
+    method: "GET",
+  });
+  return {
+    id: f.id,
+    name: f.originalName,
+    type: f.isFolder ? "folder" : "file",
+    size: f.size,
+    updatedAt:
+      typeof f.updatedAt === "string" ? f.updatedAt : String(f.updatedAt),
+    extension: f.originalName.includes(".")
+      ? f.originalName.split(".").pop()?.toLowerCase()
+      : undefined,
+  };
+};
+
 export const updateQuota = async (
   total: number,
   warningThreshold: number

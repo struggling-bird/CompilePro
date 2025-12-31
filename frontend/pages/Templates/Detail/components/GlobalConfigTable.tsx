@@ -1,14 +1,26 @@
 import React, { useState } from "react";
-import { Table, Button, Space, Tag, Typography, Tooltip } from "antd";
+import {
+  Table,
+  Button,
+  Space,
+  Tag,
+  Typography,
+  Tooltip,
+  Modal,
+  Image,
+  Spin,
+} from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
   PlusOutlined,
   FullscreenOutlined,
   FullscreenExitOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { TemplateGlobalConfig } from "../../../../types";
 import styles from "../../styles/Detail.module.less";
+import { getFile, FileItem } from "../../../../services/storageAnalysis";
 
 import { useLanguage } from "../../../../contexts/LanguageContext";
 
@@ -31,6 +43,78 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
 }) => {
   const { t } = useLanguage();
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
+  const [previewContent, setPreviewContent] = useState<React.ReactNode>(null);
+  const [loadingFile, setLoadingFile] = useState(false);
+
+  const handlePreview = async (fileId: string) => {
+    setLoadingFile(true);
+    setPreviewVisible(true);
+    setPreviewContent(null);
+    setPreviewFile(null);
+    try {
+      const file = await getFile(fileId);
+      setPreviewFile(file);
+
+      const ext = file.extension?.toLowerCase();
+      const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
+
+      if (["png", "jpg", "jpeg", "gif"].includes(ext || "")) {
+        try {
+          const token = localStorage.getItem("token");
+          const res = await fetch(
+            `${BASE}/apis/storage/preview/${file.id}?w=800`,
+            {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            }
+          );
+
+          if (!res.ok) throw new Error("Failed to fetch image");
+
+          const blob = await res.blob();
+          const objectUrl = URL.createObjectURL(blob);
+
+          setPreviewContent(
+            <div className="flex justify-center">
+              <Image
+                src={objectUrl}
+                alt={file.name}
+                style={{ maxWidth: "100%" }}
+              />
+            </div>
+          );
+        } catch (err) {
+          console.error("Preview failed", err);
+          setPreviewContent(
+            <div className="text-red-500">
+              {t.settings?.previewNotAvailable || "Preview load failed"}
+            </div>
+          );
+        }
+      } else {
+        setPreviewContent(
+          <div className="text-center p-8">
+            <p>{t.settings?.previewNotAvailable || "Preview not available"}</p>
+            <Button
+              type="primary"
+              href={`${BASE}/apis/storage/download/${file.id}`}
+              target="_blank"
+            >
+              {t.settings?.download || "Download"}
+            </Button>
+          </div>
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      setPreviewContent(
+        <div className="text-red-500">Failed to load file info</div>
+      );
+    } finally {
+      setLoadingFile(false);
+    }
+  };
 
   const columns = [
     {
@@ -45,7 +129,17 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
       key: "defaultValue",
       render: (text: string, record: TemplateGlobalConfig) =>
         record.type === "FILE" ? (
-          <Tag color="blue">File</Tag>
+          <Space>
+            <Tag color="blue">File</Tag>
+            <Tooltip title={t.settings?.preview || "Preview"}>
+              <Button
+                type="text"
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={() => handlePreview(text)}
+              />
+            </Tooltip>
+          </Space>
         ) : (
           <Text copyable>{text}</Text>
         ),
@@ -134,6 +228,25 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
         size="small"
         locale={{ emptyText: t.templateDetail.noData }}
       />
+      <Modal
+        title={previewFile?.name || t.settings?.filePreview || "File Preview"}
+        open={previewVisible}
+        onCancel={() => setPreviewVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setPreviewVisible(false)}>
+            {t.settings?.close || "Close"}
+          </Button>,
+        ]}
+        width={800}
+      >
+        {loadingFile ? (
+          <div className="flex justify-center p-8">
+            <Spin size="large" />
+          </div>
+        ) : (
+          previewContent
+        )}
+      </Modal>
     </div>
   );
 };
