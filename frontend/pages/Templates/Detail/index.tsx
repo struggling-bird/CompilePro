@@ -411,7 +411,9 @@ const TemplateDetailPage: React.FC = () => {
 
     try {
       let mappingValue = "";
-      if (values.type === "TEXT") {
+      if (values.mappingType === "GLOBAL") {
+        mappingValue = values.mappingValue;
+      } else if (values.type === "TEXT") {
         mappingValue = values.textTarget || "";
       } else if (values.type === "FILE") {
         if (values.uploadedTargetFile) {
@@ -450,7 +452,7 @@ const TemplateDetailPage: React.FC = () => {
           description: values.description,
           fileLocation: values.fileOriginPath,
           regex: values.textOrigin || "",
-          mappingType: "MANUAL",
+          mappingType: values.mappingType || "MANUAL",
           mappingValue: mappingValue,
           isHidden: false,
         });
@@ -462,7 +464,7 @@ const TemplateDetailPage: React.FC = () => {
         description: values.description,
         fileLocation: values.fileOriginPath,
         regex: values.textOrigin || "",
-        mappingType: "MANUAL",
+        mappingType: values.mappingType || "MANUAL",
         mappingValue: mappingValue,
         isHidden: false,
         isSelected: true,
@@ -886,12 +888,17 @@ const TemplateDetailPage: React.FC = () => {
                     description: editingConfig.description,
                     textTarget: (editingConfig as TemplateModuleConfig)
                       .mappingValue,
+                    mappingType: (editingConfig as TemplateModuleConfig)
+                      .mappingType,
+                    mappingValue: (editingConfig as TemplateModuleConfig)
+                      .mappingValue,
                   }
                 : undefined
             }
             onClose={() => setModuleDrawerVisible(false)}
             onSave={handleModuleDrawerSave}
             enableTargetEdit={true}
+            globalConfigs={currentVersion.globalConfigs}
           />
         </>
       )}

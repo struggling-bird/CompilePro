@@ -43,6 +43,8 @@ export interface VersionConfig {
   fileOriginPath?: string;
   description?: string;
   textTarget?: string;
+  mappingType?: "GLOBAL" | "MANUAL" | "FIXED";
+  mappingValue?: string;
 }
 
 export interface DeploymentConfig {

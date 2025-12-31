@@ -11,7 +11,7 @@ import {
   Form,
 } from "antd";
 import { SaveOutlined } from "@ant-design/icons";
-import { VersionConfig } from "@/types";
+import { VersionConfig, TemplateGlobalConfig } from "@/types";
 import { listProjectFiles, getFileContent } from "@/services/metaprojects";
 import TextReplacePanel from "./TextReplacePanel";
 import FileReplacePanel from "./FileReplacePanel";
@@ -25,6 +25,7 @@ interface ConfigEditorDrawerProps {
   onClose: () => void;
   onSave: (values: any) => Promise<void>;
   enableTargetEdit?: boolean;
+  globalConfigs?: TemplateGlobalConfig[];
 }
 
 const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
@@ -34,6 +35,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   onClose,
   onSave,
   enableTargetEdit,
+  globalConfigs = [],
 }) => {
   const [activeTab, setActiveTab] = useState("TEXT");
   const [treeData, setTreeData] = useState<any[]>([]);
@@ -220,6 +222,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
             regexPattern={regexPattern}
             isTargetEditEnabled={isTargetEditEnabled}
             onMatchCountChange={setMatchCount}
+            globalConfigs={globalConfigs}
           />
         );
       case "FILE":
@@ -232,6 +235,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
             imagePreviewUrl={imagePreviewUrl}
             onUploadedTargetFileChange={setUploadedTargetFile}
             onTargetImagePreviewUrlChange={setTargetImagePreviewUrl}
+            globalConfigs={globalConfigs}
           />
         );
       default:

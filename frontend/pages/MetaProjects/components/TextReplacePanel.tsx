@@ -1,5 +1,6 @@
 import React from "react";
-import { Form, Input, InputNumber, Row, Col, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Radio, Select, Spin } from "antd";
+import { TemplateGlobalConfig } from "@/types";
 import FilePreview from "@/components/FilePreview";
 
 interface TextReplacePanelProps {
@@ -12,9 +13,11 @@ interface TextReplacePanelProps {
   regexPattern: string;
   isTargetEditEnabled: boolean;
   onMatchCountChange: (count: number) => void;
+  globalConfigs?: TemplateGlobalConfig[];
 }
 
 const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
+  form,
   fileContent,
   selectedFile,
   loadingContent,
@@ -23,7 +26,13 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
   regexPattern,
   isTargetEditEnabled,
   onMatchCountChange,
+  globalConfigs = [],
 }) => {
+  const mappingType = Form.useWatch("mappingType", {
+    form: form,
+    preserve: true,
+  });
+
   return (
     <div
       style={{
@@ -85,13 +94,57 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
           </Col>
         </Row>
         {isTargetEditEnabled && (
-          <Row gutter={8}>
-            <Col span={24}>
-              <Form.Item name="textTarget" label="替换目标值">
-                <Input placeholder="Replacement Value" />
-              </Form.Item>
-            </Col>
-          </Row>
+          <div
+            style={{
+              marginTop: 8,
+              borderTop: "1px dashed #eee",
+              paddingTop: 8,
+            }}
+          >
+            <Form.Item
+              name="mappingType"
+              label="映射类型"
+              initialValue="MANUAL"
+              style={{ marginBottom: 8 }}
+            >
+              <Radio.Group>
+                <Radio value="MANUAL">手动输入</Radio>
+                <Radio value="GLOBAL">全局配置</Radio>
+              </Radio.Group>
+            </Form.Item>
+
+            <Form.Item
+              noStyle
+              shouldUpdate={(prev, curr) =>
+                prev.mappingType !== curr.mappingType
+              }
+            >
+              {({ getFieldValue }) => {
+                const type = getFieldValue("mappingType");
+                return type === "GLOBAL" ? (
+                  <Form.Item
+                    name="mappingValue"
+                    label="选择全局配置"
+                    rules={[{ required: true, message: "请选择全局配置" }]}
+                  >
+                    <Select placeholder="选择一个全局文本配置">
+                      {globalConfigs
+                        .filter((c) => c.type === "TEXT")
+                        .map((c) => (
+                          <Select.Option key={c.id} value={c.id}>
+                            {c.name} ({c.defaultValue})
+                          </Select.Option>
+                        ))}
+                    </Select>
+                  </Form.Item>
+                ) : (
+                  <Form.Item name="textTarget" label="替换目标值">
+                    <Input placeholder="Replacement Value" />
+                  </Form.Item>
+                );
+              }}
+            </Form.Item>
+          </div>
         )}
       </div>
       <div
