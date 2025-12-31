@@ -1,11 +1,18 @@
-import React from "react";
-import { Table, Button, Switch, Space, Tag, Typography } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
+import { Table, Button, Space, Tag, Typography, Tooltip } from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  FullscreenOutlined,
+  FullscreenExitOutlined,
+} from "@ant-design/icons";
 import { TemplateGlobalConfig } from "../../../../types";
+import styles from "../../styles/Detail.module.less";
 
 import { useLanguage } from "../../../../contexts/LanguageContext";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 interface GlobalConfigTableProps {
   configs: TemplateGlobalConfig[];
@@ -23,6 +30,7 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
   usageCounts,
 }) => {
   const { t } = useLanguage();
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const columns = [
     {
@@ -84,28 +92,45 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
   ];
 
   return (
-    <div>
+    <div className={isFullScreen ? styles.fullScreen : ""}>
       <div
         style={{
-          marginBottom: 8,
+          marginBottom: 16,
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <Button
-          size="small"
-          type="dashed"
-          icon={<PlusOutlined />}
-          onClick={onAdd}
-        >
-          {t.templateDetail.addGlobalConfig}
-        </Button>
+        <Title level={5} style={{ margin: 0 }}>
+          {t.templateDetail.globalConfigTitle}
+        </Title>
+        <Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
+            {t.templateDetail.addGlobalConfig}
+          </Button>
+          <Tooltip title={isFullScreen ? "Exit Fullscreen" : "Fullscreen"}>
+            <Button
+              icon={
+                isFullScreen ? (
+                  <FullscreenExitOutlined />
+                ) : (
+                  <FullscreenOutlined />
+                )
+              }
+              onClick={() => setIsFullScreen(!isFullScreen)}
+            />
+          </Tooltip>
+        </Space>
       </div>
       <Table
         rowKey="id"
         columns={columns as any}
         dataSource={configs}
-        pagination={false}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Total ${total} items`,
+        }}
         size="small"
         locale={{ emptyText: t.templateDetail.noData }}
       />

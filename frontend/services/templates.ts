@@ -84,3 +84,22 @@ export const deleteTemplate = async (id: string) => {
     method: "DELETE",
   });
 };
+
+export const addGlobalConfig = async (versionId: string, payload: any) => {
+  return request(`/apis/templates/versions/${versionId}/global-configs`, {
+    method: "POST",
+    data: payload,
+  });
+};
+
+export const getGlobalConfigs = async (versionId: string) => {
+  return request(`/apis/templates/versions/${versionId}/global-configs`, {
+    method: "GET",
+  });
+};
+
+export const deleteGlobalConfig = async (configId: string) => {
+  return request(`/apis/templates/global-configs/${configId}`, {
+    method: "DELETE",
+  });
+};

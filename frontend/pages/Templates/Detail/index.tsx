@@ -16,7 +16,6 @@ import {
   BranchesOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import { MOCK_TEMPLATES } from "../../../constants";
 import {
   ProjectTemplate,
   TemplateVersion,
@@ -39,6 +38,9 @@ import {
   getTemplateDetail,
   getTemplateVersions,
   updateTemplate,
+  addGlobalConfig,
+  getGlobalConfigs,
+  deleteGlobalConfig,
 } from "../../../services/templates";
 
 const { Title, Text } = Typography;
@@ -153,6 +155,25 @@ const TemplateDetailPage: React.FC = () => {
 
     fetchData();
   }, [templateId]);
+
+  useEffect(() => {
+    const fetchGlobalConfigs = async () => {
+      if (currentVersionId && template) {
+        try {
+          const res: any = await getGlobalConfigs(currentVersionId);
+          const configs = res.data || res;
+
+          const newVersions = template.versions.map((v) =>
+            v.id === currentVersionId ? { ...v, globalConfigs: configs } : v
+          );
+          setTemplate({ ...template, versions: newVersions });
+        } catch (e) {
+          console.error("Failed to fetch global configs", e);
+        }
+      }
+    };
+    fetchGlobalConfigs();
+  }, [currentVersionId]);
 
   const currentVersion = useMemo(() => {
     return template?.versions.find((v) => v.id === currentVersionId);
@@ -302,10 +323,26 @@ const TemplateDetailPage: React.FC = () => {
     if (!currentVersion || !template) return;
 
     if (action === "DELETE" && config) {
-      const updatedGlobal = currentVersion.globalConfigs.filter(
-        (c) => c.id !== config.id
-      );
-      updateCurrentVersion({ ...currentVersion, globalConfigs: updatedGlobal });
+      Modal.confirm({
+        title: "Confirm Delete",
+        content: "Are you sure you want to delete this global config?",
+        onOk: async () => {
+          try {
+            await deleteGlobalConfig(config.id);
+            const updatedGlobal = currentVersion.globalConfigs.filter(
+              (c) => c.id !== config.id
+            );
+            updateCurrentVersion({
+              ...currentVersion,
+              globalConfigs: updatedGlobal,
+            });
+            message.success("Global config deleted");
+          } catch (e) {
+            console.error(e);
+            message.error("Failed to delete global config");
+          }
+        },
+      });
     } else {
       setModalMode("GLOBAL");
       setEditingConfig(config);
@@ -336,28 +373,44 @@ const TemplateDetailPage: React.FC = () => {
     }
   };
 
-  const handleSaveModal = (values: any) => {
+  const handleSaveModal = async (values: any) => {
     if (!currentVersion) return;
 
     if (modalMode === "GLOBAL") {
-      const newConfig = {
-        ...values,
-        id: editingConfig?.id || `g${Date.now()}`,
-      };
-      let newGlobalConfigs = [...currentVersion.globalConfigs];
-      if (editingConfig?.id) {
-        newGlobalConfigs = newGlobalConfigs.map((c) =>
-          c.id === editingConfig.id ? newConfig : c
-        );
-      } else {
-        newGlobalConfigs.push(newConfig);
+      try {
+        if (editingConfig?.id) {
+          // Update Logic (Pending implementation for Update API)
+          const newConfig = {
+            ...values,
+            id: editingConfig.id,
+          };
+          // ... update logic
+        } else {
+          // Add Logic
+          const res: any = await addGlobalConfig(currentVersion.id, {
+            name: values.name,
+            type: values.type,
+            defaultValue: values.defaultValue,
+            description: values.description,
+            isHidden: values.isHidden,
+          });
+
+          const newConfig = res.data || res;
+          const newGlobalConfigs = [...currentVersion.globalConfigs, newConfig];
+
+          updateCurrentVersion({
+            ...currentVersion,
+            globalConfigs: newGlobalConfigs,
+          });
+          message.success("Global config added successfully");
+        }
+      } catch (e) {
+        console.error(e);
+        message.error("Failed to save global config");
       }
-      updateCurrentVersion({
-        ...currentVersion,
-        globalConfigs: newGlobalConfigs,
-      });
     } else {
       if (!activeModuleId) return;
+      // ... existing module logic ...
       const newConfig = {
         ...values,
         id: editingConfig?.id || `c${Date.now()}`,
@@ -531,9 +584,6 @@ const TemplateDetailPage: React.FC = () => {
       {currentVersion && (
         <>
           <div className={styles.section}>
-            <div className={styles.sectionTitle}>
-              <span>{t.templateDetail.globalConfigTitle}</span>
-            </div>
             <div className={styles.configTable}>
               <GlobalConfigTable
                 configs={currentVersion.globalConfigs}
