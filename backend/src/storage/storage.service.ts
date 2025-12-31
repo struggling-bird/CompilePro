@@ -15,7 +15,12 @@ import sharp from 'sharp';
 import type { Readable } from 'stream';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import 'multer';
-import { createHash, randomBytes, createCipheriv } from 'crypto';
+import {
+  createHash,
+  randomBytes,
+  createCipheriv,
+  createDecipheriv,
+} from 'crypto';
 import { AuditService } from '../audit/audit.service';
 import { StorageConfigService } from '../storage-config/storage-config.service';
 import { UsersService } from '../users/users.service';
@@ -315,7 +320,24 @@ export class StorageService {
 
     const strategy = this.strategyResolver.resolve(file.storageType);
     const { stream } = await strategy.download(file.path);
-    const input = await this.readStreamToBuffer(stream);
+    let input = await this.readStreamToBuffer(stream);
+
+    if (file.isEncrypted) {
+      if (!file.encryptionIv) {
+        throw new BadRequestException('Missing encryption IV');
+      }
+      const keyHex = await this.storageConfig.get<string>(
+        'STORAGE_ENCRYPTION_KEY',
+      );
+      if (!keyHex) {
+        throw new BadRequestException('Encryption key not configured');
+      }
+      const key = Buffer.from(keyHex, 'hex');
+      const iv = Buffer.from(file.encryptionIv, 'hex');
+      const decipher = createDecipheriv('aes-256-ctr', key, iv);
+      input = Buffer.concat([decipher.update(input), decipher.final()]);
+    }
+
     const buffer = await sharp(input)
       .resize(width, height)
       .webp({ quality: await this.previewQuality() })
