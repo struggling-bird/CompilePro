@@ -10,6 +10,7 @@ import { TemplateModuleConfig } from './entities/template-module-config.entity';
 import { User } from '../users/user.entity';
 import { StorageModule } from '../storage/storage.module';
 import { FileEntity } from '../storage/file.entity';
+import { MetaprojectsModule } from '../metaprojects/metaprojects.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { FileEntity } from '../storage/file.entity';
       FileEntity,
     ]),
     StorageModule,
+    MetaprojectsModule,
   ],
   controllers: [TemplatesController],
   providers: [TemplatesService],

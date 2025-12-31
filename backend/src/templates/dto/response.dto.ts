@@ -144,6 +144,11 @@ export class ModuleResponseDto extends ApiResponseDto<TemplateModule> {
   declare data: TemplateModule;
 }
 
+export class ModuleListResponseDto extends ApiResponseDto<TemplateModule[]> {
+  @ApiProperty({ type: [TemplateModule] })
+  declare data: TemplateModule[];
+}
+
 export class ModuleConfigResponseDto extends ApiResponseDto<TemplateModuleConfig> {
   @ApiProperty({ type: TemplateModuleConfig })
   declare data: TemplateModuleConfig;

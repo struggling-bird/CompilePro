@@ -46,6 +46,7 @@ import {
   TemplateVersionListResponseDto,
   GlobalConfigListResponseDto,
   ModuleConfigListResponseDto,
+  ModuleListResponseDto,
   VersionDocsResponseDto,
 } from './dto/response.dto';
 // Removed local ApiResponseInterceptor to avoid double wrapping (global already applied)
@@ -238,6 +239,18 @@ export class TemplatesController {
   }
 
   // --- Module Endpoints ---
+
+  @Get('versions/:versionId/modules')
+  @ApiOperation({ summary: '查询版本下的模块列表' })
+  @ApiParam({ name: 'versionId', description: '版本ID' })
+  @ApiResponse({
+    status: 200,
+    description: '成功',
+    type: ModuleListResponseDto,
+  })
+  listModules(@Param('versionId') versionId: string) {
+    return this.templatesService.listModules(versionId);
+  }
 
   @Post('versions/:versionId/modules')
   @ApiOperation({ summary: '添加模块' })

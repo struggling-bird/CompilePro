@@ -33,6 +33,8 @@ import {
 } from './dto/create-module-config.dto';
 import { TemplateListQueryDto } from './dto/list-query.dto';
 import type { TemplateListItemSimple } from './dto/response.dto';
+import { MetaprojectsService } from '../metaprojects/metaprojects.service';
+import { MappingType } from './entities/template-module-config.entity';
 
 @Injectable()
 export class TemplatesService {
@@ -50,6 +52,7 @@ export class TemplatesService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly storageService: StorageService,
+    private readonly metaprojectsService: MetaprojectsService,
   ) {}
 
   async create(
@@ -389,6 +392,13 @@ export class TemplatesService {
 
   // --- Module Methods ---
 
+  async listModules(versionId: string): Promise<TemplateModule[]> {
+    return this.moduleRepository.find({
+      where: { versionId },
+      relations: ['configs'],
+    });
+  }
+
   async addModule(
     versionId: string,
     createModuleDto: CreateModuleDto,
@@ -399,16 +409,52 @@ export class TemplatesService {
     if (!version)
       throw new NotFoundException(`Version with ID ${versionId} not found`);
 
-    const { configs, ...moduleData } = createModuleDto;
+    // Fetch meta project version details
+    const metaVersion =
+      await this.metaprojectsService.findVersionByProjectAndName(
+        createModuleDto.projectId,
+        createModuleDto.projectVersion,
+      );
+    if (!metaVersion) {
+      throw new NotFoundException(
+        `MetaProject version ${createModuleDto.projectVersion} not found for project ${createModuleDto.projectId}`,
+      );
+    }
+
+    const { configs, projectName, ...moduleData } = createModuleDto;
+
+    // Use provided projectName or fallback to meta project name
+    const finalProjectName = projectName || metaVersion.project.name;
+
     const module = this.moduleRepository.create({
       ...moduleData,
+      projectName: finalProjectName,
       version,
     });
 
     const savedModule = await this.moduleRepository.save(module);
 
-    // If configs provided in create DTO, create them
-    if (configs && configs.length > 0) {
+    // Sync configs from meta project
+    if (metaVersion.configs && metaVersion.configs.length > 0) {
+      const configEntities = metaVersion.configs.map((c) =>
+        this.moduleConfigRepository.create({
+          name: c.name,
+          fileLocation: c.fileOriginPath || '',
+          mappingType: MappingType.MANUAL,
+          mappingValue: '',
+          regex: c.textOrigin || '',
+          description: c.description || '',
+          isHidden: false,
+          isSelected: true,
+          module: savedModule,
+        }),
+      );
+      await this.moduleConfigRepository.save(configEntities);
+      savedModule.configs = configEntities;
+    } else if (configs && configs.length > 0) {
+      // Fallback to provided configs if meta has none (or keep original logic for manual override if needed)
+      // But user requested automatic sync, so meta configs take precedence or are the source of truth.
+      // If meta has no configs, we might check if DTO provided some (unlikely if following new flow)
       const configEntities = configs.map((c) =>
         this.moduleConfigRepository.create({
           ...c,

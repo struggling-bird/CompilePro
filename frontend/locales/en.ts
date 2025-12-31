@@ -387,6 +387,7 @@ export default {
     versionType: "Version Type",
     versionNumber: "Version Number",
     versionDesc: "Description",
+    createdAt: "CREATED AT",
     types: {
       Major: "Major",
       Minor: "Minor",

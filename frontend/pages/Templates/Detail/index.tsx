@@ -21,7 +21,6 @@ import {
   TemplateVersion,
   TemplateGlobalConfig,
   TemplateModuleConfig,
-  TemplateModule,
 } from "../../../types";
 import VersionTimeline from "./components/VersionTimeline";
 import GlobalConfigTable from "./components/GlobalConfigTable";
@@ -30,6 +29,8 @@ import ConfigForm from "./components/ConfigForm";
 import VersionCreationModal, {
   VersionCreationValues,
 } from "./components/VersionCreationModal";
+import AddModuleModal from "./components/AddModuleModal";
+import SwitchModuleVersionModal from "./components/SwitchModuleVersionModal";
 import styles from "../styles/Detail.module.less";
 import dayjs from "dayjs";
 import { useLanguage } from "../../../contexts/LanguageContext";
@@ -41,7 +42,10 @@ import {
   addGlobalConfig,
   getGlobalConfigs,
   deleteGlobalConfig,
+  addModule,
+  listModules,
 } from "../../../services/templates";
+import { listConfigs } from "../../../services/metaprojects";
 
 const { Title, Text } = Typography;
 
@@ -91,6 +95,14 @@ const TemplateDetailPage: React.FC = () => {
   const [versionModalVisible, setVersionModalVisible] = useState(false);
   // Version Drawer State
   const [versionDrawerOpen, setVersionDrawerOpen] = useState(false);
+
+  // Add Module Modal
+  const [addModuleModalVisible, setAddModuleModalVisible] = useState(false);
+  // Switch Module Version Modal
+  const [switchModalVisible, setSwitchModalVisible] = useState(false);
+  const [switchTargetModuleId, setSwitchTargetModuleId] = useState<
+    string | undefined
+  >(undefined);
 
   useEffect(() => {
     const isNew = !templateId || templateId === "new";
@@ -157,22 +169,38 @@ const TemplateDetailPage: React.FC = () => {
   }, [templateId]);
 
   useEffect(() => {
-    const fetchGlobalConfigs = async () => {
+    const fetchData = async () => {
       if (currentVersionId && template) {
         try {
-          const res: any = await getGlobalConfigs(currentVersionId);
-          const configs = res.data || res;
+          const [globalConfigsRes, modulesRes] = await Promise.all([
+            getGlobalConfigs(currentVersionId),
+            listModules(currentVersionId),
+          ]);
+          const globalConfigs =
+            (globalConfigsRes as any).data || globalConfigsRes;
+          const modules = (modulesRes as any).data || modulesRes;
 
-          const newVersions = template.versions.map((v) =>
-            v.id === currentVersionId ? { ...v, globalConfigs: configs } : v
-          );
-          setTemplate({ ...template, versions: newVersions });
+          // Ensure configs property exists and map if necessary
+          const mappedModules = (modules || []).map((m: any) => ({
+            ...m,
+            configs: m.configs || [],
+          }));
+
+          setTemplate((prev) => {
+            if (!prev) return null;
+            const newVersions = prev.versions.map((v) =>
+              v.id === currentVersionId
+                ? { ...v, globalConfigs, modules: mappedModules }
+                : v
+            );
+            return { ...prev, versions: newVersions };
+          });
         } catch (e) {
-          console.error("Failed to fetch global configs", e);
+          console.error("Failed to fetch version details", e);
         }
       }
     };
-    fetchGlobalConfigs();
+    fetchData();
   }, [currentVersionId]);
 
   const currentVersion = useMemo(() => {
@@ -380,10 +408,6 @@ const TemplateDetailPage: React.FC = () => {
       try {
         if (editingConfig?.id) {
           // Update Logic (Pending implementation for Update API)
-          const newConfig = {
-            ...values,
-            id: editingConfig.id,
-          };
           // ... update logic
         } else {
           // Add Logic
@@ -443,19 +467,103 @@ const TemplateDetailPage: React.FC = () => {
   };
 
   const handleAddModule = () => {
+    setAddModuleModalVisible(true);
+  };
+
+  const inheritConfigsFromMeta = (
+    rawConfigs: any[]
+  ): TemplateModuleConfig[] => {
+    return (rawConfigs || []).map((cfg: any) => ({
+      id: cfg.id || `c${Date.now()}`,
+      name: cfg.name || "",
+      fileLocation: cfg.fileOriginPath || "",
+      mappingType: "MANUAL",
+      mappingValue: "",
+      regex: cfg.textOrigin || "",
+      description: cfg.description || "",
+      isHidden: false,
+      isSelected: true,
+    }));
+  };
+
+  const handleConfirmAddModule = async (payload: {
+    projectId: string;
+    projectName: string;
+    versionId: string;
+    versionName: string;
+  }) => {
     if (!currentVersion) return;
-    const newModule: TemplateModule = {
-      id: `m${Date.now()}`,
-      projectId: "new",
-      projectName: "New Meta Project",
-      projectVersion: "1.0.0",
-      publishMethod: "GIT",
-      configs: [],
-    };
-    updateCurrentVersion({
-      ...currentVersion,
-      modules: [...currentVersion.modules, newModule],
-    });
+    try {
+      const res: any = await addModule(currentVersion.id, {
+        projectId: payload.projectId,
+        // projectName: payload.projectName,
+        projectVersion: payload.versionName,
+        publishMethod: "GIT",
+      });
+
+      // The backend adds the module and syncs configs, returning the saved module.
+      // We assume res or res.data is the module object.
+      const newModule = res.data || res;
+
+      // If newModule doesn't have configs populated in response (though it should),
+      // we might need to fetch them or rely on what backend returns.
+      // Assuming backend returns { ...module, configs: [...] }
+
+      updateCurrentVersion({
+        ...currentVersion,
+        modules: [...currentVersion.modules, newModule],
+      });
+      message.success(
+        t.templateDetail.add + " " + t.templateDetail.moduleConfigTitle
+      );
+    } catch (e) {
+      console.error(e);
+      message.error("Failed to add module");
+    } finally {
+      setAddModuleModalVisible(false);
+    }
+  };
+
+  const handleSwitchVersionOpen = (moduleId: string) => {
+    setSwitchTargetModuleId(moduleId);
+    setSwitchModalVisible(true);
+  };
+
+  const handleSwitchVersionConfirm = async (payload: {
+    versionId: string;
+    versionName: string;
+  }) => {
+    if (!currentVersion || !switchTargetModuleId) return;
+    try {
+      const targetModule = currentVersion.modules.find(
+        (m) => m.id === switchTargetModuleId
+      );
+      if (!targetModule) return;
+      const configsResp: any = await listConfigs(
+        targetModule.projectId,
+        payload.versionId
+      );
+      const configs = configsResp.list || configsResp.data || configsResp || [];
+      const moduleConfigs = inheritConfigsFromMeta(configs);
+
+      const updatedModules = currentVersion.modules.map((m) =>
+        m.id === switchTargetModuleId
+          ? {
+              ...m,
+              projectVersion: payload.versionName,
+              configs: moduleConfigs,
+            }
+          : m
+      );
+      updateCurrentVersion({ ...currentVersion, modules: updatedModules });
+      message.success("Version updated");
+    } catch (e) {
+      console.error(e);
+      message.error("Failed to switch version");
+    } finally {
+      setSwitchModalVisible(false);
+      setSwitchTargetModuleId(undefined);
+    }
   };
 
   const handleStartEdit = () => {
@@ -609,6 +717,7 @@ const TemplateDetailPage: React.FC = () => {
                 onDeleteConfig={(mid, cid) =>
                   handleModuleConfig(mid, "DELETE", { id: cid } as any)
                 }
+                onSwitchVersion={handleSwitchVersionOpen}
               />
             </div>
           </div>
@@ -687,6 +796,31 @@ const TemplateDetailPage: React.FC = () => {
           isParentTerminal={
             !currentVersion?.children?.some((c) => c.versionType !== "Branch")
           }
+        />
+      )}
+
+      <AddModuleModal
+        visible={addModuleModalVisible}
+        onCancel={() => setAddModuleModalVisible(false)}
+        onAdd={handleConfirmAddModule}
+      />
+
+      {switchTargetModuleId && (
+        <SwitchModuleVersionModal
+          visible={switchModalVisible}
+          projectId={
+            currentVersion?.modules.find((m) => m.id === switchTargetModuleId)
+              ?.projectId || ""
+          }
+          currentVersionName={
+            currentVersion?.modules.find((m) => m.id === switchTargetModuleId)
+              ?.projectVersion || ""
+          }
+          onCancel={() => {
+            setSwitchModalVisible(false);
+            setSwitchTargetModuleId(undefined);
+          }}
+          onSwitch={handleSwitchVersionConfirm}
         />
       )}
     </div>

@@ -119,7 +119,8 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
         date: "2022.01.01",
         status: "Active",
         readme: "## Version 1.0.0\nInitial release of the standard suite.",
-        buildDoc: "## Build Instructions\nRun `npm install` followed by `npm run build`.",
+        buildDoc:
+          "## Build Instructions\nRun `npm install` followed by `npm run build`.",
         updateDoc: "## Update Notes\nNo breaking changes.",
         globalConfigs: [
           {
@@ -129,6 +130,7 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
             description: "Main Platform Domain",
             isHidden: false,
             type: "TEXT",
+            createdAt: "2023-01-01",
           },
           {
             id: "g2",
@@ -137,6 +139,7 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
             description: "Logo File",
             isHidden: true,
             type: "FILE",
+            createdAt: "2023-01-01",
           },
         ],
         modules: [
@@ -186,6 +189,7 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
             description: "Main Platform Domain",
             isHidden: false,
             type: "TEXT",
+            createdAt: "2023-01-01",
           },
           {
             id: "g2",
@@ -194,6 +198,7 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
             description: "Logo File",
             isHidden: true,
             type: "FILE",
+            createdAt: "2023-01-01",
           },
         ],
         modules: [

@@ -17,10 +17,10 @@ export class CreateModuleDto {
   @IsNotEmpty()
   projectId: string;
 
-  @ApiProperty({ description: '项目名称' })
+  @ApiProperty({ description: '项目名称', required: false })
   @IsString()
-  @IsNotEmpty()
-  projectName: string;
+  @IsOptional()
+  projectName?: string;
 
   @ApiProperty({ description: '项目版本' })
   @IsString()

@@ -385,6 +385,7 @@ export default {
     versionType: "版本类型",
     versionNumber: "版本号",
     versionDesc: "版本说明",
+    createdAt: "创建时间",
     types: {
       Major: "大版本 (Major)",
       Minor: "中版本 (Minor)",

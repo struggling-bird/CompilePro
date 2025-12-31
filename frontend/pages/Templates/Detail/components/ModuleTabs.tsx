@@ -17,7 +17,8 @@ interface ModuleTabsProps {
   onAddConfig: (moduleId: string) => void;
   onEditConfig: (moduleId: string, config: TemplateModuleConfig) => void;
   onDeleteConfig: (moduleId: string, configId: string) => void;
-  onAddModule: () => void; // Placeholder for adding a new meta-project module
+  onAddModule: () => void;
+  onSwitchVersion: (moduleId: string) => void;
 }
 
 const ModuleTabs: React.FC<ModuleTabsProps> = ({
@@ -27,6 +28,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
   onEditConfig,
   onDeleteConfig,
   onAddModule,
+  onSwitchVersion,
 }) => {
   const { t } = useLanguage();
 
@@ -119,7 +121,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
 
   const items = modules.map((m) => ({
     key: m.id,
-    label: `${m.projectName} (v${m.projectVersion})`,
+    label: `${m.projectName} (${m.projectVersion})`,
     children: renderConfigs(m),
   }));
 
@@ -127,6 +129,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
     <div>
       <Tabs
         type="card"
+        onTabClick={(key) => onSwitchVersion(key)}
         items={items}
         tabBarExtraContent={
           <Button

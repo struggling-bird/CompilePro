@@ -98,6 +98,13 @@ export class MetaprojectsService {
     return { list: withLatest, total };
   }
 
+  async findVersionByProjectAndName(projectId: string, version: string) {
+    return this.versions.findOne({
+      where: { project: { id: projectId }, version },
+      relations: ['configs', 'project'],
+    });
+  }
+
   private async VLatestOfProject(projectId: string) {
     return this.versions
       .createQueryBuilder('v')

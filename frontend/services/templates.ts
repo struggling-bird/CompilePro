@@ -103,3 +103,24 @@ export const deleteGlobalConfig = async (configId: string) => {
     method: "DELETE",
   });
 };
+
+export const addModule = async (
+  versionId: string,
+  payload: {
+    projectId: string;
+    projectName?: string;
+    projectVersion: string;
+    publishMethod?: string;
+  }
+) => {
+  return request(`/apis/templates/versions/${versionId}/modules`, {
+    method: "POST",
+    data: payload,
+  });
+};
+
+export const listModules = async (versionId: string) => {
+  return request(`/apis/templates/versions/${versionId}/modules`, {
+    method: "GET",
+  });
+};
