@@ -55,7 +55,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
               rules={[{ required: true, message: "请输入配置名称" }]}
               style={{ marginBottom: 6 }}
             >
-              <Input placeholder="Config Name" />
+              <Input placeholder="Config Name" disabled={isTargetEditEnabled} />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -64,7 +64,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
               label="配置描述"
               style={{ marginBottom: 6 }}
             >
-              <Input placeholder="Description" />
+              <Input placeholder="Description" disabled={isTargetEditEnabled} />
             </Form.Item>
           </Col>
 
@@ -75,7 +75,10 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
               rules={[{ required: true, message: "请输入正则表达式" }]}
               style={{ marginBottom: 6 }}
             >
-              <Input placeholder="/pattern/flags" />
+              <Input
+                placeholder="/pattern/flags"
+                disabled={isTargetEditEnabled}
+              />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -89,6 +92,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
                 min={0}
                 max={matchCount > 0 ? matchCount - 1 : 0}
                 style={{ width: "100%" }}
+                disabled={isTargetEditEnabled}
               />
             </Form.Item>
           </Col>

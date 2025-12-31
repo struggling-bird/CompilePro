@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Form, Input, Row, Col, Upload, Button, Tooltip, Radio, Select } from "antd";
+import {
+  Form,
+  Input,
+  Row,
+  Col,
+  Upload,
+  Button,
+  Tooltip,
+  Radio,
+  Select,
+} from "antd";
 import { DeleteOutlined, PaperClipOutlined } from "@ant-design/icons";
 import { TemplateGlobalConfig } from "@/types";
 
@@ -43,7 +53,7 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
             label="配置名称"
             rules={[{ required: true, message: "请输入配置名称" }]}
           >
-            <Input placeholder="Config Name" />
+            <Input placeholder="Config Name" disabled={isTargetEditEnabled} />
           </Form.Item>
         </Col>
         <Col span={24}>
@@ -53,13 +63,15 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
         </Col>
         <Col span={24}>
           <Form.Item name="description" label="配置描述">
-            <Input placeholder="Description" />
+            <Input placeholder="Description" disabled={isTargetEditEnabled} />
           </Form.Item>
         </Col>
       </Row>
 
       {isTargetEditEnabled && (
-        <div style={{ marginTop: 8, borderTop: "1px dashed #eee", paddingTop: 8 }}>
+        <div
+          style={{ marginTop: 8, borderTop: "1px dashed #eee", paddingTop: 8 }}
+        >
           <Form.Item
             name="mappingType"
             label="映射类型"
@@ -155,7 +167,9 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
                             <Button
                               type="text"
                               size="small"
-                              icon={<DeleteOutlined style={{ color: "#ff4d4f" }} />}
+                              icon={
+                                <DeleteOutlined style={{ color: "#ff4d4f" }} />
+                              }
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onUploadedTargetFileChange(null);
@@ -185,7 +199,9 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
                               borderRadius: 8,
                             }}
                           >
-                            <PaperClipOutlined style={{ fontSize: 24, color: "#999" }} />
+                            <PaperClipOutlined
+                              style={{ fontSize: 24, color: "#999" }}
+                            />
                             <div style={{ marginTop: 8, color: "#666" }}>
                               {uploadedTargetFile.name}
                             </div>
@@ -197,7 +213,9 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
                         <p className="ant-upload-drag-icon">
                           <PaperClipOutlined />
                         </p>
-                        <p className="ant-upload-text">Click or drag file to upload replacement</p>
+                        <p className="ant-upload-text">
+                          Click or drag file to upload replacement
+                        </p>
                       </div>
                     )}
                   </Dragger>
