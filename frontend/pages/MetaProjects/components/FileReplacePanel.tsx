@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -9,9 +9,11 @@ import {
   Tooltip,
   Radio,
   Select,
+  Card,
 } from "antd";
 import { DeleteOutlined, PaperClipOutlined } from "@ant-design/icons";
 import { TemplateGlobalConfig } from "@/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const { Dragger } = Upload;
 
@@ -37,12 +39,43 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
   globalConfigs = [],
 }) => {
   const [isTargetPreviewHover, setIsTargetPreviewHover] = useState(false);
+  const { t } = useLanguage();
+  const [originSize, setOriginSize] = useState<{ w: number; h: number } | null>(
+    null
+  );
+  const [targetSize, setTargetSize] = useState<{ w: number; h: number } | null>(
+    null
+  );
 
   const ext = selectedFile?.split(".").pop()?.toLowerCase();
   const isImageExt = (e?: string) =>
     ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
       (e || "").toLowerCase()
     );
+
+  useEffect(() => {
+    if (imagePreviewUrl) {
+      const img = new Image();
+      img.onload = () =>
+        setOriginSize({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = () => setOriginSize(null);
+      img.src = imagePreviewUrl;
+    } else {
+      setOriginSize(null);
+    }
+  }, [imagePreviewUrl]);
+
+  useEffect(() => {
+    if (targetImagePreviewUrl) {
+      const img = new Image();
+      img.onload = () =>
+        setTargetSize({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = () => setTargetSize(null);
+      img.src = targetImagePreviewUrl;
+    } else {
+      setTargetSize(null);
+    }
+  }, [targetImagePreviewUrl]);
 
   return (
     <div style={{ padding: 16 }}>
@@ -67,6 +100,59 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
           </Form.Item>
         </Col>
       </Row>
+
+      <div style={{ marginTop: 8 }}>
+        <div
+          style={{
+            padding: "6px 12px",
+            background: "#f7f7f7",
+            border: "1px solid #f0f0f0",
+            borderBottom: 0,
+            borderTopLeftRadius: 6,
+            borderTopRightRadius: 6,
+            fontSize: 12,
+            color: "#555",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>{t.projectDetail?.currentAsset || "当前资源预览"}</span>
+          {originSize && (
+            <span style={{ color: "#888" }}>
+              {originSize.w} × {originSize.h}
+            </span>
+          )}
+        </div>
+        <Card
+          bodyStyle={{ padding: 12 }}
+          style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+        >
+          {imagePreviewUrl ? (
+            <img
+              src={imagePreviewUrl}
+              alt="origin-preview"
+              style={{
+                width: "100%",
+                maxHeight: 240,
+                objectFit: "contain",
+                borderRadius: 4,
+              }}
+            />
+          ) : (
+            <div style={{ padding: 12, textAlign: "center", color: "#888" }}>
+              <div style={{ fontSize: 12, marginBottom: 4 }}>
+                {selectedFile || "请选择文件"}
+              </div>
+              <div style={{ fontSize: 12 }}>
+                {isImageExt(ext)
+                  ? t.settings?.previewNotAvailable || "预览不可用"
+                  : t.settings?.previewNotAvailable || "预览不可用"}
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
 
       {isTargetEditEnabled && (
         <div
@@ -164,6 +250,11 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
                             >
                               {uploadedTargetFile.name}
                             </span>
+                            {targetSize && (
+                              <span style={{ color: "#ddd", fontSize: 12 }}>
+                                {targetSize.w} × {targetSize.h}
+                              </span>
+                            )}
                             <Button
                               type="text"
                               size="small"
@@ -174,6 +265,7 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
                                 e.stopPropagation();
                                 onUploadedTargetFileChange(null);
                                 onTargetImagePreviewUrlChange("");
+                                setTargetSize(null);
                               }}
                             />
                           </div>
