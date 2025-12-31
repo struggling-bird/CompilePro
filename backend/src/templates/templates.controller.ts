@@ -229,8 +229,12 @@ export class TemplatesController {
   @ApiOperation({ summary: '删除全局配置' })
   @ApiParam({ name: 'configId', description: '配置ID' })
   @ApiResponse({ status: 200, description: '删除成功' })
-  deleteGlobalConfig(@Param('configId') configId: string) {
-    return this.templatesService.deleteGlobalConfig(configId);
+  deleteGlobalConfig(
+    @Param('configId') configId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user?.userId ?? 'Unknown';
+    return this.templatesService.deleteGlobalConfig(configId, userId);
   }
 
   // --- Module Endpoints ---

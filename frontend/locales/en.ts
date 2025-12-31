@@ -1,6 +1,7 @@
 export default {
   common: {
     saved: "Saved successfully",
+    success: "Success",
   },
   login: {
     title: "Login to ZhugeIO",
@@ -314,6 +315,9 @@ export default {
     cacheDesc: "Browser and application cache",
     previewNotAvailable: "Preview not available for this file type",
     close: "Close",
+    deleteConfirm: "Are you sure you want to delete this file?",
+    yes: "Yes",
+    no: "No",
   },
   templateList: {
     title: "Project Templates",
@@ -371,6 +375,7 @@ export default {
     cancel: "Cancel",
     mapToGlobal: "Global Config",
     fixedValue: "Fixed Value",
+    manualInput: "Manual Input",
     noData: "No Data",
     usedBy: "Used By",
     docsTitle: "Project Documentation",

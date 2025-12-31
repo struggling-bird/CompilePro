@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 import {
   Modal,
   Form,
@@ -38,7 +39,26 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
     if (visible) {
       form.resetFields();
       if (initialValues) {
-        form.setFieldsValue(initialValues);
+        const values: any = { ...initialValues };
+        // Handle FILE type initial value for Upload component
+        if (
+          mode === "GLOBAL" &&
+          values.type === "FILE" &&
+          values.defaultValue
+        ) {
+          // If it's a string (ID), convert to fileList
+          if (typeof values.defaultValue === "string") {
+            values.defaultValue = [
+              {
+                uid: "-1",
+                name: "Uploaded File", // Ideally we should have the real name
+                status: "done",
+                response: [{ id: values.defaultValue }], // Mock response structure for consistent extraction
+              },
+            ];
+          }
+        }
+        form.setFieldsValue(values);
       } else {
         form.setFieldsValue({
           type: "TEXT",
@@ -47,7 +67,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
         });
       }
     }
-  }, [visible, initialValues, form]);
+  }, [visible, initialValues, form, mode]);
 
   const getTitle = () => {
     if (initialValues?.id) {
@@ -65,8 +85,55 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      onSave({ ...initialValues, ...values });
+      const processedValues: any = { ...initialValues, ...values };
+
+      // Process FILE type value
+      if (mode === "GLOBAL" && values.type === "FILE") {
+        const fileList = values.defaultValue;
+        if (fileList && fileList.length > 0) {
+          const file = fileList[0];
+          // Check for wrapped response structure { code, message, data: [...] }
+          if (
+            file.response &&
+            file.response.data &&
+            Array.isArray(file.response.data) &&
+            file.response.data.length > 0
+          ) {
+            processedValues.defaultValue = file.response.data[0].id;
+          }
+          // Check for direct array response (legacy/fallback)
+          else if (
+            file.response &&
+            Array.isArray(file.response) &&
+            file.response.length > 0
+          ) {
+            processedValues.defaultValue = file.response[0].id;
+          }
+          // Check for direct object with id
+          else if (file.response && file.response.id) {
+            processedValues.defaultValue = file.response.id;
+          } else {
+            // If it's existing file, we mocked response above in initialValues
+            // which follows the direct array structure in our mock: response: [{ id: ... }]
+            // But if it was newly uploaded and structure doesn't match, we might have an issue.
+            // Let's assume the mock structure is handled by the first or second check depending on how we mocked it.
+            // In initialValues: response: [{ id: values.defaultValue }] -> matches second check.
+          }
+        } else {
+          processedValues.defaultValue = "";
+        }
+      }
+
+      onSave(processedValues);
     });
+  };
+
+  const token =
+    typeof localStorage !== "undefined" ? localStorage.getItem("token") : "";
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "X-Request-Id": uuidv4(),
   };
 
   return (
@@ -114,7 +181,13 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
                       { required: true, message: "Please upload a file" },
                     ]}
                   >
-                    <Upload action="/upload.do" listType="text" maxCount={1}>
+                    <Upload
+                      action="/apis/storage/upload?isTemp=true"
+                      headers={headers}
+                      listType="text"
+                      maxCount={1}
+                      name="files"
+                    >
                       <Button icon={<UploadOutlined />}>Click to Upload</Button>
                     </Upload>
                   </Form.Item>

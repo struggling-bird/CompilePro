@@ -5,10 +5,11 @@ import {
   Button,
   Modal,
   Image,
-  Tag,
   Space,
   Card,
   Empty,
+  Popconfirm,
+  message,
 } from "antd";
 import {
   FolderOutlined,
@@ -20,8 +21,13 @@ import {
   EyeOutlined,
   DownloadOutlined,
   HomeOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
-import { listFiles, FileItem } from "../../../../services/storageAnalysis";
+import {
+  listFiles,
+  deleteFile,
+  FileItem,
+} from "../../../../services/storageAnalysis";
 import { useLanguage } from "../../../../contexts/LanguageContext";
 
 const FileExplorer: React.FC = () => {
@@ -30,9 +36,9 @@ const FileExplorer: React.FC = () => {
   const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(
     undefined
   );
-  const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id?: string; name: string }>>([
-    { name: "Home" },
-  ]);
+  const [breadcrumbs, setBreadcrumbs] = useState<
+    Array<{ id?: string; name: string }>
+  >([{ name: "Home" }]);
   const [loading, setLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [previewContent, setPreviewContent] = useState<React.ReactNode>(null);
@@ -82,7 +88,9 @@ const FileExplorer: React.FC = () => {
             <Button
               type="primary"
               className="mt-2"
-              onClick={() => window.open(`${BASE}/apis/storage/download/${file.id}`)}
+              onClick={() =>
+                window.open(`${BASE}/apis/storage/download/${file.id}`)
+              }
             >
               Download to view
             </Button>
@@ -95,6 +103,16 @@ const FileExplorer: React.FC = () => {
           <Empty description={t.settings.previewNotAvailable} />
         </div>
       );
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteFile(id);
+      message.success(t.common?.success || "Deleted successfully");
+      fetchFiles(currentFolderId);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -123,7 +141,10 @@ const FileExplorer: React.FC = () => {
           <a
             onClick={() =>
               record.type === "folder"
-                ? (setBreadcrumbs([...breadcrumbs, { id: record.id, name: record.name }]),
+                ? (setBreadcrumbs([
+                    ...breadcrumbs,
+                    { id: record.id, name: record.name },
+                  ]),
                   setCurrentFolderId(record.id))
                 : handlePreview(record)
             }
@@ -151,7 +172,7 @@ const FileExplorer: React.FC = () => {
     {
       title: t.settings.action,
       key: "action",
-      width: 100,
+      width: 150,
       render: (_: any, record: FileItem) =>
         record.type === "file" && (
           <Space>
@@ -161,7 +182,28 @@ const FileExplorer: React.FC = () => {
               size="small"
               onClick={() => handlePreview(record)}
             />
-            <Button type="text" icon={<DownloadOutlined />} size="small" />
+            <Button
+              type="text"
+              icon={<DownloadOutlined />}
+              size="small"
+              onClick={() => {
+                const BASE = (import.meta as any)?.env?.VITE_API_BASE ?? "";
+                window.open(`${BASE}/apis/storage/download/${record.id}`);
+              }}
+            />
+            <Popconfirm
+              title={t.settings.deleteConfirm}
+              onConfirm={() => handleDelete(record.id)}
+              okText={t.settings.yes}
+              cancelText={t.settings.no}
+            >
+              <Button
+                type="text"
+                icon={<DeleteOutlined />}
+                size="small"
+                danger
+              />
+            </Popconfirm>
           </Space>
         ),
     },

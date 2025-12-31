@@ -8,6 +8,8 @@ import { TemplateGlobalConfig } from './entities/template-global-config.entity';
 import { TemplateModule } from './entities/template-module.entity';
 import { TemplateModuleConfig } from './entities/template-module-config.entity';
 import { User } from '../users/user.entity';
+import { StorageModule } from '../storage/storage.module';
+import { FileEntity } from '../storage/file.entity';
 
 @Module({
   imports: [
@@ -18,10 +20,11 @@ import { User } from '../users/user.entity';
       TemplateModule,
       TemplateModuleConfig,
       User,
+      FileEntity,
     ]),
+    StorageModule,
   ],
   controllers: [TemplatesController],
   providers: [TemplatesService],
-  exports: [TemplatesService],
 })
 export class TemplatesModule {}

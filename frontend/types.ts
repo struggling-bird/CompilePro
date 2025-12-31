@@ -136,6 +136,7 @@ export interface TemplateVersion {
   buildDoc?: string;
   updateDoc?: string;
   description?: string;
+  readme?: string;
   versionType?: "Major" | "Minor" | "Patch" | "Hotfix" | "Branch";
   creator?: string;
   parentId?: string;

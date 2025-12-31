@@ -258,6 +258,7 @@ export const MOCK_TEMPLATES: ProjectTemplate[] = [
     latestVersion: "1.5.0",
     updateTime: "2023-05-20",
     description: "Suite for SaaS environment updates.",
+    isEnabled: true,
     versions: [
       {
         id: "tv1",

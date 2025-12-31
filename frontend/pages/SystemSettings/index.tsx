@@ -11,7 +11,7 @@ import GitSettings from "../Settings/components/GitSettings";
 import SystemCheck from "../Settings/components/SystemCheck";
 import FileStorageSettings from "../Settings/components/FileStorageSettings";
 import WorkspaceStats from "../Settings/components/WorkspaceStats";
-import "../Settings/styles/Settings.module.less";
+import styles from "../Settings/styles/Settings.module.less";
 
 const SystemSettingsPage: React.FC = () => {
   const { t } = useLanguage();
@@ -27,7 +27,7 @@ const SystemSettingsPage: React.FC = () => {
         </span>
       ),
       children: (
-        <div className="h-full overflow-y-auto pr-6">
+        <div className={styles.tabContent}>
           <GitSettings />
         </div>
       ),
@@ -41,7 +41,7 @@ const SystemSettingsPage: React.FC = () => {
         </span>
       ),
       children: (
-        <div className="h-full overflow-y-auto pr-6">
+        <div className={styles.tabContent}>
           <SystemCheck />
         </div>
       ),
@@ -55,7 +55,7 @@ const SystemSettingsPage: React.FC = () => {
         </span>
       ),
       children: (
-        <div className="h-full overflow-y-auto pr-6">
+        <div className={styles.tabContent}>
           <FileStorageSettings />
         </div>
       ),
@@ -69,7 +69,7 @@ const SystemSettingsPage: React.FC = () => {
         </span>
       ),
       children: (
-        <div className="h-full overflow-y-auto pr-6">
+        <div className={styles.tabContent}>
           <WorkspaceStats />
         </div>
       ),
@@ -77,14 +77,14 @@ const SystemSettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="settings-container">
+    <div className={styles.container}>
       <Card variant="borderless">
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           items={items}
           tabPlacement="start"
-          className={`h-full settings-tabs`}
+          className={styles.tabs}
         />
       </Card>
     </div>

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Template } from './entities/template.entity';
@@ -6,10 +10,15 @@ import {
   TemplateVersion,
   TemplateVersionStatus,
 } from './entities/template-version.entity';
-import { TemplateGlobalConfig } from './entities/template-global-config.entity';
+import {
+  TemplateGlobalConfig,
+  ConfigType,
+} from './entities/template-global-config.entity';
 import { TemplateModule } from './entities/template-module.entity';
 import { TemplateModuleConfig } from './entities/template-module-config.entity';
 import { User } from '../users/user.entity';
+import { FileEntity } from '../storage/file.entity';
+import { StorageService } from '../storage/storage.service';
 import {
   CreateTemplateDto,
   UpdateTemplateDto,
@@ -45,6 +54,9 @@ export class TemplatesService {
     private readonly moduleConfigRepository: Repository<TemplateModuleConfig>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(FileEntity)
+    private readonly fileRepository: Repository<FileEntity>,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(
@@ -235,13 +247,6 @@ export class TemplatesService {
     });
   }
 
-  async listGlobalConfigs(versionId: string): Promise<TemplateGlobalConfig[]> {
-    return this.globalConfigRepository.find({
-      where: { versionId },
-      order: { name: 'ASC' },
-    });
-  }
-
   async listModuleConfigs(
     versionId: string,
     moduleId: string,
@@ -298,6 +303,18 @@ export class TemplatesService {
 
   // --- Global Config Methods ---
 
+  private async bindFile(fileId: string): Promise<void> {
+    const file = await this.fileRepository.findOne({ where: { id: fileId } });
+    if (!file) {
+      throw new BadRequestException(`File with ID ${fileId} not found`);
+    }
+    if (file.isTemp) {
+      file.isTemp = false;
+      file.expiresAt = null as unknown as Date;
+      await this.fileRepository.save(file);
+    }
+  }
+
   async addGlobalConfig(
     versionId: string,
     createConfigDto: CreateGlobalConfigDto,
@@ -308,11 +325,25 @@ export class TemplatesService {
     if (!version)
       throw new NotFoundException(`Version with ID ${versionId} not found`);
 
+    if (
+      createConfigDto.type === ConfigType.FILE &&
+      createConfigDto.defaultValue
+    ) {
+      await this.bindFile(createConfigDto.defaultValue);
+    }
+
     const config = this.globalConfigRepository.create({
       ...createConfigDto,
       version,
     });
     return this.globalConfigRepository.save(config);
+  }
+
+  async listGlobalConfigs(versionId: string): Promise<TemplateGlobalConfig[]> {
+    return this.globalConfigRepository.find({
+      where: { versionId },
+      order: { name: 'ASC' },
+    });
   }
 
   async updateGlobalConfig(
@@ -327,11 +358,35 @@ export class TemplatesService {
         `Global config with ID ${configId} not found`,
       );
 
+    if (
+      updateConfigDto.type === ConfigType.FILE &&
+      updateConfigDto.defaultValue &&
+      updateConfigDto.defaultValue !== config.defaultValue
+    ) {
+      await this.bindFile(updateConfigDto.defaultValue);
+    }
+
     Object.assign(config, updateConfigDto);
     return this.globalConfigRepository.save(config);
   }
 
-  async deleteGlobalConfig(configId: string): Promise<void> {
+  async deleteGlobalConfig(configId: string, userId: string): Promise<void> {
+    const config = await this.globalConfigRepository.findOne({
+      where: { id: configId },
+    });
+    if (!config)
+      throw new NotFoundException(
+        `Global config with ID ${configId} not found`,
+      );
+
+    if (config.type === ConfigType.FILE && config.defaultValue) {
+      try {
+        await this.storageService.deleteFile(config.defaultValue, userId);
+      } catch (e) {
+        console.warn(`Failed to delete file ${config.defaultValue}: ${e}`);
+      }
+    }
+
     const result = await this.globalConfigRepository.delete(configId);
     if (result.affected === 0)
       throw new NotFoundException(

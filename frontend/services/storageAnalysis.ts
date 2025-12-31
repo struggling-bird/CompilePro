@@ -98,6 +98,12 @@ export const listFiles = async (parentId?: string): Promise<FileItem[]> => {
   }));
 };
 
+export const deleteFile = async (id: string): Promise<void> => {
+  await request(`/apis/storage/files/${id}`, {
+    method: "DELETE",
+  });
+};
+
 export const updateQuota = async (
   total: number,
   warningThreshold: number

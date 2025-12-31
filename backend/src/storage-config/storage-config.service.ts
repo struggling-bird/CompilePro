@@ -96,6 +96,16 @@ export class StorageConfigService implements OnModuleInit {
       tip: '启用后，所有上传的文件将在存储前进行加密处理',
     },
     {
+      key: 'STORAGE_ENCRYPTION_KEY',
+      type: ConfigType.STRING,
+      group: 'storage',
+      description: '文件加密密钥 (Hex)',
+      defaultValue:
+        '27eeedf541dd8fa87a3482406df201ec85b15425775152282846928c34292d9a',
+      isSensitive: true,
+      tip: '用于文件加密的密钥，必须是 Hex 格式',
+    },
+    {
       key: 'STORAGE_ENCRYPT_MIME_TYPES',
       type: ConfigType.STRING,
       group: 'storage',

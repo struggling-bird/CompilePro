@@ -1,6 +1,7 @@
 export default {
   common: {
     saved: "保存成功",
+    success: "操作成功",
   },
   login: {
     title: "登录诸葛io",
@@ -312,6 +313,9 @@ export default {
     cacheDesc: "浏览器和应用缓存",
     previewNotAvailable: "该文件类型不支持预览",
     close: "关闭",
+    deleteConfirm: "确定要删除这个文件吗？",
+    yes: "是",
+    no: "否",
   },
   templateList: {
     title: "项目模板",
@@ -369,6 +373,7 @@ export default {
     cancel: "取消",
     mapToGlobal: "全局配置",
     fixedValue: "固定值",
+    manualInput: "手动输入",
     noData: "暂无数据",
     usedBy: "引用",
     docsTitle: "项目文档",
