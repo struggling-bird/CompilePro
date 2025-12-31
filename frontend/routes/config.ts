@@ -20,6 +20,8 @@ const Pages = {
   MetaProjectDetail: lazy(() => import("../pages/MetaProjects/Detail")),
   TemplateList: lazy(() => import("../pages/Templates/List")),
   TemplateDetail: lazy(() => import("../pages/Templates/Detail")),
+  CompilationList: lazy(() => import("../pages/Compilations/List")),
+  CompilationDetail: lazy(() => import("../pages/Compilations/Detail")),
 
   CustomerList: lazy(() => import("../pages/Customers/List")),
   CustomerDetail: lazy(() => import("../pages/Customers/Detail")),
@@ -64,6 +66,22 @@ export const routes: RouteItem[] = [
     path: "/templates/:templateId",
     component: Pages.TemplateDetail,
     meta: { auth: "private", tab: TabView.TEMPLATES },
+  },
+
+  {
+    path: "/compilations",
+    component: Pages.CompilationList,
+    meta: { auth: "private", tab: TabView.COMPILATIONS },
+  },
+  {
+    path: "/compilations/new",
+    component: Pages.CompilationDetail,
+    meta: { auth: "private", tab: TabView.COMPILATIONS },
+  },
+  {
+    path: "/compilations/:compilationId",
+    component: Pages.CompilationDetail,
+    meta: { auth: "private", tab: TabView.COMPILATIONS },
   },
 
   {

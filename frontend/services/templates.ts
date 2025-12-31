@@ -66,11 +66,15 @@ export const getTemplateDetail = async (id: string) => {
   });
 };
 
+export const getTemplate = getTemplateDetail; // Alias for backward compatibility or different naming
+
 export const getTemplateVersions = async (id: string) => {
   return request(`/apis/templates/${id}/versions`, {
     method: "GET",
   });
 };
+
+export const listVersions = getTemplateVersions; // Alias matching controller method name
 
 export const updateTemplate = async (id: string, payload: any) => {
   return request(`/apis/templates/${id}`, {

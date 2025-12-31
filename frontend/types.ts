@@ -1,5 +1,6 @@
 export enum TabView {
   META_PROJECTS = "META_PROJECTS",
+  COMPILATIONS = "COMPILATIONS",
   TEMPLATES = "TEMPLATES",
   CUSTOMERS = "CUSTOMERS",
   MEMBERS = "MEMBERS",
@@ -230,4 +231,54 @@ export interface Role {
   description: string;
   permissions: string[]; // List of Permission IDs
   isSystem?: boolean; // System roles cannot be deleted
+}
+
+// --- Compilation Management ---
+
+export interface CompilationGlobalConfig {
+  configId: string; // ID from TemplateGlobalConfig
+  value: string;
+}
+
+export interface CompilationModuleConfig {
+  moduleId: string; // ID from TemplateModule
+  configId: string; // ID from TemplateModuleConfig
+  value: string;
+}
+
+export interface Compilation {
+  id: string;
+  name: string;
+  templateId: string;
+  templateVersion: string;
+  customerId: string;
+  environmentId: string;
+
+  // Display fields for list
+  templateName?: string;
+  customerName?: string;
+  environmentName?: string;
+
+  status: "Idle" | "Building" | "Success" | "Failed";
+  lastBuildTime?: string;
+  lastBuilder?: string;
+
+  createdBy: string;
+  createdAt: string;
+
+  // Configuration Values
+  globalConfigs: CompilationGlobalConfig[];
+  moduleConfigs: CompilationModuleConfig[];
+
+  // Prototype Fields
+  compileType?: "Private" | "Public" | "Hybrid";
+  publishMethod?: "Git" | "Download" | "Auto";
+  description?: string;
+  sharedMembers?: string[]; // Member IDs
+  notification?: {
+    push: boolean;
+    sms: boolean;
+    wechat: boolean;
+    other: boolean;
+  };
 }

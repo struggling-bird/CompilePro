@@ -79,7 +79,9 @@ const AppContent: React.FC = () => {
       case TabView.TEMPLATES:
         navigate("/templates");
         break;
-      
+      case TabView.COMPILATIONS:
+        navigate("/compilations");
+        break;
       case TabView.CUSTOMERS:
         navigate("/customers");
         break;

@@ -1,0 +1,68 @@
+@import '../../../assets/styles/variables.less';
+
+.container {
+  padding: 24px;
+  background-color: var(--color-slate-50);
+  height: 100%;
+  overflow: auto;
+}
+
+.header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+  }
+}
+
+.content {
+  // background: transparent; // No background wrapper for full width
+}
+
+.card {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  margin-bottom: 24px;
+
+  :global {
+    .ant-card-head {
+      border-bottom: 1px solid var(--color-slate-100);
+      min-height: 48px;
+      padding: 0 24px;
+      
+      .ant-card-head-title {
+        padding: 12px 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+    
+    .ant-card-body {
+      padding: 24px;
+    }
+  }
+}
+
+.configSection {
+  margin-top: 24px;
+}
+
+.emptyState {
+  padding: 32px;
+  text-align: center;
+  color: var(--color-slate-400);
+  background: var(--color-slate-50);
+  border-radius: 4px;
+  border: 1px dashed var(--color-slate-200);
+}

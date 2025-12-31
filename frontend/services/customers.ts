@@ -81,3 +81,9 @@ export const deleteCustomer = async (id: string): Promise<{ id: string }> => {
   });
 };
 
+export const getCustomerEnvironments = async (customerId: string): Promise<any[]> => {
+  return request<any[]>(`/apis/customers/${customerId}/environments`, {
+    method: 'GET',
+  });
+};
+
