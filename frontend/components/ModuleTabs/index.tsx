@@ -200,24 +200,25 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
     const dataSource =
       mode === "INSTANCE"
         ? module.configs.filter(
-            (c) => !c.isHidden || currentShown.includes(c.id)
+            (c) =>
+              !c.isHidden ||
+              currentShown.includes(c.id) ||
+              valueMap[`${module.id}:${c.id}`] !== undefined
           )
         : module.configs;
 
     const hiddenOptions = module.configs.filter(
-      (c) => c.isHidden && !currentShown.includes(c.id)
+      (c) =>
+        c.isHidden &&
+        !currentShown.includes(c.id) &&
+        valueMap[`${module.id}:${c.id}`] === undefined
     );
 
-    const menuProps = {
-      items: hiddenOptions.map((c) => ({
-        key: c.id,
-        label: `${c.name} (${c.description})`,
-      })),
-      onClick: ({ key }: any) =>
-        setShownHiddenConfigs((prev) => ({
-          ...prev,
-          [module.id]: [...(prev[module.id] || []), key],
-        })),
+    const handleAddHiddenConfig = (moduleId: string, configId: string) => {
+      setShownHiddenConfigs((prev) => ({
+        ...prev,
+        [moduleId]: [...(prev[moduleId] || []), configId],
+      }));
     };
 
     return (
@@ -230,11 +231,46 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
           }}
         >
           {mode === "INSTANCE" && hiddenOptions.length > 0 && (
-            <Dropdown menu={menuProps} trigger={["click"]}>
-              <Button size="small" icon={<PlusOutlined />}>
-                {t.compilationDetail.addConfig || "Add Config"}
-              </Button>
-            </Dropdown>
+            <Select
+              placeholder={t.compilationDetail.addConfig || "Add Config"}
+              style={{ width: 250 }}
+              showSearch
+              value={null}
+              onChange={(val) => handleAddHiddenConfig(module.id, val)}
+              filterOption={(input, option) => {
+                const config = hiddenOptions.find((c) => c.id === option?.key);
+                if (!config) return false;
+                const searchStr =
+                  `${config.name} ${config.description} ${config.mappingValue}`.toLowerCase();
+                return searchStr.includes(input.toLowerCase());
+              }}
+            >
+              {hiddenOptions.map((c) => (
+                <Select.Option key={c.id} value={c.id}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>{c.name}</span>
+                    <span
+                      style={{
+                        color: "#999",
+                        fontSize: "12px",
+                        maxWidth: "120px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {c.description}
+                    </span>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
           )}
         </div>
         <Table

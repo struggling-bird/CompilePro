@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Form,
@@ -35,6 +35,8 @@ import {
   TemplateVersion,
   Customer,
   Environment,
+  TemplateModule,
+  TemplateModuleConfig,
 } from "../../../types";
 import { TemplateListItem } from "../../../services/templates";
 import styles from "../styles/Detail.module.less";
@@ -244,6 +246,20 @@ const CompilationDetail: React.FC = () => {
     });
   };
 
+  const usageCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (selectedTemplateVersion?.modules) {
+      selectedTemplateVersion.modules.forEach((mod: TemplateModule) => {
+        mod.configs.forEach((conf: TemplateModuleConfig) => {
+          if (conf.mappingType === "GLOBAL" && conf.mappingValue) {
+            counts[conf.mappingValue] = (counts[conf.mappingValue] || 0) + 1;
+          }
+        });
+      });
+    }
+    return counts;
+  }, [selectedTemplateVersion]);
+
   const onFinish = async (values: any) => {
     if (!selectedTemplateVersion) {
       message.error("Please select a valid template version");
@@ -444,6 +460,7 @@ const CompilationDetail: React.FC = () => {
                     mode="INSTANCE"
                     values={globalConfigs}
                     onValueChange={handleGlobalConfigChange}
+                    usageCounts={usageCounts}
                   />
                 ) : (
                   <div className={styles.emptyState}>

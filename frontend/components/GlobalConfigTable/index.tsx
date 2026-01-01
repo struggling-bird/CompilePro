@@ -7,7 +7,7 @@ import {
   Typography,
   Tooltip,
   Input,
-  Dropdown,
+  Select,
 } from "antd";
 import {
   EditOutlined,
@@ -173,26 +173,28 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
   const dataSource = useMemo(() => {
     if (mode === "SCHEMA") return configs;
 
-    // Instance Mode: Show visible configs OR manually added hidden configs
+    // Instance Mode: Show visible configs OR manually added hidden configs OR configs that have values
     return configs.filter(
-      (c) => !c.isHidden || shownHiddenConfigs.includes(c.id)
+      (c) =>
+        !c.isHidden ||
+        shownHiddenConfigs.includes(c.id) ||
+        (valueMap && valueMap[c.id] !== undefined)
     );
-  }, [configs, mode, shownHiddenConfigs]);
+  }, [configs, mode, shownHiddenConfigs, valueMap]);
 
   // Hidden configs available to add
   const hiddenOptions = useMemo(() => {
     if (mode !== "INSTANCE") return [];
     return configs.filter(
-      (c) => c.isHidden && !shownHiddenConfigs.includes(c.id)
+      (c) =>
+        c.isHidden &&
+        !shownHiddenConfigs.includes(c.id) &&
+        (!valueMap || valueMap[c.id] === undefined)
     );
-  }, [configs, mode, shownHiddenConfigs]);
+  }, [configs, mode, shownHiddenConfigs, valueMap]);
 
-  const menuProps = {
-    items: hiddenOptions.map((c) => ({
-      key: c.id,
-      label: `${c.name} (${c.description})`,
-    })),
-    onClick: ({ key }: any) => setShownHiddenConfigs((prev) => [...prev, key]),
+  const handleAddHiddenConfig = (configId: string) => {
+    setShownHiddenConfigs((prev) => [...prev, configId]);
   };
 
   return (
@@ -215,11 +217,46 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
             </Button>
           )}
           {mode === "INSTANCE" && hiddenOptions.length > 0 && (
-            <Dropdown menu={menuProps} trigger={["click"]}>
-              <Button size="small" icon={<PlusOutlined />}>
-                {t.compilationDetail.addConfig || "Add Config"}
-              </Button>
-            </Dropdown>
+            <Select
+              placeholder={t.compilationDetail.addConfig || "Add Config"}
+              style={{ width: 250 }}
+              showSearch
+              value={null}
+              onChange={handleAddHiddenConfig}
+              filterOption={(input, option) => {
+                const config = hiddenOptions.find((c) => c.id === option?.key);
+                if (!config) return false;
+                const searchStr =
+                  `${config.name} ${config.description} ${config.defaultValue}`.toLowerCase();
+                return searchStr.includes(input.toLowerCase());
+              }}
+            >
+              {hiddenOptions.map((c) => (
+                <Select.Option key={c.id} value={c.id}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>{c.name}</span>
+                    <span
+                      style={{
+                        color: "#999",
+                        fontSize: "12px",
+                        maxWidth: "120px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {c.description}
+                    </span>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
           )}
           <Tooltip title={isFullScreen ? "Exit Fullscreen" : "Fullscreen"}>
             <Button
