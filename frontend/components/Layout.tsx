@@ -13,6 +13,7 @@ import {
   SafetyCertificateOutlined,
   RightOutlined,
   LeftOutlined,
+  PlayCircleOutlined,
 } from "@ant-design/icons";
 import { TabView } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -74,6 +75,12 @@ const Layout: React.FC<LayoutProps> = ({
       labelKey: "compilations",
       icon: HddOutlined,
       tab: TabView.COMPILATIONS,
+    },
+    {
+      id: "builds",
+      labelKey: "builds",
+      icon: PlayCircleOutlined,
+      tab: TabView.BUILDS,
     },
     {
       id: "customers",
@@ -199,6 +206,7 @@ const Layout: React.FC<LayoutProps> = ({
               if (k === TabView.META_PROJECTS) navigate("/meta-projects");
               else if (k === TabView.TEMPLATES) navigate("/templates");
               else if (k === TabView.COMPILATIONS) navigate("/compilations");
+              else if (k === TabView.BUILDS) navigate("/builds/new");
               else if (k === TabView.CUSTOMERS) navigate("/customers");
               else if (k === TabView.MEMBERS) navigate("/members");
               else if (k === TabView.ROLES) navigate("/roles");

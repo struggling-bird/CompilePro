@@ -35,6 +35,7 @@ const Pages = {
   RoleDetail: lazy(() => import("../pages/Roles/Detail")),
   SettingsPage: lazy(() => import("../pages/Settings")),
   SystemSettingsPage: lazy(() => import("../pages/SystemSettings")),
+  BuildWizard: lazy(() => import("../pages/Builds/New")),
 };
 
 export const routes: RouteItem[] = [
@@ -145,6 +146,12 @@ export const routes: RouteItem[] = [
     path: "/roles/:roleId",
     component: Pages.RoleDetail,
     meta: { auth: "private", tab: TabView.ROLES },
+  },
+
+  {
+    path: "/builds/new",
+    component: Pages.BuildWizard,
+    meta: { auth: "private", tab: TabView.BUILDS },
   },
 
   {

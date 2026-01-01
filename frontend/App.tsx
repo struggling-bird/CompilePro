@@ -91,6 +91,9 @@ const AppContent: React.FC = () => {
       case TabView.ROLES:
         navigate("/roles");
         break;
+      case TabView.BUILDS:
+        navigate("/builds/new");
+        break;
       case TabView.SETTINGS:
         navigate("/settings");
         break;

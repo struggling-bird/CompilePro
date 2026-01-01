@@ -6,6 +6,49 @@ export enum TabView {
   MEMBERS = "MEMBERS",
   ROLES = "ROLES",
   SETTINGS = "SETTINGS",
+  BUILDS = "BUILDS",
+}
+
+export interface BuildLog {
+  id: string;
+  timestamp: string;
+  level: "INFO" | "WARN" | "ERROR";
+  message: string;
+  context?: string; // Error stack trace or context
+}
+
+export interface ModuleBuildStatus {
+  moduleId: string;
+  moduleName: string;
+  status: "Pending" | "Building" | "Success" | "Failed";
+  progress: number;
+  errorMessage?: string;
+  artifactUrl?: string; // Download link for module artifact
+}
+
+export interface BuildSnapshot {
+  customerName: string;
+  environmentName: string;
+  templateName: string;
+  templateVersion: string;
+  compilationName: string;
+  globalConfigs: CompilationGlobalConfig[];
+  moduleConfigs: CompilationModuleConfig[];
+}
+
+export interface BuildExecution {
+  id: string;
+  compilationId: string;
+  status: "Pending" | "Running" | "Success" | "Failed" | "Aborted";
+  description: string;
+  startTime: string;
+  endTime?: string;
+  initiator: string; // User name
+  snapshot: BuildSnapshot;
+  selectedModuleIds: string[]; // IDs of modules selected for this build
+  moduleStatus: ModuleBuildStatus[];
+  logs: BuildLog[]; // In real app, this might be fetched separately
+  artifactUrl?: string; // Download link for overall build package
 }
 
 export interface Project {
@@ -112,6 +155,7 @@ export interface TemplateModule {
   projectName: string;
   projectVersion: string;
   publishMethod: "GIT" | "DOWNLOAD";
+  description?: string;
   configs: TemplateModuleConfig[];
 }
 
