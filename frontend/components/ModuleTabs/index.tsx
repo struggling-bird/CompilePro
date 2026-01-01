@@ -9,7 +9,7 @@ import {
   Popconfirm,
   Input,
   Tooltip,
-  Dropdown,
+  Select,
 } from "antd";
 import {
   PlusOutlined,
@@ -225,7 +225,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
       <div className={styles.container}>
         <div
           style={{
-            marginBottom: 16,
+            marginBottom: 8,
             display: "flex",
             justifyContent: "flex-end",
           }}
@@ -291,9 +291,10 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
   }));
 
   return (
-    <div>
+    <>
       <Tabs
         type="card"
+        className={styles.tabs}
         onTabClick={(key) => onSwitchVersion?.(key)}
         items={items}
         tabBarExtraContent={
@@ -314,7 +315,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
         file={previewFile}
         onCancel={() => setPreviewVisible(false)}
       />
-    </div>
+    </>
   );
 };
 

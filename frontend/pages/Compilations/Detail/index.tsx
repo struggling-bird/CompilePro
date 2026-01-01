@@ -1,75 +1,44 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Button, message, Space, Typography, Card, Tooltip } from "antd";
 import {
-  Form,
-  Input,
-  Select,
-  Button,
-  message,
-  Space,
-  Typography,
-  Card,
-  Row,
-  Col,
-} from "antd";
-import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
+  ArrowLeftOutlined,
+  SaveOutlined,
+  EditOutlined,
+  InfoCircleOutlined,
+} from "@ant-design/icons";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import {
   getCompilation,
-  createCompilation,
   updateCompilation,
 } from "../../../services/compilations";
-import {
-  getTemplatesList,
-  getTemplate,
-  getTemplateVersions,
-  getGlobalConfigs,
-  listModules,
-} from "../../../services/templates";
-import {
-  listCustomers,
-  getCustomerEnvironments,
-} from "../../../services/customers";
+import { getGlobalConfigs, listModules } from "../../../services/templates";
 import {
   Compilation,
   TemplateVersion,
-  Customer,
-  Environment,
   TemplateModule,
   TemplateModuleConfig,
 } from "../../../types";
-import { TemplateListItem } from "../../../services/templates";
 import styles from "../styles/Detail.module.less";
 import GlobalConfigTable from "../../../components/GlobalConfigTable";
 import ModuleTabs from "../../../components/ModuleTabs";
+import CompilationModal from "../components/CompilationModal";
 
-const { Option } = Select;
 const { Title } = Typography;
-const { TextArea } = Input;
 
 const CompilationDetail: React.FC = () => {
   const { compilationId } = useParams<{ compilationId: string }>();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [form] = Form.useForm();
-  const isEdit = !!compilationId;
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   // Data Sources
-  const [templates, setTemplates] = useState<TemplateListItem[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [environments, setEnvironments] = useState<Environment[]>([]);
-  const [versions, setVersions] = useState<TemplateVersion[]>([]);
-
-  // Selected State
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
-  const [selectedVersionId, setSelectedVersionId] = useState<string>();
-  const [templateDetail, setTemplateDetail] = useState<any>();
+  const [compilation, setCompilation] = useState<Compilation>();
   const [selectedTemplateVersion, setSelectedTemplateVersion] =
     useState<TemplateVersion>();
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
 
   // Config Values
   const [globalConfigs, setGlobalConfigs] = useState<
@@ -80,52 +49,36 @@ const CompilationDetail: React.FC = () => {
   >([]);
 
   // Initial Fetch
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      try {
-        const [tplRes, custRes] = await Promise.all([
-          getTemplatesList({ pageSize: 100 }),
-          listCustomers(),
-        ]);
-        setTemplates(tplRes.items || []);
-        setCustomers(custRes);
+  const loadData = async () => {
+    if (!compilationId) return;
+    setLoading(true);
+    try {
+      const data = await getCompilation(compilationId);
+      setCompilation(data);
 
-        if (isEdit && compilationId) {
-          const data = await getCompilation(compilationId);
-          form.setFieldsValue({
-            name: data.name,
-            templateId: data.templateId,
-            templateVersion: data.templateVersion,
-            customerId: data.customerId,
-            environmentId: data.environmentId,
-            description: data.description,
-          });
-          setSelectedTemplateId(data.templateId);
-          setSelectedVersionId(data.templateVersion);
-          setGlobalConfigs(data.globalConfigs);
-          setModuleConfigs(data.moduleConfigs);
+      // Initialize Config Values
+      setGlobalConfigs(data.globalConfigs || []);
+      setModuleConfigs(data.moduleConfigs || []);
 
-          // We need to wait for template versions and environments
-          // handleTemplateChange and handleCustomerChange will do fetching
-          await handleTemplateChange(data.templateId, false);
-          await handleCustomerChange(data.customerId, false);
-
-          // Force set version object after fetching versions
-          // Note: handleTemplateChange does this partially but we might need to ensure correct version object
-        }
-      } catch (e) {
-        message.error("Failed to load data");
-      } finally {
-        setLoading(false);
+      // Fetch Template Version Details (Schema)
+      if (data.templateVersion) {
+        await fetchAndSetVersionDetails(data.templateVersion);
       }
-    };
-    init();
+    } catch (e) {
+      message.error("Failed to load data");
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compilationId]);
 
   // Helper to fetch details
-  const fetchVersionDetails = async (versionId: string) => {
+  const fetchAndSetVersionDetails = async (versionId: string) => {
     try {
       const [globalConfigsRes, modulesRes] = await Promise.all([
         getGlobalConfigs(versionId),
@@ -134,85 +87,18 @@ const CompilationDetail: React.FC = () => {
       const globalConfigs =
         (globalConfigsRes as any).data || globalConfigsRes || [];
       const modules = (modulesRes as any).data || modulesRes || [];
-      return { globalConfigs, modules };
+
+      // We need a base object, but we don't fetch the full version list here anymore.
+      // So we construct a partial object.
+      setSelectedTemplateVersion({
+        id: versionId,
+        version: "Loading...", // We might not know the version name without fetching the list or version detail
+        globalConfigs,
+        modules,
+      } as TemplateVersion);
     } catch (e) {
       console.error(e);
-      return { globalConfigs: [], modules: [] };
-    }
-  };
-
-  // Handle Template Change
-  const handleTemplateChange = async (tplId: string, resetVersion = true) => {
-    setSelectedTemplateId(tplId);
-    if (resetVersion) {
-      form.setFieldsValue({ templateVersion: undefined });
-      setSelectedVersionId(undefined);
-      setSelectedTemplateVersion(undefined);
-      setTemplateDetail(undefined);
-      setVersions([]);
-    }
-
-    try {
-      const [detail, versionsRes] = await Promise.all([
-        getTemplate(tplId),
-        getTemplateVersions(tplId),
-      ]);
-      setTemplateDetail(detail);
-      const vList = (versionsRes as any).data || versionsRes || [];
-      setVersions(vList);
-
-      if (!resetVersion && selectedVersionId) {
-        // If we are editing, we try to find the version in the just fetched list
-        // Note: selectedVersionId state might be stale if called from init(), so use form value or arg?
-        // Actually init() sets state before calling this.
-        // Wait, state updates are async. In init(), we await this function.
-        // So we should pass the ID explicitly or rely on form value if state isn't ready.
-        const targetId =
-          selectedVersionId || form.getFieldValue("templateVersion");
-        const v = vList.find(
-          (item: any) => item.id === targetId || item.version === targetId
-        );
-        if (v) {
-          const { globalConfigs, modules } = await fetchVersionDetails(v.id);
-          setSelectedTemplateVersion({ ...v, globalConfigs, modules });
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      message.error("Failed to load template versions");
-    }
-  };
-
-  // Handle Version Change
-  const handleVersionChange = async (verId: string) => {
-    setSelectedVersionId(verId);
-    const v = versions.find((v: any) => v.id === verId);
-    if (v) {
-      const { globalConfigs, modules } = await fetchVersionDetails(verId);
-      setSelectedTemplateVersion({ ...v, globalConfigs, modules });
-    }
-    if (!isEdit) {
-      setGlobalConfigs([]);
-      setModuleConfigs([]);
-    }
-  };
-
-  // Handle Customer Change
-  const handleCustomerChange = async (custId: string, resetEnv = true) => {
-    if (resetEnv) {
-      form.setFieldsValue({ environmentId: undefined });
-    }
-    const cust = customers.find((c) => c.id === custId);
-    setSelectedCustomer(cust);
-
-    try {
-      const envsRes = await getCustomerEnvironments(custId);
-      const envs = (envsRes as any).list;
-      setEnvironments(envs);
-    } catch (e) {
-      console.error(e);
-      message.error("Failed to load customer environments");
-      setEnvironments([]);
+      message.error("Failed to load template details");
     }
   };
 
@@ -260,36 +146,38 @@ const CompilationDetail: React.FC = () => {
     return counts;
   }, [selectedTemplateVersion]);
 
-  const onFinish = async (values: any) => {
-    if (!selectedTemplateVersion) {
-      message.error("Please select a valid template version");
-      return;
-    }
+  // Save Configs Only
+  const onFinish = async () => {
+    if (!compilationId) return;
 
     setSubmitting(true);
     try {
       const payload: Partial<Compilation> = {
-        ...values,
-        templateVersion: values.templateVersion, // ID
-        templateName: templateDetail?.name,
-        customerName: selectedCustomer?.name,
-        environmentName: environments.find((e) => e.id === values.environmentId)
-          ?.name,
         globalConfigs,
         moduleConfigs,
       };
 
-      if (isEdit && compilationId) {
-        await updateCompilation(compilationId, payload);
-      } else {
-        await createCompilation(payload);
-      }
+      await updateCompilation(compilationId, payload);
       message.success(t.compilationDetail.saveSuccess);
-      navigate("/compilations");
     } catch (e) {
       message.error("Save failed");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleUpdateBasicInfo = async (values: any) => {
+    if (!compilationId) return;
+    try {
+      await updateCompilation(compilationId, values);
+      message.success("Basic info updated");
+      // Reload data to reflect changes (especially if template changed)
+      // Note: If template changed, existing config values might be invalid.
+      // Ideally backend handles this, or we clear them.
+      // For now, we reload.
+      loadData();
+    } catch (e) {
+      throw e;
     }
   };
 
@@ -301,11 +189,21 @@ const CompilationDetail: React.FC = () => {
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate("/compilations")}
           />
-          <Title level={4} className={styles.title}>
-            {isEdit
-              ? t.compilationDetail.editTitle
-              : t.compilationDetail.newTitle}
-          </Title>
+          <Space align="center" size="small">
+            <Title level={4} className={styles.title} style={{ margin: 0 }}>
+              {compilation?.name}
+            </Title>
+            {compilation?.description && (
+              <Tooltip title={compilation.description}>
+                <InfoCircleOutlined style={{ color: "#999" }} />
+              </Tooltip>
+            )}
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => setEditModalVisible(true)}
+            />
+          </Space>
         </div>
         <Space>
           <Button onClick={() => navigate("/compilations")}>
@@ -315,7 +213,7 @@ const CompilationDetail: React.FC = () => {
             type="primary"
             icon={<SaveOutlined />}
             loading={submitting}
-            onClick={form.submit}
+            onClick={onFinish}
           >
             {t.compilationDetail.save}
           </Button>
@@ -323,180 +221,55 @@ const CompilationDetail: React.FC = () => {
       </div>
 
       <div className={styles.content}>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          initialValues={{}}
-        >
-          {/* Basic Info Section */}
-          <Card
-            title={t.compilationDetail.basicInfo}
-            className={styles.card}
-            bordered={false}
-          >
-            <Row gutter={24}>
-              <Col span={24}>
-                <Form.Item
-                  name="name"
-                  label={t.compilationDetail.name}
-                  rules={[{ required: true }]}
-                >
-                  <Input placeholder="e.g. Online Deployment V1" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={24}>
-              <Col span={12}>
-                <Form.Item label={t.compilationDetail.template} required>
-                  <Space.Compact block>
-                    <Form.Item
-                      name="templateId"
-                      noStyle
-                      rules={[{ required: true }]}
-                    >
-                      <Select
-                        style={{ width: "60%" }}
-                        onChange={(v) => handleTemplateChange(v)}
-                        placeholder={t.compilationDetail.template}
-                      >
-                        {templates.map((t) => (
-                          <Option key={t.id} value={t.id}>
-                            {t.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                    <Form.Item
-                      name="templateVersion"
-                      noStyle
-                      rules={[{ required: true }]}
-                    >
-                      <Select
-                        style={{ width: "40%" }}
-                        onChange={handleVersionChange}
-                        disabled={!selectedTemplateId}
-                        placeholder={t.compilationDetail.templateVersion}
-                        loading={loading}
-                      >
-                        {versions.map((v) => (
-                          <Option key={v.id} value={v.id}>
-                            {v.version}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Space.Compact>
-                </Form.Item>
-              </Col>
-
-              <Col span={12}>
-                <Form.Item label={t.compilationDetail.customer} required>
-                  <Space.Compact block>
-                    <Form.Item
-                      name="customerId"
-                      noStyle
-                      rules={[{ required: true }]}
-                    >
-                      <Select
-                        style={{ width: "50%" }}
-                        onChange={(v) => handleCustomerChange(v)}
-                        placeholder={t.compilationDetail.selectCustomer}
-                      >
-                        {customers.map((c) => (
-                          <Option key={c.id} value={c.id}>
-                            {c.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                    <Form.Item
-                      name="environmentId"
-                      noStyle
-                      rules={[{ required: true }]}
-                    >
-                      <Select
-                        style={{ width: "50%" }}
-                        disabled={!form.getFieldValue("customerId")}
-                        placeholder={t.compilationDetail.selectEnvironment}
-                      >
-                        {(environments || []).map((e) => (
-                          <Option key={e.id} value={e.id}>
-                            {e.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Space.Compact>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={24}>
-              <Col span={24}>
-                <Form.Item
-                  name="description"
-                  label={t.compilationDetail.desc || "Description"}
-                >
-                  <TextArea rows={2} />
-                </Form.Item>
-              </Col>
-            </Row>
+        {/* Configuration Section */}
+        <div className={styles.configSection}>
+          <Card title={null} className={styles.card} variant="borderless">
+            {selectedTemplateVersion ? (
+              <GlobalConfigTable
+                configs={selectedTemplateVersion.globalConfigs}
+                mode="INSTANCE"
+                values={globalConfigs}
+                onValueChange={handleGlobalConfigChange}
+                usageCounts={usageCounts}
+              />
+            ) : (
+              <div className={styles.emptyState}>
+                {t.compilationDetail.templateVersion}
+              </div>
+            )}
           </Card>
 
-          {/* Configuration Section */}
-          <div className={styles.configSection}>
-            <Card
-              title={null}
-              className={styles.card}
-              bordered={false}
-              bodyStyle={{ padding: 0 }}
-            >
-              <div style={{ padding: "0 24px 24px" }}>
-                {selectedTemplateVersion ? (
-                  <GlobalConfigTable
-                    configs={selectedTemplateVersion.globalConfigs}
-                    mode="INSTANCE"
-                    values={globalConfigs}
-                    onValueChange={handleGlobalConfigChange}
-                    usageCounts={usageCounts}
-                  />
-                ) : (
-                  <div className={styles.emptyState}>
-                    {t.compilationDetail.templateVersion}
-                  </div>
-                )}
+          <Card
+            title={t.compilationDetail.moduleConfigTitle}
+            className={`${styles.card} ${styles.moduleCard}`}
+            variant="borderless"
+            style={{ marginTop: 24 }}
+          >
+            {selectedTemplateVersion ? (
+              <ModuleTabs
+                modules={selectedTemplateVersion.modules}
+                globalConfigs={selectedTemplateVersion.globalConfigs}
+                mode="INSTANCE"
+                globalConfigValues={globalConfigs}
+                values={moduleConfigs}
+                onValueChange={handleModuleConfigChange}
+              />
+            ) : (
+              <div className={styles.emptyState}>
+                {t.compilationDetail.templateVersion}
               </div>
-            </Card>
-
-            <Card
-              title={t.compilationDetail.moduleConfigTitle}
-              className={styles.card}
-              bordered={false}
-              style={{ marginTop: 24 }}
-              bodyStyle={{ padding: 0 }}
-            >
-              <div style={{ padding: "0 24px 24px" }}>
-                {selectedTemplateVersion ? (
-                  <ModuleTabs
-                    modules={selectedTemplateVersion.modules}
-                    globalConfigs={selectedTemplateVersion.globalConfigs}
-                    mode="INSTANCE"
-                    globalConfigValues={globalConfigs}
-                    values={moduleConfigs}
-                    onValueChange={handleModuleConfigChange}
-                  />
-                ) : (
-                  <div className={styles.emptyState}>
-                    {t.compilationDetail.templateVersion}
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-        </Form>
+            )}
+          </Card>
+        </div>
       </div>
+
+      <CompilationModal
+        visible={editModalVisible}
+        onCancel={() => setEditModalVisible(false)}
+        onSubmit={handleUpdateBasicInfo}
+        initialValues={compilation}
+        title={t.compilationDetail.editTitle}
+      />
     </div>
   );
 };

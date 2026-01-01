@@ -77,7 +77,7 @@ export const getCompilation = async (id: string) => {
 };
 
 export const createCompilation = async (data: Partial<Compilation>) => {
-  return new Promise<void>((resolve) => {
+  return new Promise<string>((resolve) => {
     setTimeout(() => {
       const newId = `c${Date.now()}`;
       compilations.unshift({
@@ -89,7 +89,7 @@ export const createCompilation = async (data: Partial<Compilation>) => {
         globalConfigs: data.globalConfigs || [],
         moduleConfigs: data.moduleConfigs || [],
       } as Compilation);
-      resolve();
+      resolve(newId);
     }, 500);
   });
 };

@@ -201,7 +201,7 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
     <div className={isFullScreen ? styles.fullScreen : ""}>
       <div
         style={{
-          marginBottom: 16,
+          marginBottom: 8,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",

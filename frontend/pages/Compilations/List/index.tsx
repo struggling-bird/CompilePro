@@ -23,10 +23,12 @@ import { useLanguage } from "../../../contexts/LanguageContext";
 import {
   listCompilations,
   deleteCompilation,
+  createCompilation,
 } from "../../../services/compilations";
 import type { Compilation } from "../../../types";
 import styles from "../styles/List.module.less";
 import dayjs from "dayjs";
+import CompilationModal from "../components/CompilationModal";
 
 const { Text } = Typography;
 
@@ -39,6 +41,8 @@ const CompilationListPage: React.FC = () => {
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+
+  const [createModalVisible, setCreateModalVisible] = useState(false);
 
   const fetchList = async (
     values: any = {},
@@ -69,6 +73,17 @@ const CompilationListPage: React.FC = () => {
   const onFinish = (values: any) => {
     setCurrent(1);
     fetchList(values, 1, pageSize);
+  };
+
+  const handleCreate = async (values: any) => {
+    try {
+      const newId = await createCompilation(values);
+      message.success(t.common.success || "Created Successfully");
+      setCreateModalVisible(false);
+      navigate(`/compilations/${newId}`);
+    } catch (e) {
+      message.error("Create failed");
+    }
   };
 
   const columns = [
@@ -221,7 +236,7 @@ const CompilationListPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => navigate("/compilations/new")}
+            onClick={() => setCreateModalVisible(true)}
           >
             {t.compilationList.newCompilation}
           </Button>
@@ -239,6 +254,11 @@ const CompilationListPage: React.FC = () => {
           }}
         />
       </Card>
+      <CompilationModal
+        visible={createModalVisible}
+        onCancel={() => setCreateModalVisible(false)}
+        onSubmit={handleCreate}
+      />
     </div>
   );
 };
