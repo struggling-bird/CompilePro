@@ -124,14 +124,17 @@ const GlobalConfigTable: React.FC<GlobalConfigTableProps> = ({
         <Tag color="geekblue">{usageCounts[record.id] || 0} Modules</Tag>
       ),
     },
-    {
-      title: t.templateDetail.isHidden,
-      dataIndex: "isHidden",
-      key: "isHidden",
-      width: mode === "INSTANCE" ? 80 : undefined,
-      render: (val: boolean) =>
-        val ? t.templateDetail.yes : t.templateDetail.no,
-    },
+    ...(mode === "SCHEMA"
+      ? [
+          {
+            title: t.templateDetail.isHidden,
+            dataIndex: "isHidden",
+            key: "isHidden",
+            render: (val: boolean) =>
+              val ? t.templateDetail.yes : t.templateDetail.no,
+          },
+        ]
+      : []),
     {
       title: t.templateDetail.createdAt,
       dataIndex: "createdAt",
