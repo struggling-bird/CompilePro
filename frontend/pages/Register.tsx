@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GlobalOutlined, UserAddOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  GlobalOutlined,
+  UserAddOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
 import { useLanguage } from "../contexts/LanguageContext";
+import { register } from "../services/auth";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -18,11 +23,24 @@ const Register: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock registration logic
-    console.log("Registering:", formData);
-    navigate("/login");
+    if (!formData.email || !formData.username || !formData.password) return;
+    if (formData.password !== formData.confirmPassword) {
+      alert("两次输入的密码不一致");
+      return;
+    }
+    try {
+      await register({
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+      });
+      navigate("/login");
+    } catch (err) {
+      console.error("Register error:", err);
+      alert("注册失败，请稍后重试");
+    }
   };
 
   const toggleLanguage = () => {
@@ -136,7 +154,8 @@ const Register: React.FC = () => {
               onClick={() => navigate("/login")}
               className="text-sm text-slate-500 hover:text-blue-600 font-medium flex items-center justify-center mx-auto transition-colors"
             >
-              <ArrowLeftOutlined className="w-4 h-4 mr-1" /> {t.register.hasAccount}{" "}
+              <ArrowLeftOutlined className="w-4 h-4 mr-1" />{" "}
+              {t.register.hasAccount}{" "}
               <span className="ml-1 text-blue-600">{t.register.login}</span>
             </button>
           </div>

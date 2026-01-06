@@ -16,21 +16,26 @@ export type RouteItem = {
 const Pages = {
   Login: lazy(() => import("../pages/Login")),
   Register: lazy(() => import("../pages/Register")),
-  CompileList: lazy(() => import("../pages/CompileList")),
-  ProjectDetail: lazy(() => import("../pages/ProjectDetail")),
-  TemplateList: lazy(() => import("../pages/TemplateList")),
-  TemplateDetail: lazy(() => import("../pages/TemplateDetail")),
-  ManageList: lazy(() => import("../pages/ManageList")),
-  DeploymentDetail: lazy(() => import("../pages/DeploymentDetail")),
-  BuildHistory: lazy(() => import("../pages/BuildHistory")),
-  BuildExecution: lazy(() => import("../pages/BuildExecution")),
-  CustomerList: lazy(() => import("../pages/CustomerList")),
-  CustomerDetail: lazy(() => import("../pages/CustomerDetail")),
-  MemberList: lazy(() => import("../pages/MemberList")),
-  MemberDetail: lazy(() => import("../pages/MemberDetail")),
-  RoleList: lazy(() => import("../pages/RoleList")),
-  RoleDetail: lazy(() => import("../pages/RoleDetail")),
-  SettingsPage: lazy(() => import("../pages/SettingsPage")),
+  MetaProjectList: lazy(() => import("../pages/MetaProjects/List")),
+  MetaProjectDetail: lazy(() => import("../pages/MetaProjects/Detail")),
+  TemplateList: lazy(() => import("../pages/Templates/List")),
+  TemplateDetail: lazy(() => import("../pages/Templates/Detail")),
+  CompilationList: lazy(() => import("../pages/Compilations/List")),
+  CompilationDetail: lazy(() => import("../pages/Compilations/Detail")),
+
+  CustomerList: lazy(() => import("../pages/Customers/List")),
+  CustomerDetail: lazy(() => import("../pages/Customers/Detail")),
+  EnvironmentList: lazy(() => import("../pages/Customers/Environments/List")),
+  EnvironmentDetail: lazy(
+    () => import("../pages/Customers/Environments/Detail")
+  ),
+  MemberList: lazy(() => import("../pages/Members/List")),
+  MemberDetail: lazy(() => import("../pages/Members/Detail")),
+  RoleList: lazy(() => import("../pages/Roles/List")),
+  RoleDetail: lazy(() => import("../pages/Roles/Detail")),
+  SettingsPage: lazy(() => import("../pages/Settings")),
+  SystemSettingsPage: lazy(() => import("../pages/SystemSettings")),
+  BuildWizard: lazy(() => import("../pages/Builds/New")),
 };
 
 export const routes: RouteItem[] = [
@@ -38,14 +43,14 @@ export const routes: RouteItem[] = [
   { path: "/register", component: Pages.Register, meta: { auth: "public" } },
 
   {
-    path: "/compile",
-    component: Pages.CompileList,
-    meta: { auth: "private", tab: TabView.COMPILE },
+    path: "/meta-projects",
+    component: Pages.MetaProjectList,
+    meta: { auth: "private", tab: TabView.META_PROJECTS },
   },
   {
-    path: "/compile/:projectId",
-    component: Pages.ProjectDetail,
-    meta: { auth: "private", tab: TabView.COMPILE },
+    path: "/meta-projects/:projectId",
+    component: Pages.MetaProjectDetail,
+    meta: { auth: "private", tab: TabView.META_PROJECTS },
   },
 
   {
@@ -65,24 +70,19 @@ export const routes: RouteItem[] = [
   },
 
   {
-    path: "/manage",
-    component: Pages.ManageList,
-    meta: { auth: "private", tab: TabView.MANAGE },
+    path: "/compilations",
+    component: Pages.CompilationList,
+    meta: { auth: "private", tab: TabView.COMPILATIONS },
   },
   {
-    path: "/manage/new",
-    component: Pages.DeploymentDetail,
-    meta: { auth: "private", tab: TabView.MANAGE },
+    path: "/compilations/new",
+    component: Pages.CompilationDetail,
+    meta: { auth: "private", tab: TabView.COMPILATIONS },
   },
   {
-    path: "/manage/:deployId",
-    component: Pages.DeploymentDetail,
-    meta: { auth: "private", tab: TabView.MANAGE },
-  },
-  {
-    path: "/manage/:deployId/history",
-    component: Pages.BuildHistory,
-    meta: { auth: "private", tab: TabView.MANAGE },
+    path: "/compilations/:compilationId",
+    component: Pages.CompilationDetail,
+    meta: { auth: "private", tab: TabView.COMPILATIONS },
   },
 
   {
@@ -98,6 +98,21 @@ export const routes: RouteItem[] = [
   {
     path: "/customers/:customerId",
     component: Pages.CustomerDetail,
+    meta: { auth: "private", tab: TabView.CUSTOMERS },
+  },
+  {
+    path: "/customers/:customerId/environments",
+    component: Pages.EnvironmentList,
+    meta: { auth: "private", tab: TabView.CUSTOMERS },
+  },
+  {
+    path: "/customers/:customerId/environments/new",
+    component: Pages.EnvironmentDetail,
+    meta: { auth: "private", tab: TabView.CUSTOMERS },
+  },
+  {
+    path: "/customers/:customerId/environments/:envId",
+    component: Pages.EnvironmentDetail,
     meta: { auth: "private", tab: TabView.CUSTOMERS },
   },
 
@@ -134,13 +149,19 @@ export const routes: RouteItem[] = [
   },
 
   {
-    path: "/build/:deployId",
-    component: Pages.BuildExecution,
-    meta: { auth: "private", tab: TabView.MANAGE },
+    path: "/builds/new",
+    component: Pages.BuildWizard,
+    meta: { auth: "private", tab: TabView.BUILDS },
   },
+
   {
     path: "/settings",
     component: Pages.SettingsPage,
+    meta: { auth: "private", tab: TabView.SETTINGS },
+  },
+  {
+    path: "/settings/system",
+    component: Pages.SystemSettingsPage,
     meta: { auth: "private", tab: TabView.SETTINGS },
   },
 ];

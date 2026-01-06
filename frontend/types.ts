@@ -1,11 +1,54 @@
 export enum TabView {
-  COMPILE = 'COMPILE',
-  MANAGE = 'MANAGE',
-  TEMPLATES = 'TEMPLATES',
-  CUSTOMERS = 'CUSTOMERS',
-  MEMBERS = 'MEMBERS',
-  ROLES = 'ROLES',
-  SETTINGS = 'SETTINGS'
+  META_PROJECTS = "META_PROJECTS",
+  COMPILATIONS = "COMPILATIONS",
+  TEMPLATES = "TEMPLATES",
+  CUSTOMERS = "CUSTOMERS",
+  MEMBERS = "MEMBERS",
+  ROLES = "ROLES",
+  SETTINGS = "SETTINGS",
+  BUILDS = "BUILDS",
+}
+
+export interface BuildLog {
+  id: string;
+  timestamp: string;
+  level: "INFO" | "WARN" | "ERROR";
+  message: string;
+  context?: string; // Error stack trace or context
+}
+
+export interface ModuleBuildStatus {
+  moduleId: string;
+  moduleName: string;
+  status: "Pending" | "Building" | "Success" | "Failed";
+  progress: number;
+  errorMessage?: string;
+  artifactUrl?: string; // Download link for module artifact
+}
+
+export interface BuildSnapshot {
+  customerName: string;
+  environmentName: string;
+  templateName: string;
+  templateVersion: string;
+  compilationName: string;
+  globalConfigs: CompilationGlobalConfig[];
+  moduleConfigs: CompilationModuleConfig[];
+}
+
+export interface BuildExecution {
+  id: string;
+  compilationId: string;
+  status: "Pending" | "Running" | "Success" | "Failed" | "Aborted";
+  description: string;
+  startTime: string;
+  endTime?: string;
+  initiator: string; // User name
+  snapshot: BuildSnapshot;
+  selectedModuleIds: string[]; // IDs of modules selected for this build
+  moduleStatus: ModuleBuildStatus[];
+  logs: BuildLog[]; // In real app, this might be fetched separately
+  artifactUrl?: string; // Download link for overall build package
 }
 
 export interface Project {
@@ -17,6 +60,8 @@ export interface Project {
   domain?: string;
   logo?: string;
   webpackConfig?: string;
+  gitRepo?: string;
+  description?: string;
   versions: Version[];
 }
 
@@ -24,26 +69,33 @@ export interface Version {
   id: string;
   version: string;
   date: string;
-  type: 'tag' | 'branch'; // 'tag' for release, 'branch' for dev branch
+  type: "tag" | "branch"; // 'tag' for release, 'branch' for dev branch
   isDeprecated?: boolean;
   sourceVersion?: string; // The version this was branched from
+  ref?: string;
+  compileCommands?: string[];
+  artifacts?: string[];
 }
 
-export interface DeploymentConfig {
+export interface VersionConfig {
   id: string;
   name: string;
-  type: 'Private' | 'Public' | 'Hybrid';
-  lastBuildTime: string;
-  lastBuildStatus: 'Success' | 'Failed' | 'Pending' | 'Idle';
-  lastBuilder: string;
-  projects: string[]; // IDs of projects included
-  customerId?: string;
+  type: "TEXT" | "FILE";
+  textOrigin?: string;
+  matchIndex?: number;
+  fileOriginPath?: string;
+  description?: string;
+  textTarget?: string;
+  mappingType?: "GLOBAL" | "MANUAL" | "FIXED";
+  mappingValue?: string;
 }
 
 export interface User {
+  id?: string;
   email: string;
   name: string;
   avatar: string;
+  isSuperAdmin?: boolean;
 }
 
 export interface GitConfig {
@@ -55,21 +107,41 @@ export interface GitConfig {
   pushWechat?: boolean;
 }
 
+export interface SystemCheckItem {
+  name: string;
+  installed: boolean;
+  version?: string;
+  versionManager?: {
+    name: string;
+    installed: boolean;
+    version?: string;
+  };
+  error?: string;
+}
+
+export interface SystemEnvironment {
+  git: SystemCheckItem;
+  java: SystemCheckItem;
+  nodejs: SystemCheckItem;
+}
+
 // --- Template / Suite System Definitions ---
 
 export interface TemplateGlobalConfig {
   id: string;
   name: string;
+  type: "FILE" | "TEXT";
   defaultValue: string;
   description: string;
   isHidden: boolean;
+  createdAt: string;
 }
 
 export interface TemplateModuleConfig {
   id: string;
   name: string;
   fileLocation: string;
-  mappingType: 'GLOBAL' | 'FIXED' | 'MANUAL';
+  mappingType: "GLOBAL" | "FIXED" | "MANUAL";
   mappingValue: string; // If GLOBAL, holds globalConfig ID. If FIXED, holds string value.
   regex: string;
   description: string;
@@ -82,7 +154,8 @@ export interface TemplateModule {
   projectId: string; // Reference to Project.id
   projectName: string;
   projectVersion: string;
-  publishMethod: 'GIT' | 'DOWNLOAD';
+  publishMethod: "GIT" | "DOWNLOAD";
+  description?: string;
   configs: TemplateModuleConfig[];
 }
 
@@ -92,9 +165,53 @@ export interface TemplateVersion {
   date: string;
   isBranch?: boolean;
   baseVersion?: string;
-  status: 'Active' | 'Deprecated';
+  status: "Active" | "Deprecated";
   globalConfigs: TemplateGlobalConfig[];
   modules: TemplateModule[];
+  buildDoc?: string;
+  updateDoc?: string;
+  description?: string;
+  readme?: string;
+  versionType?: "Major" | "Minor" | "Patch" | "Hotfix" | "Branch";
+  creator?: string;
+  parentId?: string;
+  children?: TemplateVersion[];
+}
+
+export interface NodeCredential {
+  id?: string;
+  type: string;
+  username: string;
+  password: string;
+  description?: string;
+}
+
+export interface EnvironmentNode {
+  id: string;
+  ip: string;
+  host: string;
+  domain?: string;
+  memory: string;
+  cpu: string;
+  chip: string;
+  os: string;
+  diskType: string;
+  diskSize: string;
+  remark?: string;
+  credentials: NodeCredential[];
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  url: string;
+  account?: string;
+  password?: string;
+  supportRemote: boolean;
+  remoteMethod?: string;
+  remark?: string;
+  customerId: string;
+  nodes?: EnvironmentNode[];
 }
 
 export interface ProjectTemplate {
@@ -103,6 +220,10 @@ export interface ProjectTemplate {
   latestVersion: string;
   description?: string;
   updateTime?: string;
+  updater?: string;
+  author?: string;
+  createdDate?: string;
+  isEnabled: boolean;
   versions: TemplateVersion[];
 }
 
@@ -112,7 +233,7 @@ export interface Customer {
   contactPerson: string;
   phone: string;
   email: string;
-  status: 'Active' | 'Inactive';
+  status: "Active" | "Inactive";
   address: string;
   contractDate: string;
   deployments: string[]; // IDs of associated deployments
@@ -123,7 +244,7 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string; // Changed from enum to string to support dynamic roles
-  status: 'Active' | 'Inactive';
+  status: "Active" | "Inactive";
   avatar?: string;
   joinDate: string;
 }
@@ -134,7 +255,7 @@ export interface BuildRecord {
   buildNumber: number;
   startTime: string;
   endTime?: string;
-  status: 'Success' | 'Failed' | 'Aborted';
+  status: "Success" | "Failed" | "Aborted";
   triggerBy: string;
   duration: string;
   commitHash?: string;
@@ -145,7 +266,7 @@ export interface Permission {
   key: string;
   name: string;
   description: string;
-  group: 'Project' | 'Deployment' | 'Team' | 'System';
+  group: "Project" | "Deployment" | "Team" | "System";
 }
 
 export interface Role {
@@ -154,4 +275,54 @@ export interface Role {
   description: string;
   permissions: string[]; // List of Permission IDs
   isSystem?: boolean; // System roles cannot be deleted
+}
+
+// --- Compilation Management ---
+
+export interface CompilationGlobalConfig {
+  configId: string; // ID from TemplateGlobalConfig
+  value: string;
+}
+
+export interface CompilationModuleConfig {
+  moduleId: string; // ID from TemplateModule
+  configId: string; // ID from TemplateModuleConfig
+  value: string;
+}
+
+export interface Compilation {
+  id: string;
+  name: string;
+  templateId: string;
+  templateVersion: string;
+  customerId: string;
+  environmentId: string;
+
+  // Display fields for list
+  templateName?: string;
+  customerName?: string;
+  environmentName?: string;
+
+  status: "Idle" | "Building" | "Success" | "Failed";
+  lastBuildTime?: string;
+  lastBuilder?: string;
+
+  createdBy: string;
+  createdAt: string;
+
+  // Configuration Values
+  globalConfigs: CompilationGlobalConfig[];
+  moduleConfigs: CompilationModuleConfig[];
+
+  // Prototype Fields
+  compileType?: "Private" | "Public" | "Hybrid";
+  publishMethod?: "Git" | "Download" | "Auto";
+  description?: string;
+  sharedMembers?: string[]; // Member IDs
+  notification?: {
+    push: boolean;
+    sms: boolean;
+    wechat: boolean;
+    other: boolean;
+  };
 }

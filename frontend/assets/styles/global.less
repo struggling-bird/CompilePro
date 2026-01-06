@@ -1,0 +1,69 @@
+@import './variables.less';
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-slate-50);
+  color: var(--color-slate-900);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for code editors (Migrated from index.html) */
+.code-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.code-scroll::-webkit-scrollbar-track {
+  background: var(--color-slate-100);
+}
+
+.code-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-slate-300);
+  border-radius: 4px;
+}
+
+.code-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-slate-400);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* App Loading State (Migrated from inline styles in index.html) */
+.app-loading-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-slate-50);
+  z-index: 9999;
+}
+
+.app-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--color-slate-300);
+  border-top-color: var(--color-blue-600);
+  animation: spin 1s linear infinite;
+}
+
+.app-loading-text {
+  font-size: 12px;
+  color: var(--color-slate-500);
+  letter-spacing: 0.02em;
+}

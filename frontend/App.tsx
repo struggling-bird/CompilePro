@@ -14,11 +14,20 @@ import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { ConfigProvider } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import enUS from "antd/locale/en_US";
+import { getCurrentUser, logout } from "./services/auth";
+import { getUserById } from "./services/users";
 
 const AppContent: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    typeof localStorage !== "undefined" && !!localStorage.getItem("token")
+  );
+  const [initialized, setInitialized] = useState(false);
   const [currentUser, setCurrentUser] = useState("zhuge@zhugeio.com");
-  const [activeTab, setActiveTab] = useState<TabView>(TabView.COMPILE);
+  const [activeTab, setActiveTab] = useState<TabView>(TabView.META_PROJECTS);
+  const [currentUserRole, setCurrentUserRole] = useState<string | undefined>(
+    undefined
+  );
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,13 +40,32 @@ const AppContent: React.FC = () => {
     if (match?.meta.tab) setActiveTab(match.meta.tab);
   }, [location]);
 
-  const handleLogin = (email: string) => {
-    setCurrentUser(email);
+  const handleLogin = async (email: string) => {
     setIsAuthenticated(true);
-    navigate("/compile");
+    try {
+      const me = await getCurrentUser();
+      setCurrentUser(me.username ?? me.email ?? email);
+      try {
+        const detail = await getUserById(me.id);
+        setCurrentUserRole(detail.role?.name || undefined);
+        setIsSuperAdmin(me.isSuperAdmin || false);
+      } catch {}
+    } catch (err) {
+      console.error("fetch me error:", err);
+      setCurrentUser(email);
+    }
+    navigate("/meta-projects");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logout();
+      localStorage.removeItem("token");
+    } catch (err) {
+      console.error("Logout failed", err);
+      // Still remove token even if API fails
+      localStorage.removeItem("token");
+    }
     setIsAuthenticated(false);
     navigate("/login");
   };
@@ -45,14 +73,14 @@ const AppContent: React.FC = () => {
   const handleTabChange = (tab: TabView) => {
     setActiveTab(tab);
     switch (tab) {
-      case TabView.COMPILE:
-        navigate("/compile");
+      case TabView.META_PROJECTS:
+        navigate("/meta-projects");
         break;
       case TabView.TEMPLATES:
         navigate("/templates");
         break;
-      case TabView.MANAGE:
-        navigate("/manage");
+      case TabView.COMPILATIONS:
+        navigate("/compilations");
         break;
       case TabView.CUSTOMERS:
         navigate("/customers");
@@ -63,11 +91,45 @@ const AppContent: React.FC = () => {
       case TabView.ROLES:
         navigate("/roles");
         break;
+      case TabView.BUILDS:
+        navigate("/builds/new");
+        break;
       case TabView.SETTINGS:
         navigate("/settings");
         break;
     }
   };
+
+  useEffect(() => {
+    const token =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
+    if (token) {
+      setIsAuthenticated(true);
+      getCurrentUser()
+        .then(async (me) => {
+          setCurrentUser(me.username ?? me.email);
+          try {
+            const detail = await getUserById(me.id);
+            setCurrentUserRole(detail.role?.name || undefined);
+            setIsSuperAdmin(me.isSuperAdmin || false);
+          } catch {}
+        })
+        .catch((err) => console.error("init fetch me error:", err))
+        .finally(() => setInitialized(true));
+    } else {
+      setInitialized(true);
+    }
+  }, []);
+
+  if (!initialized) {
+    return (
+      <Suspense fallback={<div />}>
+        <div />
+      </Suspense>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -91,11 +153,13 @@ const AppContent: React.FC = () => {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       userEmail={currentUser}
+      userRoleName={currentUserRole}
+      isSuperAdmin={isSuperAdmin}
       onLogout={handleLogout}
     >
       <Suspense fallback={<div />}>
         <Routes>
-          <Route path="/" element={<Navigate to="/compile" replace />} />
+          <Route path="/" element={<Navigate to="/meta-projects" replace />} />
           {privateRoutes.map(({ path, component: C }) => (
             <Route key={path} path={path} element={<C />} />
           ))}
