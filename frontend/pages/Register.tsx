@@ -1,45 +1,31 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  GlobalOutlined,
-  UserAddOutlined,
-  ArrowLeftOutlined,
-} from "@ant-design/icons";
+import React from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { GlobalOutlined, UserAddOutlined } from "@ant-design/icons";
 import { useLanguage } from "../contexts/LanguageContext";
 import { register } from "../services/auth";
+import { message, Form, Input, Button } from "antd";
+import styles from "./Login.module.less";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { t, language, setLanguage } = useLanguage();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    username: "",
-    password: "",
-    confirmPassword: "",
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.email || !formData.username || !formData.password) return;
-    if (formData.password !== formData.confirmPassword) {
-      alert("两次输入的密码不一致");
+  const onFinish = async (values: any) => {
+    if (values.password !== values.confirmPassword) {
+      message.error("两次输入的密码不一致");
       return;
     }
     try {
       await register({
-        email: formData.email,
-        username: formData.username,
-        password: formData.password,
+        email: values.email,
+        username: values.username,
+        password: values.password,
       });
+      message.success("注册成功，请登录");
       navigate("/login");
     } catch (err) {
       console.error("Register error:", err);
-      alert("注册失败，请稍后重试");
+      message.error("注册失败，请稍后重试");
     }
   };
 
@@ -48,118 +34,94 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-slate-900 skew-y-3 transform -translate-y-16 z-0"></div>
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-      <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+    <div className={styles.container}>
+      {/* Decorative Background */}
+      <div className={styles.decorativeBgTop}></div>
+      <div className={styles.blobBlue}></div>
+      <div className={styles.blobPurple}></div>
 
       {/* Top Controls */}
-      <div className="absolute top-6 right-6 z-20 flex items-center space-x-4">
-        <button
-          onClick={toggleLanguage}
-          className="flex items-center text-slate-300 hover:text-white transition-colors text-sm font-medium"
-        >
-          <GlobalOutlined className="w-4 h-4 mr-1.5" />
+      <div className={styles.languageToggle}>
+        <button onClick={toggleLanguage}>
+          <GlobalOutlined style={{ marginRight: 6, fontSize: 14 }} />
           {language === "en" ? "EN" : "中文"}
         </button>
       </div>
 
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl relative z-10 mx-4">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg shadow-blue-500/30">
-            Z
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800">
-            {t.register.title}
-          </h1>
-          <p className="text-slate-500 text-sm mt-2">
-            Join ZhugeIO Deployment Manager
-          </p>
+      <div className={styles.loginCard}>
+        <div className={styles.header}>
+          <div className={styles.logoContainer}>Z</div>
+          <h1 className={styles.title}>{t.register.title}</h1>
+          <p className={styles.subtitle}>Join ZhugeIO Deployment Manager</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                {t.register.emailPlaceholder}
-              </label>
-              <input
-                type="email"
-                name="email"
-                required
-                className="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                placeholder="name@company.com"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                {t.register.usernamePlaceholder}
-              </label>
-              <input
-                type="text"
-                name="username"
-                required
-                className="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                placeholder="zhuge"
-                value={formData.username}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                  {t.register.passwordPlaceholder}
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  className="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                  {t.register.confirmPasswordPlaceholder}
-                </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  required
-                  className="block w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5"
+        <Form onFinish={onFinish} layout="vertical" className={styles.form}>
+          <Form.Item
+            label={t.register.emailPlaceholder}
+            name="email"
+            rules={[
+              { required: true, message: "请输入邮箱地址" },
+              { type: "email", message: "邮箱地址格式不正确" },
+            ]}
           >
-            <UserAddOutlined className="w-4 h-4 mr-2" />
-            {t.register.registerBtn}
-          </button>
+            <Input placeholder="name@company.com" size="large" />
+          </Form.Item>
 
-          <div className="text-center pt-2">
-            <button
-              type="button"
-              onClick={() => navigate("/login")}
-              className="text-sm text-slate-500 hover:text-blue-600 font-medium flex items-center justify-center mx-auto transition-colors"
-            >
-              <ArrowLeftOutlined className="w-4 h-4 mr-1" />{" "}
-              {t.register.hasAccount}{" "}
-              <span className="ml-1 text-blue-600">{t.register.login}</span>
-            </button>
+          <Form.Item
+            label={t.register.usernamePlaceholder}
+            name="username"
+            rules={[{ required: true, message: "请输入用户名" }]}
+          >
+            <Input placeholder="Your username" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            label={t.register.passwordPlaceholder}
+            name="password"
+            rules={[
+              { required: true, message: "请输入密码" },
+              { min: 6, message: "密码长度至少 6 位" },
+            ]}
+          >
+            <Input.Password placeholder="••••••••" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            label="确认密码"
+            name="confirmPassword"
+            dependencies={["password"]}
+            rules={[
+              { required: true, message: "请确认密码" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error("两次输入的密码不一致"));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="••••••••" size="large" />
+          </Form.Item>
+
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            className={styles.submitBtn}
+            icon={<UserAddOutlined />}
+          >
+            {t.register.registerBtn}
+          </Button>
+
+          <div className={styles.footer}>
+            Already have an account?{" "}
+            <Link to="/login" style={{ color: "var(--color-blue-600)" }}>
+              Sign in
+            </Link>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );
