@@ -144,7 +144,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
       onOk={handleOk}
       destroyOnClose
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item
           name="name"
           label={t.templateDetail.name}

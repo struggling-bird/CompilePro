@@ -107,6 +107,7 @@ const CustomerDetailPage: React.FC = () => {
           layout="vertical"
           onFinish={onFinish}
           initialValues={{ status: "Active" }}
+          autoComplete="off"
         >
           <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 500 }}>
             {t.customerDetail.basicInfo}

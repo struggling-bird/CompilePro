@@ -50,12 +50,12 @@ const NodeModal: React.FC<Props> = ({
       okText={t.environment.save}
       cancelText={t.environment.cancel}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" autoComplete="off">
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="ip"
             label={t.environment.ip}
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: t.environment.required }]}
           >
             <Input />
           </Form.Item>

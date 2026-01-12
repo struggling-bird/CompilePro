@@ -37,7 +37,7 @@ const RoleDetailPage: React.FC = () => {
   return (
     <div className={styles.container}>
       <Card title={isNew ? t.roleDetail.newTitle : t.roleDetail.editTitle}>
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off">
           <Form.Item
             label={t.roleDetail.name}
             name="name"

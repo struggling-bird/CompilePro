@@ -78,7 +78,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       okText={t.projectList.createBtn}
       cancelText={t.projectDetail.cancel}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item
           name="name"
           label={t.projectList.projectName}

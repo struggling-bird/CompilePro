@@ -200,7 +200,7 @@ const BuildWizard: React.FC = () => {
       style={{ height: "100%", overflowY: "auto" }}
       extra={isBuilding && <Tag color="blue">{t.builds.building}</Tag>}
     >
-      <Form form={form} layout="vertical" disabled={isBuilding || !!buildId}>
+      <Form form={form} layout="vertical" disabled={isBuilding || !!buildId} autoComplete="off">
         <Form.Item
           name="customerId"
           label={t.builds.customer}

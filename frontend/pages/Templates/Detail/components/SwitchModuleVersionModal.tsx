@@ -55,18 +55,15 @@ const SwitchModuleVersionModal: React.FC<SwitchModuleVersionModalProps> = ({
 
   return (
     <Modal
-      title={t.templateDetail.selectVersion}
       open={visible}
+      title="Switch Module Version"
       onCancel={onCancel}
-      onOk={handleOk}
-      okText={t.templateDetail.save}
-      cancelText={t.templateDetail.cancel}
-      destroyOnClose
+      onOk={() => form.submit()}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" onFinish={handleOk} autoComplete="off">
         <Form.Item
           name="versionId"
-          label={t.templateDetail.selectVersion}
+          label="Select Version"
           rules={[{ required: true }]}
         >
           <Select

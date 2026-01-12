@@ -40,18 +40,18 @@ const CredentialEditModal: React.FC<Props> = ({
   };
 
   return (
-    <Modal
-      title={initialValues ? t.environment.edit : t.environment.addCredential}
+   <Modal
+      title={initialValues?.id ? "Edit Credential" : t.environment.addCredential}
       open={visible}
       onCancel={onCancel}
       onOk={handleOk}
       confirmLoading={loading}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item
           name="type"
           label={t.environment.type}
-          rules={[{ required: true, message: t.environment.required }]}
+          rules={[{ required: true }]}
         >
           <Input placeholder="e.g. root" />
         </Form.Item>

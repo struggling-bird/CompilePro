@@ -36,7 +36,7 @@ const MemberDetailPage: React.FC = () => {
   return (
     <div className="p-6">
       <Card title={isNew ? t.memberDetail.newTitle : t.memberDetail.editTitle}>
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off">
           <Form.Item
             label={t.memberDetail.name}
             name="name"

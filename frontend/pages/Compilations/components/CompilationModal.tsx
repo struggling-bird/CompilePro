@@ -157,7 +157,7 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
       confirmLoading={submitting}
       width={600}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item
           name="name"
           label={t.compilationDetail.name}

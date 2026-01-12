@@ -207,7 +207,7 @@ const CompilationListPage: React.FC = () => {
   return (
     <div className={styles.container}>
       <Card className={styles.searchCard} bordered={false}>
-        <Form form={form} onFinish={onFinish}>
+        <Form form={form} onFinish={onFinish} autoComplete="off">
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="name" noStyle>

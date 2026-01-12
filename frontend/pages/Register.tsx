@@ -55,7 +55,7 @@ const Register: React.FC = () => {
           <p className={styles.subtitle}>Join ZhugeIO Deployment Manager</p>
         </div>
 
-        <Form onFinish={onFinish} layout="vertical" className={styles.form}>
+        <Form onFinish={onFinish} layout="vertical" className={styles.form} autoComplete="off">
           <Form.Item
             label={t.register.emailPlaceholder}
             name="email"

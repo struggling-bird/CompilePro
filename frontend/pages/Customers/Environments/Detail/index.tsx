@@ -233,6 +233,7 @@ const EnvironmentDetail: React.FC = () => {
           form={form}
           layout="vertical"
           initialValues={{ supportRemote: false }}
+          autoComplete="off"
         >
           <Row gutter={24}>
             <Col span={12}>

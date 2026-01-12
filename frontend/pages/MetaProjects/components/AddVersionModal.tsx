@@ -43,7 +43,12 @@ const AddVersionModal: React.FC<AddVersionModalProps> = ({
       okText={t.projectDetail.save}
       cancelText={t.projectDetail.cancel}
     >
-      <Form form={form} layout="vertical" initialValues={{ type: "tag" }}>
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{ type: "tag" }}
+        autoComplete="off"
+      >
         <Form.Item
           name="name"
           label={t.projectDetail.versionNo}

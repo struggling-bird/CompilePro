@@ -63,7 +63,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </p>
         </div>
 
-        <Form onFinish={onFinish} layout="vertical" className={styles.form}>
+        <Form onFinish={onFinish} layout="vertical" className={styles.form} autoComplete="off">
           <div style={{ marginBottom: 16 }}>
             <Form.Item
               label={t.login.emailPlaceholder}

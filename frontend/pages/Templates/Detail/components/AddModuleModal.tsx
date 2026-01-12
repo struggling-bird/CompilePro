@@ -89,7 +89,7 @@ const AddModuleModal: React.FC<AddModuleModalProps> = ({
       cancelText={t.templateDetail.cancel}
       destroyOnClose
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item
           name="projectId"
           label={t.templateDetail.selectProject}

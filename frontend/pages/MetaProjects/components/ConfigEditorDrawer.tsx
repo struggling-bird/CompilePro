@@ -312,7 +312,12 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
         </div>
       </div>
       <div style={{ flex: 1, overflow: "auto" }}>
-        <Form form={form} layout="vertical" style={{ height: "100%" }}>
+        <Form
+          form={form}
+          layout="vertical"
+          style={{ height: "100%" }}
+          autoComplete="off"
+        >
           {renderContent()}
         </Form>
       </div>
