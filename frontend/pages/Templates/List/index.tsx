@@ -72,7 +72,7 @@ const TemplateListPage: React.FC = () => {
       setPageSize(res.meta?.pageSize || size);
     } catch (err) {
       console.error(err);
-      message.error("Failed to fetch templates");
+      message.error(t.templateList.fetchFailed);
     } finally {
       setLoading(false);
     }
@@ -95,24 +95,24 @@ const TemplateListPage: React.FC = () => {
   const handleToggleStatus = (id: string, checked: boolean) => {
     // API to toggle status not implemented yet in this turn?
     // Just mock for now or disable
-    message.info("Toggle status not implemented yet");
+    message.info(t.templateList.toggleNotImpl);
   };
 
   const columns = [
     {
-      title: t.templateList.name || "Template Name",
+      title: t.templateList.name,
       dataIndex: "name",
       key: "name",
       render: (text: string) => <Text strong>{text}</Text>,
     },
     {
-      title: t.templateList.description || "Description",
+      title: t.templateList.description,
       dataIndex: "description",
       key: "description",
       ellipsis: true,
     },
     {
-      title: t.templateList.latestVersion || "Latest Version",
+      title: t.templateList.latestVersion,
       dataIndex: "latestVersion",
       key: "latestVersion",
       render: (text: string) =>
@@ -125,7 +125,7 @@ const TemplateListPage: React.FC = () => {
         ),
     },
     {
-      title: "Update Time",
+      title: t.templateList.updateTime,
       dataIndex: "updatedAt",
       key: "updatedAt",
       width: 180,
@@ -133,19 +133,19 @@ const TemplateListPage: React.FC = () => {
         val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
     {
-      title: "Updater",
+      title: t.templateList.updater,
       dataIndex: "updater",
       key: "updater",
       width: 120,
     },
     {
-      title: t.templateList.author || "Creator",
+      title: t.templateList.author,
       dataIndex: "author",
       key: "author",
       width: 120,
     },
     {
-      title: t.templateList.createdDate || "Create Time",
+      title: t.templateList.createdDate,
       dataIndex: "createdAt",
       key: "createdAt",
       width: 180,
@@ -153,7 +153,7 @@ const TemplateListPage: React.FC = () => {
         val ? dayjs(val).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
     {
-      title: t.templateList.action || "Action",
+      title: t.templateList.action,
       key: "action",
       width: 240,
       render: (_: any, record: any) => (
@@ -163,26 +163,26 @@ const TemplateListPage: React.FC = () => {
             className={styles.actionBtn}
             onClick={() => navigate(`/templates/${record.id}`)}
           >
-            {t.templateList.edit || "Edit"}
+            {t.templateList.edit}
           </Button>
           <Popconfirm
-            title={t.templateList.deleteConfirm || "Are you sure to delete this template?"}
+            title={t.templateList.deleteConfirm}
             onConfirm={async () => {
               try {
                 await deleteTemplate(record.id);
-                message.success(t.templateList.deleteSuccess || "Template deleted");
+                message.success(t.templateList.deleteSuccess);
                 const values = form.getFieldsValue();
                 fetchTemplates(values, current, pageSize);
               } catch (e) {
                 console.error(e);
-                message.error(t.templateList.deleteFailed || "Delete failed");
+                message.error(t.templateList.deleteFailed);
               }
             }}
             okText={t.templateDetail.yes || "Yes"}
             cancelText={t.templateDetail.no || "No"}
           >
             <Button type="link" danger>
-              {t.templateList.delete || "Delete"}
+              {t.templateList.delete}
             </Button>
           </Popconfirm>
         </Space>
@@ -196,26 +196,26 @@ const TemplateListPage: React.FC = () => {
         <Form form={form} onFinish={onFinish}>
           <Row gutter={[16, 16]}>
             <Col span={6}>
-              <Form.Item name="name" label="Name" style={{ marginBottom: 0 }}>
-                <Input placeholder="Template Name" allowClear />
+              <Form.Item name="name" label={t.templateList.name} style={{ marginBottom: 0 }}>
+                <Input placeholder={t.templateList.namePlaceholder} allowClear />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item
                 name="author"
-                label="Author"
+                label={t.templateList.author}
                 style={{ marginBottom: 0 }}
               >
-                <Input placeholder="Creator" allowClear />
+                <Input placeholder={t.templateList.creatorPlaceholder} allowClear />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item
                 name="description"
-                label="Desc"
+                label={t.templateList.description}
                 style={{ marginBottom: 0 }}
               >
-                <Input placeholder="Description" allowClear />
+                <Input placeholder={t.templateList.descPlaceholder} allowClear />
               </Form.Item>
             </Col>
             {!expand && (
@@ -226,13 +226,13 @@ const TemplateListPage: React.FC = () => {
                     htmlType="submit"
                     icon={<SearchOutlined />}
                   >
-                    Search
+                    {t.templateList.search}
                   </Button>
                   <Button onClick={handleReset} icon={<ReloadOutlined />}>
-                    Reset
+                    {t.templateList.reset}
                   </Button>
                   <Button type="link" onClick={() => setExpand(true)}>
-                    Expand <DownOutlined />
+                    {t.templateList.expand} <DownOutlined />
                   </Button>
                 </Space>
               </Col>
@@ -243,7 +243,7 @@ const TemplateListPage: React.FC = () => {
                 <Col span={6}>
                   <Form.Item
                     name="createTime"
-                    label="Create Time"
+                    label={t.templateList.createdDate}
                     style={{ marginBottom: 0 }}
                   >
                     <RangePicker style={{ width: "100%" }} />
@@ -252,7 +252,7 @@ const TemplateListPage: React.FC = () => {
                 <Col span={6}>
                   <Form.Item
                     name="updateTime"
-                    label="Update Time"
+                    label={t.templateList.updateTime}
                     style={{ marginBottom: 0 }}
                   >
                     <RangePicker style={{ width: "100%" }} />
@@ -265,13 +265,13 @@ const TemplateListPage: React.FC = () => {
                       htmlType="submit"
                       icon={<SearchOutlined />}
                     >
-                      Search
+                      {t.templateList.search}
                     </Button>
                     <Button onClick={handleReset} icon={<ReloadOutlined />}>
-                      Reset
+                      {t.templateList.reset}
                     </Button>
                     <Button type="link" onClick={() => setExpand(false)}>
-                      Collapse <UpOutlined />
+                      {t.templateList.collapse} <UpOutlined />
                     </Button>
                   </Space>
                 </Col>
@@ -288,7 +288,7 @@ const TemplateListPage: React.FC = () => {
           icon={<PlusOutlined />}
           onClick={() => navigate("/templates/new")}
         >
-          {t.templateList.newTemplate || "New Template"}
+          {t.templateList.newTemplate}
         </Button>
       </div>
 
@@ -301,7 +301,7 @@ const TemplateListPage: React.FC = () => {
           current,
           pageSize,
           total,
-          showTotal: (t) => `Total ${t} items`,
+          showTotal: (total) => t.templateList.totalItems.replace("{{count}}", String(total)),
           onChange: (page, size) => {
             setCurrent(page);
             setPageSize(size || pageSize);

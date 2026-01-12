@@ -1,5 +1,6 @@
 import React from "react";
 import { Form, Input, InputNumber, Row, Col, Radio, Select, Spin } from "antd";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { TemplateGlobalConfig } from "@/types";
 import FilePreview from "@/components/FilePreview";
 
@@ -28,6 +29,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
   onMatchCountChange,
   globalConfigs = [],
 }) => {
+  const { t } = useLanguage();
   const mappingType = Form.useWatch("mappingType", {
     form: form,
     preserve: true,
@@ -51,8 +53,10 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
           <Col span={12}>
             <Form.Item
               name="name"
-              label="配置名称"
-              rules={[{ required: true, message: "请输入配置名称" }]}
+              label={t.projectDetail.configName}
+              rules={[
+                { required: true, message: t.projectDetail.inputConfigName },
+              ]}
               style={{ marginBottom: 6 }}
             >
               <Input placeholder="Config Name" disabled={isTargetEditEnabled} />
@@ -61,7 +65,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
           <Col span={12}>
             <Form.Item
               name="description"
-              label="配置描述"
+              label={t.projectDetail.configDescTitle}
               style={{ marginBottom: 6 }}
             >
               <Input placeholder="Description" disabled={isTargetEditEnabled} />
@@ -71,8 +75,8 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
           <Col span={16}>
             <Form.Item
               name="textOrigin"
-              label="正则表达式"
-              rules={[{ required: true, message: "请输入正则表达式" }]}
+              label={t.projectDetail.regexLabel}
+              rules={[{ required: true, message: t.projectDetail.inputRegex }]}
               style={{ marginBottom: 6 }}
             >
               <Input
@@ -84,7 +88,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
           <Col span={8}>
             <Form.Item
               name="matchIndex"
-              label="匹配项索引 (从0开始)"
+              label={t.projectDetail.matchIndex}
               initialValue={0}
               style={{ marginBottom: 6 }}
             >
@@ -107,13 +111,13 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
           >
             <Form.Item
               name="mappingType"
-              label="映射类型"
+              label={t.projectDetail.mappingType}
               initialValue="MANUAL"
               style={{ marginBottom: 8 }}
             >
               <Radio.Group>
-                <Radio value="MANUAL">手动输入</Radio>
-                <Radio value="GLOBAL">全局配置</Radio>
+                <Radio value="MANUAL">{t.templateDetail.manualInput}</Radio>
+                <Radio value="GLOBAL">{t.templateDetail.mapToGlobal}</Radio>
               </Radio.Group>
             </Form.Item>
 
@@ -128,10 +132,15 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
                 return type === "GLOBAL" ? (
                   <Form.Item
                     name="mappingValue"
-                    label="选择全局配置"
-                    rules={[{ required: true, message: "请选择全局配置" }]}
+                    label={t.projectDetail.selectGlobalConfig}
+                    rules={[
+                      {
+                        required: true,
+                        message: t.projectDetail.selectGlobalConfigPlaceholder,
+                      },
+                    ]}
                   >
-                    <Select placeholder="选择一个全局文本配置">
+                    <Select placeholder={t.projectDetail.selectGlobalTextConfig}>
                       {globalConfigs
                         .filter((c) => c.type === "TEXT")
                         .map((c) => (
@@ -142,7 +151,10 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
                     </Select>
                   </Form.Item>
                 ) : (
-                  <Form.Item name="textTarget" label="替换目标值">
+                  <Form.Item
+                    name="textTarget"
+                    label={t.projectDetail.targetValue}
+                  >
                     <Input placeholder="Replacement Value" />
                   </Form.Item>
                 );
@@ -163,9 +175,14 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
           fontSize: 12,
         }}
       >
-        <span>预览内容</span>
+        <span>{t.projectDetail.previewContent}</span>
         {matchCount > 0 && (
-          <span style={{ color: "#ffaa00" }}>匹配到 {matchCount} 处</span>
+          <span style={{ color: "#ffaa00" }}>
+            {t.projectDetail.matchCount.replace(
+              "{{count}}",
+              String(matchCount)
+            )}
+          </span>
         )}
       </div>
       <div

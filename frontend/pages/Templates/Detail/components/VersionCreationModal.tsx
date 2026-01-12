@@ -261,17 +261,20 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
                 name="branchSuffix" // Use a temporary field for validation
                 noStyle
                 rules={[
-                  { required: true, message: "Please input branch name" },
+                  {
+                    required: true,
+                    message: t.templateDetail.inputBranchName,
+                  },
                   {
                     pattern: /^[a-zA-Z0-9_]+$/,
-                    message: "Only alphanumeric and underscore allowed",
+                    message: t.templateDetail.branchNamePattern,
                   },
                 ]}
                 initialValue="branch"
               >
                 <Input
                   style={{ width: "40%" }}
-                  placeholder="branch_name"
+                  placeholder={t.templateDetail.branchNamePlaceholder}
                   value={branchSuffix}
                   onChange={(e) => setBranchSuffix(e.target.value)}
                 />

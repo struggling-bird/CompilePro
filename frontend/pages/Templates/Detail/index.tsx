@@ -148,13 +148,13 @@ const TemplateDetailPage: React.FC = () => {
           setCurrentVersionId(latest?.id || "");
         } catch (err) {
           console.error(err);
-          message.error("Failed to load template");
+          message.error(t.templateDetail.loadFailed);
         }
       } else {
         // Init new template
         setTemplate({
           id: "new",
-          name: "New Template",
+          name: t.templateDetail.newTemplate,
           latestVersion: "",
           isEnabled: true,
           versions: [], // Empty versions initially
@@ -250,13 +250,17 @@ const TemplateDetailPage: React.FC = () => {
     if (source.baseVersion) {
       const target = template.versions.find((v) => v.id === source.baseVersion);
       if (target) {
-        message.success(`Merged ${source.version} into ${target.version}`);
+        message.success(
+          t.templateDetail.merged
+            .replace("{{source}}", source.version)
+            .replace("{{target}}", target.version)
+        );
         // Logic to update target version with changes...
       } else {
-        message.warning("Base version not found");
+        message.warning(t.templateDetail.baseNotFound);
       }
     } else {
-      message.warning("No base version to merge into");
+      message.warning(t.templateDetail.noBase);
     }
   };
 
@@ -276,14 +280,14 @@ const TemplateDetailPage: React.FC = () => {
             versionType: values.versionType,
           },
         });
-        message.success("Template created successfully");
+        message.success(t.templateDetail.createSuccess);
         setVersionModalVisible(false);
         // Navigate to real ID. API returns { data: { id: ... } }
         const newId = res.data?.id || res.id;
         navigate(`/templates/${newId}`, { replace: true });
       } catch (err) {
         console.error(err);
-        message.error("Failed to create template");
+        message.error(t.templateDetail.createFailed);
       } finally {
         setLoading(false);
       }
@@ -316,7 +320,7 @@ const TemplateDetailPage: React.FC = () => {
       versions: updatedVersions,
     });
     setCurrentVersionId(newVer.id);
-    message.success("New version created successfully");
+    message.success(t.templateDetail.newVersionSuccess);
     setVersionModalVisible(false);
   };
 
@@ -324,14 +328,13 @@ const TemplateDetailPage: React.FC = () => {
     if (!template) return;
     // Prevent deleting the last remaining version
     if (template.versions.length <= 1) {
-      message.warning("Cannot delete the only version");
+      message.warning(t.templateDetail.deleteLastVersion);
       return;
     }
 
     Modal.confirm({
-      title: "Delete Version",
-      content:
-        "Are you sure you want to delete this version? This action cannot be undone.",
+      title: t.templateDetail.deleteVersionTitle,
+      content: t.templateDetail.deleteVersionConfirm,
       onOk: () => {
         const newVersions = template.versions.filter((v) => v.id !== versionId);
         const processedVersions = processVersions(newVersions);
@@ -343,7 +346,7 @@ const TemplateDetailPage: React.FC = () => {
             processedVersions[processedVersions.length - 1].id
           );
         }
-        message.success("Version deleted");
+        message.success(t.templateDetail.versionDeleted);
       },
     });
   };
@@ -356,8 +359,8 @@ const TemplateDetailPage: React.FC = () => {
 
     if (action === "DELETE" && config) {
       Modal.confirm({
-        title: "Confirm Delete",
-        content: "Are you sure you want to delete this global config?",
+        title: t.templateDetail.confirmDelete,
+        content: t.templateDetail.deleteGlobalConfirm,
         onOk: async () => {
           try {
             await deleteGlobalConfig(config.id);
@@ -368,10 +371,10 @@ const TemplateDetailPage: React.FC = () => {
               ...currentVersion,
               globalConfigs: updatedGlobal,
             });
-            message.success("Global config deleted");
+            message.success(t.templateDetail.globalDeleted);
           } catch (e) {
             console.error(e);
-            message.error("Failed to delete global config");
+            message.error(t.templateDetail.deleteGlobalFailed);
           }
         },
       });
@@ -484,10 +487,10 @@ const TemplateDetailPage: React.FC = () => {
       });
       updateCurrentVersion({ ...currentVersion, modules: updatedModules });
       setModuleDrawerVisible(false);
-      message.success("Module config saved");
+      message.success(t.templateDetail.moduleSaved);
     } catch (e) {
       console.error(e);
-      message.error("Failed to save module config");
+      message.error(t.templateDetail.saveModuleFailed);
     }
   };
 
@@ -516,11 +519,11 @@ const TemplateDetailPage: React.FC = () => {
             ...currentVersion,
             globalConfigs: newGlobalConfigs,
           });
-          message.success("Global config added successfully");
+          message.success(t.templateDetail.globalAdded);
         }
       } catch (e) {
         console.error(e);
-        message.error("Failed to save global config");
+        message.error(t.templateDetail.saveGlobalFailed);
       }
     } else {
       if (!activeModuleId) return;
@@ -609,7 +612,7 @@ const TemplateDetailPage: React.FC = () => {
       );
     } catch (e) {
       console.error(e);
-      message.error("Failed to add module");
+      message.error(t.templateDetail.addModuleFailed);
     } finally {
       setAddModuleModalVisible(false);
     }
@@ -647,10 +650,10 @@ const TemplateDetailPage: React.FC = () => {
           : m
       );
       updateCurrentVersion({ ...currentVersion, modules: updatedModules });
-      message.success("Version updated");
+      message.success(t.templateDetail.versionUpdated);
     } catch (e) {
       console.error(e);
-      message.error("Failed to switch version");
+      message.error(t.templateDetail.switchVersionFailed);
     } finally {
       setSwitchModalVisible(false);
       setSwitchTargetModuleId(undefined);
@@ -694,7 +697,7 @@ const TemplateDetailPage: React.FC = () => {
     );
   // Allow rendering if we are in "new template" mode (empty versions) to show the modal
   if (!currentVersion && template.versions.length > 0)
-    return <div>Version not found</div>;
+    return <div>{t.templateDetail.versionNotFound}</div>;
 
   return (
     <div className={styles.container}>
@@ -742,7 +745,7 @@ const TemplateDetailPage: React.FC = () => {
       </div>
 
       <Drawer
-        title="Version Graph"
+        title={t.templateDetail.versionGraph}
         placement="bottom"
         onClose={() => setVersionDrawerOpen(false)}
         open={versionDrawerOpen}
@@ -766,7 +769,9 @@ const TemplateDetailPage: React.FC = () => {
                   ...v,
                   status,
                   description: reason
-                    ? `${v.description || ""}\n[Deprecated Reason]: ${reason}`
+                    ? `${v.description || ""}\n[${
+                        t.templateDetail.deprecatedReason
+                      }]: ${reason}`
                     : v.description,
                 };
               }
@@ -774,7 +779,12 @@ const TemplateDetailPage: React.FC = () => {
             });
             setTemplate({ ...template, versions: newVersions });
             message.success(
-              `Version ${status === "Deprecated" ? "disabled" : "enabled"}`
+              t.templateDetail.versionStatus.replace(
+                "{{status}}",
+                status === "Deprecated"
+                  ? t.templateDetail.disabled
+                  : t.templateDetail.enabled
+              )
             );
           }}
         />

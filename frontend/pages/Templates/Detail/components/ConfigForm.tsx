@@ -71,9 +71,13 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
 
   const getTitle = () => {
     if (initialValues?.id) {
-      return mode === "GLOBAL" ? "编辑全局配置" : "编辑模块配置";
+      return mode === "GLOBAL"
+        ? t.templateDetail.editGlobalConfig
+        : t.templateDetail.editModuleConfig;
     }
-    return mode === "GLOBAL" ? "创建全局配置" : "创建模块配置";
+    return mode === "GLOBAL"
+      ? t.templateDetail.createGlobalConfig
+      : t.templateDetail.createModuleConfig;
   };
 
   const normFile = (e: any) => {
@@ -148,7 +152,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
         <Form.Item
           name="name"
           label={t.templateDetail.name}
-          rules={[{ required: true, message: "Please input name" }]}
+          rules={[{ required: true, message: t.templateDetail.inputName }]}
         >
           <Input placeholder={t.templateDetail.name} />
         </Form.Item>
@@ -214,7 +218,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
               label={t.templateDetail.fileLocation}
               rules={[{ required: true }]}
             >
-              <Input placeholder="e.g., /src/config.js" />
+              <Input placeholder={t.templateDetail.fileLocationPlaceholder} />
             </Form.Item>
 
             <Form.Item name="regex" label={t.templateDetail.regex}>

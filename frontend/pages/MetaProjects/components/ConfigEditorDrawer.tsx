@@ -11,6 +11,7 @@ import {
   Form,
 } from "antd";
 import { SaveOutlined } from "@ant-design/icons";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { VersionConfig, TemplateGlobalConfig } from "@/types";
 import { listProjectFiles, getFileContent } from "@/services/metaprojects";
 import TextReplacePanel from "./TextReplacePanel";
@@ -37,6 +38,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   enableTargetEdit,
   globalConfigs = [],
 }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("TEXT");
   const [treeData, setTreeData] = useState<any[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
@@ -89,7 +91,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
       const data = await listProjectFiles(projectId);
       setTreeData(data);
     } catch (err: any) {
-      message.error("无法加载文件列表: " + err.message);
+      message.error(t.projectDetail.loadFileListFailed + ": " + err.message);
     } finally {
       setLoadingFiles(false);
     }
@@ -103,7 +105,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
     } catch (err: any) {
       // If file doesn't exist or is binary, might fail.
       // For now just show empty or error
-      setFileContent("(无法读取文件内容)");
+      setFileContent(`(${t.projectDetail.loadFileContentFailed})`);
     } finally {
       setLoadingContent(false);
     }
@@ -251,8 +253,8 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
           onChange={setActiveTab}
           tabBarStyle={{ marginBottom: 0 }}
           items={[
-            { key: "TEXT", label: "文本替换" },
-            { key: "FILE", label: "文件替换" },
+            { key: "TEXT", label: t.projectDetail.textReplace },
+            { key: "FILE", label: t.projectDetail.fileReplace },
           ]}
         />
       }
@@ -297,7 +299,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
             fontWeight: 500,
           }}
         >
-          文件列表
+          {t.projectDetail.fileList}
         </div>
         <div style={{ flex: 1, overflow: "auto", padding: 8 }}>
           <Spin spinning={loadingFiles}>
@@ -305,7 +307,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
               <DirectoryTree onSelect={handleSelect} treeData={treeData} />
             ) : (
               <div style={{ padding: 16, textAlign: "center", color: "#999" }}>
-                暂无文件或未加载
+                {t.projectDetail.noFiles}
               </div>
             )}
           </Spin>

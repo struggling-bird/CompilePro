@@ -83,8 +83,10 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
         <Col span={24}>
           <Form.Item
             name="name"
-            label="配置名称"
-            rules={[{ required: true, message: "请输入配置名称" }]}
+            label={t.projectDetail.configName}
+            rules={[
+              { required: true, message: t.projectDetail.inputConfigName },
+            ]}
           >
             <Input placeholder="Config Name" disabled={isTargetEditEnabled} />
           </Form.Item>
@@ -194,7 +196,9 @@ const FileReplacePanel: React.FC<FileReplacePanelProps> = ({
                 </Form.Item>
               ) : (
                 <>
-                  <div style={{ fontSize: 12, color: "#666" }}>目标文件</div>
+                  <div style={{ fontSize: 12, color: "#666" }}>
+                    {t.projectDetail.targetFile}
+                  </div>
                   <Dragger
                     multiple={false}
                     maxCount={1}

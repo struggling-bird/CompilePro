@@ -526,22 +526,22 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
     },
     {
       key: "merge",
-      label: "Merge to Parent", // TODO: i18n
+      label: t.templateDetail.mergeToParent,
       disabled: !versions.find((v) => v.id === contextMenuState.nodeId)
         ?.isBranch,
     },
     {
       key: isDeprecated ? "enable" : "disable",
-      label: isDeprecated ? "Enable Version" : "Disable Version", // TODO: i18n
+      label: isDeprecated
+        ? t.templateDetail.enableVersion
+        : t.templateDetail.disableVersion,
     },
     {
       key: "delete",
       label: (
         <Tooltip
           title={
-            hasChildren
-              ? "Cannot delete version with downstream dependencies"
-              : ""
+            hasChildren ? t.templateDetail.deleteVersionDependencyWarning : ""
           }
           placement="right"
         >
@@ -583,7 +583,7 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
             gap: "4px",
           }}
         >
-          <Tooltip title="Zoom In (Ctrl + +)" placement="right">
+          <Tooltip title={t.templateDetail.zoomIn} placement="right">
             <Button
               type="text"
               icon={<ZoomInOutlined />}
@@ -591,7 +591,7 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
               size="small"
             />
           </Tooltip>
-          <Tooltip title="Zoom Out (Ctrl + -)" placement="right">
+          <Tooltip title={t.templateDetail.zoomOut} placement="right">
             <Button
               type="text"
               icon={<ZoomOutOutlined />}
@@ -599,7 +599,7 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
               size="small"
             />
           </Tooltip>
-          <Tooltip title="Fit View" placement="right">
+          <Tooltip title={t.templateDetail.fitView} placement="right">
             <Button
               type="text"
               icon={<CompressOutlined />}
@@ -615,7 +615,7 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
               size="small"
             />
           </Tooltip>
-          <Tooltip title="Hand Tool (Drag Canvas)" placement="right">
+          <Tooltip title={t.templateDetail.handTool} placement="right">
             <Button
               type="text"
               icon={<DragOutlined />}
@@ -647,25 +647,28 @@ const VersionTimeline: React.FC<VersionTimelineProps> = ({
       )}
 
       <Modal
-        title="Disable Version"
+        title={t.templateDetail.disableVersionTitle}
         open={disableModalVisible}
         onOk={handleDisableConfirm}
         onCancel={() => setDisableModalVisible(false)}
-        okText="Confirm"
-        cancelText="Cancel"
+        okText={t.templateDetail.confirm}
+        cancelText={t.templateDetail.cancel}
       >
         <Form form={disableForm} layout="vertical">
           <Form.Item
             name="reason"
-            label="Reason"
+            label={t.templateDetail.reason}
             rules={[
-              { required: true, message: "Please input reason" },
-              { min: 10, message: "Reason must be at least 10 characters" },
+              { required: true, message: t.templateDetail.inputReason },
+              {
+                min: 10,
+                message: t.templateDetail.reasonLength,
+              },
             ]}
           >
             <Input.TextArea
               rows={4}
-              placeholder="Please explain why this version is being disabled..."
+              placeholder={t.templateDetail.reasonPlaceholder}
             />
           </Form.Item>
         </Form>
