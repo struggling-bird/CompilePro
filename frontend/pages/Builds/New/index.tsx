@@ -24,6 +24,7 @@ import {
   InfoCircleOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
+import { useLanguage } from "../../../contexts/LanguageContext";
 import {
   listCompilations,
   getCompilation,
@@ -48,6 +49,7 @@ const { TextArea } = Input;
 const { Text, Title } = Typography;
 
 const BuildWizard: React.FC = () => {
+  const { t } = useLanguage();
   const [form] = Form.useForm();
 
   // Data Sources
@@ -76,7 +78,7 @@ const BuildWizard: React.FC = () => {
         const custs = await listCustomers();
         setCustomers(custs);
       } catch (e) {
-        message.error("Failed to load customers");
+        message.error(t.builds.loadCustomersFailed);
       }
     };
     init();
@@ -93,7 +95,7 @@ const BuildWizard: React.FC = () => {
       const res = await getCustomerEnvironments(custId);
       setEnvironments((res as any).list || []);
     } catch (e) {
-      message.error("Failed to load environments");
+      message.error(t.builds.loadEnvsFailed);
     }
   };
 
@@ -112,7 +114,7 @@ const BuildWizard: React.FC = () => {
       );
       setCompilations(filtered);
     } catch (e) {
-      message.error("Failed to load compilations");
+      message.error(t.builds.loadCompsFailed);
     }
   };
 
@@ -125,7 +127,7 @@ const BuildWizard: React.FC = () => {
         setModules((mods as any).data || mods || []);
       }
     } catch (e) {
-      message.error("Failed to load compilation details");
+      message.error(t.builds.loadCompDetailFailed);
     }
   };
 
@@ -135,7 +137,7 @@ const BuildWizard: React.FC = () => {
       const values = await form.validateFields();
       if (!selectedCompilation) return;
       if (selectedModuleIds.length === 0) {
-        message.error("Please select at least one module");
+        message.error(t.builds.selectModuleRequired);
         return;
       }
 
@@ -179,7 +181,7 @@ const BuildWizard: React.FC = () => {
         }
       });
     } catch (e) {
-      message.error("Failed to start build");
+      message.error(t.builds.startBuildFailed);
     }
   };
 
@@ -193,19 +195,19 @@ const BuildWizard: React.FC = () => {
   // Panels
   const renderConfigPanel = () => (
     <Card
-      title="Build Configuration"
+      title={t.builds.configTitle}
       bordered={false}
       style={{ height: "100%", overflowY: "auto" }}
-      extra={isBuilding && <Tag color="blue">Building in progress...</Tag>}
+      extra={isBuilding && <Tag color="blue">{t.builds.building}</Tag>}
     >
       <Form form={form} layout="vertical" disabled={isBuilding || !!buildId}>
         <Form.Item
           name="customerId"
-          label="Customer"
+          label={t.builds.customer}
           rules={[{ required: true }]}
         >
           <Select
-            placeholder="Select Customer"
+            placeholder={t.builds.selectCustomer}
             onChange={handleCustomerChange}
             suffixIcon={<UserOutlined />}
           >
@@ -218,11 +220,11 @@ const BuildWizard: React.FC = () => {
         </Form.Item>
         <Form.Item
           name="environmentId"
-          label="Environment"
+          label={t.builds.environment}
           rules={[{ required: true }]}
         >
           <Select
-            placeholder="Select Environment"
+            placeholder={t.builds.selectEnvironment}
             onChange={handleEnvironmentChange}
             disabled={!form.getFieldValue("customerId")}
             suffixIcon={<EnvironmentOutlined />}
@@ -236,11 +238,11 @@ const BuildWizard: React.FC = () => {
         </Form.Item>
         <Form.Item
           name="compilationId"
-          label="Compilation"
+          label={t.builds.compilation}
           rules={[{ required: true }]}
         >
           <Select
-            placeholder="Select Compilation"
+            placeholder={t.builds.selectCompilation}
             onChange={handleCompilationChange}
             disabled={!form.getFieldValue("environmentId")}
             suffixIcon={<ProjectOutlined />}
@@ -255,15 +257,15 @@ const BuildWizard: React.FC = () => {
 
         <Form.Item
           name="description"
-          label="Build Description"
+          label={t.builds.desc}
           rules={[
-            { required: true, message: "Description is required" },
-            { min: 20, message: "Min 20 chars" },
+            { required: true, message: t.builds.descRequired },
+            { min: 20, message: t.builds.descMin },
           ]}
         >
           <TextArea
             rows={4}
-            placeholder="Detailed description (min 20 chars)..."
+            placeholder={t.builds.descPlaceholder}
           />
         </Form.Item>
 
@@ -276,7 +278,7 @@ const BuildWizard: React.FC = () => {
             onClick={handleStartBuild}
             disabled={!selectedCompilation}
           >
-            Start Build
+            {t.builds.startBuild}
           </Button>
         )}
       </Form>
@@ -287,8 +289,8 @@ const BuildWizard: React.FC = () => {
     <Card
       title={
         <Space>
-          <span>Target Modules</span>
-          <Tag>{modules.length} Available</Tag>
+          <span>{t.builds.targetModules}</span>
+          <Tag>{modules.length} {t.builds.available}</Tag>
         </Space>
       }
       bordered={false}
@@ -300,14 +302,14 @@ const BuildWizard: React.FC = () => {
             type="link"
             onClick={() => setSelectedModuleIds(modules.map((m) => m.id))}
           >
-            Select All
+            {t.builds.selectAll}
           </Button>
           <Button
             size="small"
             type="link"
             onClick={() => setSelectedModuleIds([])}
           >
-            Clear
+            {t.builds.clear}
           </Button>
         </Space>
       }
@@ -315,7 +317,7 @@ const BuildWizard: React.FC = () => {
       {!selectedCompilation ? (
         <div style={{ textAlign: "center", color: "#999", padding: 40 }}>
           <InfoCircleOutlined style={{ fontSize: 24, marginBottom: 8 }} />
-          <div>Please select a compilation first</div>
+          <div>{t.builds.selectCompFirst}</div>
         </div>
       ) : (
         <Checkbox.Group
@@ -334,7 +336,7 @@ const BuildWizard: React.FC = () => {
                     <div
                       style={{ color: "#888", fontSize: "12px", marginTop: 4 }}
                     >
-                      {item.description || "No description"}
+                      {item.description || t.builds.noDesc}
                     </div>
                   </Checkbox>
                 </Card>
@@ -386,7 +388,7 @@ const BuildWizard: React.FC = () => {
                     href={buildState.artifactUrl}
                     target="_blank"
                   >
-                    Download Artifact
+                    {t.builds.downloadArtifact}
                   </Button>
                 )}
                 <Tag
@@ -410,7 +412,7 @@ const BuildWizard: React.FC = () => {
           {/* Left: Module Status List */}
           <Col span={8} style={{ height: "100%", overflowY: "auto" }}>
             <Card
-              title="Module Status"
+              title={t.builds.moduleStatus}
               bordered={false}
               bodyStyle={{ padding: 12 }}
             >
@@ -471,7 +473,7 @@ const BuildWizard: React.FC = () => {
                         <span />
                       )}
                       {item.status === "Success" && item.artifactUrl && (
-                        <Tooltip title="Download Module Artifact">
+                        <Tooltip title={t.builds.downloadModuleArtifact}>
                           <Button
                             type="link"
                             size="small"
@@ -492,7 +494,7 @@ const BuildWizard: React.FC = () => {
           {/* Right: Logs */}
           <Col span={16} style={{ height: "100%" }}>
             <Card
-              title="Build Logs"
+              title={t.builds.buildLogs}
               bordered={false}
               style={{
                 height: "100%",
@@ -569,7 +571,7 @@ const BuildWizard: React.FC = () => {
                 ))}
                 {filteredLogs.length === 0 && (
                   <div style={{ color: "#666", fontStyle: "italic" }}>
-                    No logs available
+                    {t.builds.noLogs}
                   </div>
                 )}
               </div>
@@ -591,7 +593,7 @@ const BuildWizard: React.FC = () => {
       }}
     >
       <Title level={4} style={{ marginBottom: 24 }}>
-        New Build
+        {t.builds.title}
       </Title>
       <Row gutter={24} style={{ flex: 1, minHeight: 0 }}>
         {/* Left Config Panel */}

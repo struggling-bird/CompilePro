@@ -73,7 +73,7 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
             setEnvironments([]);
           }
         } catch (e) {
-          message.error("Failed to load form data");
+          message.error(t.compilationDetail.loadFormFailed);
         }
       };
       init();
@@ -94,7 +94,7 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
       setVersions(vList);
     } catch (e) {
       console.error(e);
-      message.error("Failed to load versions");
+      message.error(t.compilationDetail.loadVersionsFailed);
     }
   };
 
@@ -112,7 +112,7 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
       setEnvironments(envs || []);
     } catch (e) {
       console.error(e);
-      message.error("Failed to load environments");
+      message.error(t.compilationDetail.loadEnvsFailed);
     }
   };
 
@@ -161,9 +161,9 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
         <Form.Item
           name="name"
           label={t.compilationDetail.name}
-          rules={[{ required: true, message: "Please enter name" }]}
+          rules={[{ required: true, message: t.compilationDetail.enterName }]}
         >
-          <Input placeholder="e.g. Online Deployment V1" />
+          <Input placeholder={t.compilationDetail.namePlaceholder} />
         </Form.Item>
 
         <Form.Item label={t.compilationDetail.template} required>
@@ -171,12 +171,12 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
             <Form.Item
               name="templateId"
               noStyle
-              rules={[{ required: true, message: "Select template" }]}
+              rules={[{ required: true, message: t.compilationDetail.template }]}
             >
               <Select
                 style={{ flex: 3 }}
                 onChange={(v) => handleTemplateChange(v)}
-                placeholder="Select Template"
+                placeholder={t.compilationDetail.selectTemplatePlaceholder}
               >
                 {templates.map((t) => (
                   <Option key={t.id} value={t.id}>
@@ -188,11 +188,11 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
             <Form.Item
               name="templateVersion"
               noStyle
-              rules={[{ required: true, message: "Select version" }]}
+              rules={[{ required: true, message: t.compilationDetail.templateVersion }]}
             >
               <Select
                 style={{ flex: 2 }}
-                placeholder="Version"
+                placeholder={t.compilationDetail.selectVersionPlaceholder}
                 disabled={!versions.length}
               >
                 {versions.map((v) => (
@@ -210,12 +210,12 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
             <Form.Item
               name="customerId"
               noStyle
-              rules={[{ required: true, message: "Select customer" }]}
+              rules={[{ required: true, message: t.compilationDetail.selectCustomer }]}
             >
               <Select
                 style={{ flex: 1 }}
                 onChange={(v) => handleCustomerChange(v)}
-                placeholder="Select Customer"
+                placeholder={t.compilationDetail.selectCustomer}
               >
                 {customers.map((c) => (
                   <Option key={c.id} value={c.id}>
@@ -227,11 +227,11 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
             <Form.Item
               name="environmentId"
               noStyle
-              rules={[{ required: true, message: "Select environment" }]}
+              rules={[{ required: true, message: t.compilationDetail.selectEnvironment }]}
             >
               <Select
                 style={{ flex: 1 }}
-                placeholder="Environment"
+                placeholder={t.compilationDetail.selectEnvPlaceholder}
                 disabled={!environments.length}
               >
                 {environments.map((e) => (

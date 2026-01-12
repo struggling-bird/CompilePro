@@ -59,7 +59,7 @@ const CompilationListPage: React.FC = () => {
       setPageSize(res.meta?.pageSize || size);
     } catch (err) {
       console.error(err);
-      message.error("Failed to fetch compilations");
+      message.error(t.compilationList.fetchFailed);
     } finally {
       setLoading(false);
     }
@@ -78,24 +78,27 @@ const CompilationListPage: React.FC = () => {
   const handleCreate = async (values: any) => {
     try {
       const newId = await createCompilation(values);
-      message.success(t.common.success || "Created Successfully");
+      message.success(t.common.success || t.compilationList.createSuccess);
       setCreateModalVisible(false);
       navigate(`/compilations/${newId}`);
     } catch (e) {
-      message.error("Create failed");
+      message.error(t.compilationList.createFailed);
     }
   };
 
-  const columns = [
+  const columns: any[] = [
     {
       title: t.compilationList.name,
       dataIndex: "name",
       key: "name",
+      width: 220,
+      fixed: "left",
       render: (text: string) => <Text strong>{text}</Text>,
     },
     {
       title: t.compilationList.template,
       key: "template",
+      width: 200,
       render: (_: any, record: Compilation) => (
         <Space direction="vertical" size={0}>
           <Text>{record.templateName || "-"}</Text>
@@ -107,11 +110,13 @@ const CompilationListPage: React.FC = () => {
       title: t.compilationList.customer,
       dataIndex: "customerName",
       key: "customerName",
+      width: 150,
     },
     {
       title: t.compilationList.environment,
       dataIndex: "environmentName",
       key: "environmentName",
+      width: 150,
     },
     {
       title: t.compilationList.lastBuildTime,
@@ -145,6 +150,7 @@ const CompilationListPage: React.FC = () => {
       title: t.compilationList.action,
       key: "action",
       width: 280,
+      fixed: "right",
       render: (_: any, record: Compilation) => (
         <Space>
           <Button
@@ -159,7 +165,7 @@ const CompilationListPage: React.FC = () => {
             className={styles.actionBtn}
             onClick={() => {
               // TODO: Navigate to execution or show modal
-              message.info("Execute feature coming soon");
+              message.info(t.compilationList.executeFeature);
             }}
           >
             {t.compilationList.execute}
@@ -169,7 +175,7 @@ const CompilationListPage: React.FC = () => {
             className={styles.actionBtn}
             onClick={() => {
               // TODO: History
-              message.info("History feature coming soon");
+              message.info(t.compilationList.historyFeature);
             }}
           >
             {t.compilationList.history}
@@ -183,7 +189,7 @@ const CompilationListPage: React.FC = () => {
                 const values = form.getFieldsValue();
                 fetchList(values, current, pageSize);
               } catch (e) {
-                message.error("Delete failed");
+                message.error(t.compilationList.deleteFailed);
               }
             }}
             okText={t.templateDetail?.yes || "Yes"}
@@ -214,7 +220,7 @@ const CompilationListPage: React.FC = () => {
             <Col span={8}>
               <Space>
                 <Button type="primary" htmlType="submit">
-                  Search
+                  {t.compilationList.search}
                 </Button>
                 <Button
                   icon={<ReloadOutlined />}
@@ -223,7 +229,7 @@ const CompilationListPage: React.FC = () => {
                     fetchList();
                   }}
                 >
-                  Reset
+                  {t.compilationList.reset}
                 </Button>
               </Space>
             </Col>
@@ -246,6 +252,7 @@ const CompilationListPage: React.FC = () => {
           columns={columns}
           dataSource={data}
           loading={loading}
+          scroll={{ x: 1600 }}
           pagination={{
             current,
             pageSize,

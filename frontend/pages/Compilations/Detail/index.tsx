@@ -65,7 +65,7 @@ const CompilationDetail: React.FC = () => {
         await fetchAndSetVersionDetails(data.templateVersion);
       }
     } catch (e) {
-      message.error("Failed to load data");
+      message.error(t.compilationDetail.loadDataFailed);
       console.error(e);
     } finally {
       setLoading(false);
@@ -92,13 +92,13 @@ const CompilationDetail: React.FC = () => {
       // So we construct a partial object.
       setSelectedTemplateVersion({
         id: versionId,
-        version: "Loading...", // We might not know the version name without fetching the list or version detail
+        version: t.compilationDetail.loading, // We might not know the version name without fetching the list or version detail
         globalConfigs,
         modules,
       } as TemplateVersion);
     } catch (e) {
       console.error(e);
-      message.error("Failed to load template details");
+      message.error(t.compilationDetail.loadTemplateFailed);
     }
   };
 
@@ -160,7 +160,7 @@ const CompilationDetail: React.FC = () => {
       await updateCompilation(compilationId, payload);
       message.success(t.compilationDetail.saveSuccess);
     } catch (e) {
-      message.error("Save failed");
+      message.error(t.compilationDetail.saveFailed);
     } finally {
       setSubmitting(false);
     }
@@ -170,7 +170,7 @@ const CompilationDetail: React.FC = () => {
     if (!compilationId) return;
     try {
       await updateCompilation(compilationId, values);
-      message.success("Basic info updated");
+      message.success(t.compilationDetail.basicInfoUpdated);
       // Reload data to reflect changes (especially if template changed)
       // Note: If template changed, existing config values might be invalid.
       // Ideally backend handles this, or we clear them.
