@@ -86,6 +86,9 @@ const EnvironmentDetail: React.FC = () => {
   };
 
   useEffect(() => {
+    if (isNew) {
+      form.resetFields();
+    }
     fetchEnv();
   }, [customerId, envId]);
 
@@ -106,15 +109,14 @@ const EnvironmentDetail: React.FC = () => {
       setSaving(true);
       if (isNew) {
         if (!customerId) return;
-        const res = await createEnvironment(customerId, values);
+        await createEnvironment(customerId, values);
         message.success(t.environment.saveSuccess);
-        navigate(`/customers/${customerId}/environments/${res.id}`, {
-          replace: true,
-        });
+        navigate(`/customers/${customerId}/environments`);
       } else {
         if (!customerId || !envId) return;
         await updateEnvironment(customerId, envId, values);
         message.success(t.environment.saveSuccess);
+        navigate(`/customers/${customerId}/environments`);
       }
     } catch (err) {
       console.error(err);
@@ -227,7 +229,11 @@ const EnvironmentDetail: React.FC = () => {
         bordered={false}
         style={{ marginBottom: 24 }}
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{ supportRemote: false }}
+        >
           <Row gutter={24}>
             <Col span={12}>
               <Form.Item
@@ -266,11 +272,25 @@ const EnvironmentDetail: React.FC = () => {
                 <Switch />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item name="remoteMethod" label={t.environment.remoteMethod}>
-                <Input />
-              </Form.Item>
-            </Col>
+            <Form.Item
+              noStyle
+              shouldUpdate={(prev, current) =>
+                prev.supportRemote !== current.supportRemote
+              }
+            >
+              {({ getFieldValue }) =>
+                getFieldValue("supportRemote") ? (
+                  <Col span={24}>
+                    <Form.Item
+                      name="remoteMethod"
+                      label={t.environment.remoteMethod}
+                    >
+                      <Input.TextArea rows={3} />
+                    </Form.Item>
+                  </Col>
+                ) : null
+              }
+            </Form.Item>
             <Col span={24}>
               <Form.Item name="remark" label={t.environment.remark}>
                 <Input.TextArea rows={2} />

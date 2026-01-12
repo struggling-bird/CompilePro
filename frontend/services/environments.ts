@@ -32,14 +32,14 @@ export const createEnvironment = async (
   customerId: string,
   data: Partial<Environment>
 ): Promise<Environment> => {
-  const res = await request<{ data: Environment }>(
+  const res = await request<Environment>(
     `/apis/customers/${customerId}/environments`,
     {
       method: "POST",
       data,
     }
   );
-  return res.data;
+  return res;
 };
 
 export const updateEnvironment = async (
@@ -47,14 +47,14 @@ export const updateEnvironment = async (
   envId: string,
   data: Partial<Environment>
 ): Promise<Environment> => {
-  const res = await request<{ data: Environment }>(
+  const res = await request<Environment>(
     `/apis/customers/${customerId}/environments/${envId}`,
     {
       method: "PUT",
       data,
     }
   );
-  return res.data;
+  return res;
 };
 
 export const deleteEnvironment = async (
@@ -100,14 +100,14 @@ export const createNode = async (
   envId: string,
   data: Partial<EnvironmentNode>
 ): Promise<EnvironmentNode> => {
-  const res = await request<{ data: EnvironmentNode }>(
+  const res = await request<EnvironmentNode>(
     `/apis/customers/${customerId}/environments/${envId}/nodes`,
     {
       method: "POST",
       data,
     }
   );
-  return res.data;
+  return res;
 };
 
 export const updateNode = async (
@@ -116,14 +116,14 @@ export const updateNode = async (
   nodeId: string,
   data: Partial<EnvironmentNode>
 ): Promise<EnvironmentNode> => {
-  const res = await request<{ data: EnvironmentNode }>(
+  const res = await request<EnvironmentNode>(
     `/apis/customers/${customerId}/environments/${envId}/nodes/${nodeId}`,
     {
       method: "PUT",
       data,
     }
   );
-  return res.data;
+  return res;
 };
 
 export const deleteNode = async (
