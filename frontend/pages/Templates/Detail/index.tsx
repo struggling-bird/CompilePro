@@ -216,7 +216,7 @@ const TemplateDetailPage: React.FC = () => {
     if (!currentVersion) return counts;
 
     currentVersion.modules.forEach((mod) => {
-      mod.configs.forEach((cfg) => {
+      (mod.configs || []).forEach((cfg) => {
         if (cfg.mappingType === "GLOBAL") {
           counts[cfg.mappingValue] = (counts[cfg.mappingValue] || 0) + 1;
         }
@@ -598,10 +598,11 @@ const TemplateDetailPage: React.FC = () => {
       // If newModule doesn't have configs populated in response (though it should),
       // we might need to fetch them or rely on what backend returns.
       // Assuming backend returns { ...module, configs: [...] }
+      const moduleWithConfigs = { ...newModule, configs: newModule.configs || [] };
 
       updateCurrentVersion({
         ...currentVersion,
-        modules: [...currentVersion.modules, newModule],
+        modules: [...currentVersion.modules, moduleWithConfigs],
       });
       message.success(
         t.templateDetail.add + " " + t.templateDetail.moduleConfigTitle
