@@ -58,7 +58,11 @@ const CompilationModal: React.FC<CompilationModalProps> = ({
 
           // Handle Edit Mode Initial Data
           if (initialValues) {
-            form.setFieldsValue(initialValues);
+            form.setFieldsValue({
+              ...initialValues,
+              // Map ID to the field if available, otherwise rely on what's there
+              templateVersion: initialValues.templateVersionId || initialValues.templateVersion,
+            });
 
             // Fetch dependent lists
             if (initialValues.templateId) {

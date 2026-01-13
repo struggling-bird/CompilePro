@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button, message, Space, Typography, Card, Tooltip } from "antd";
 import {
   ArrowLeftOutlined,
-  SaveOutlined,
   EditOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
@@ -32,7 +31,6 @@ const CompilationDetail: React.FC = () => {
   const { t } = useLanguage();
 
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
   // Data Sources
@@ -147,24 +145,24 @@ const CompilationDetail: React.FC = () => {
   }, [selectedTemplateVersion]);
 
   // Save Configs Only
-  const onFinish = async () => {
-    if (!compilationId) return;
+  // const onFinish = async () => {
+  //   if (!compilationId) return;
 
-    setSubmitting(true);
-    try {
-      const payload: Partial<Compilation> = {
-        globalConfigs,
-        moduleConfigs,
-      };
+  //   setSubmitting(true);
+  //   try {
+  //     const payload: Partial<Compilation> = {
+  //       globalConfigs,
+  //       moduleConfigs,
+  //     };
 
-      await updateCompilation(compilationId, payload);
-      message.success(t.compilationDetail.saveSuccess);
-    } catch (e) {
-      message.error(t.compilationDetail.saveFailed);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  //     await updateCompilation(compilationId, payload);
+  //     message.success(t.compilationDetail.saveSuccess);
+  //   } catch (e) {
+  //     message.error(t.compilationDetail.saveFailed);
+  //   } finally {
+  //     setSubmitting(false);
+  //   }
+  // };
 
   const handleUpdateBasicInfo = async (values: any) => {
     if (!compilationId) return;
@@ -205,19 +203,6 @@ const CompilationDetail: React.FC = () => {
             />
           </Space>
         </div>
-        <Space>
-          <Button onClick={() => navigate("/compilations")}>
-            {t.compilationDetail.cancel}
-          </Button>
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            loading={submitting}
-            onClick={onFinish}
-          >
-            {t.compilationDetail.save}
-          </Button>
-        </Space>
       </div>
 
       <div className={styles.content}>

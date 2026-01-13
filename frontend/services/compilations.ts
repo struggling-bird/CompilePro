@@ -1,121 +1,94 @@
+import request from "../utils/request";
 import { Compilation } from "../types";
 
-// Mock Data for Compilations
-export const MOCK_COMPILATIONS: Compilation[] = [
-  {
-    id: "c1",
-    name: "Online Deployment V1",
-    templateId: "t1",
-    templateName: "Standard Web Template",
-    templateVersion: "1.0.0",
-    customerId: "cus1",
-    customerName: "Acme Corp",
-    environmentId: "env1",
-    environmentName: "Production",
-    status: "Success",
-    lastBuildTime: "2023-10-27 10:00:00",
-    lastBuilder: "Admin",
-    createdBy: "Admin",
-    createdAt: "2023-10-26 09:00:00",
-    globalConfigs: [],
-    moduleConfigs: [],
-  },
-  {
-    id: "c2",
-    name: "Test Environment V2",
-    templateId: "t1",
-    templateName: "Standard Web Template",
-    templateVersion: "1.0.1",
-    customerId: "cus2",
-    customerName: "Beta Inc",
-    environmentId: "env2",
-    environmentName: "Staging",
-    status: "Failed",
-    lastBuildTime: "2023-10-28 14:30:00",
-    lastBuilder: "Developer",
-    createdBy: "Admin",
-    createdAt: "2023-10-28 14:00:00",
-    globalConfigs: [],
-    moduleConfigs: [],
-  },
-];
+const BASE_URL = "/apis/compilations";
 
-let compilations = [...MOCK_COMPILATIONS];
+// Helper to map backend entity to frontend Compilation type
+const mapBackendToFrontend = (data: any): Compilation => {
+  return {
+    ...data,
+    // Map flattened fields from relations
+    templateName: data.template?.name,
+    // Backend returns templateVersion object, frontend expects version string
+    templateVersion: data.templateVersion?.version || data.templateVersionId,
+    // Preserve ID for editing
+    templateVersionId: data.templateVersionId, 
+    customerName: data.customer?.name,
+    environmentName: data.environment?.name,
+    // Ensure configs are arrays
+    globalConfigs: data.globalConfigs || [],
+    moduleConfigs: data.moduleConfigs || [],
+  };
+};
+
+const mapFrontendToBackend = (data: Partial<Compilation>): any => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const {
+    templateName,
+    customerName,
+    environmentName,
+    templateVersion,
+    templateVersionId,
+    lastBuildTime,
+    lastBuilder,
+    createdBy,
+    createdAt,
+    updatedAt,
+    status,
+    ...rest
+  } = data;
+
+  // Use templateVersionId if available (for update/create), otherwise check if templateVersion is UUID
+  let versionId = templateVersionId;
+  if (!versionId && templateVersion && templateVersion.length > 20) {
+      // Crude check if templateVersion holds the ID
+      versionId = templateVersion;
+  }
+
+  return {
+    ...rest,
+    templateVersionId: versionId,
+  };
+};
 
 export const listCompilations = async (query: any) => {
-  return new Promise<{
-    items: Compilation[];
-    meta: { total: number; page: number; pageSize: number };
-  }>((resolve) => {
-    setTimeout(() => {
-      let filtered = [...compilations];
-      if (query.name) {
-        filtered = filtered.filter((c) =>
-          c.name.toLowerCase().includes(query.name.toLowerCase())
-        );
-      }
-      resolve({
-        items: filtered,
-        meta: {
-          total: filtered.length,
-          page: query.page || 1,
-          pageSize: query.pageSize || 10,
-        },
-      });
-    }, 500);
+  const res = await request<{ items: any[]; meta: any }>(BASE_URL, {
+    params: query,
   });
+
+  return {
+    items: (res.items || []).map(mapBackendToFrontend),
+    meta: res.meta || { total: 0, page: 1, pageSize: 10 },
+  };
 };
 
 export const getCompilation = async (id: string) => {
-  return new Promise<Compilation>((resolve, reject) => {
-    setTimeout(() => {
-      const found = compilations.find((c) => c.id === id);
-      if (found) resolve(found);
-      else reject(new Error("Compilation not found"));
-    }, 300);
-  });
+  const res = await request<any>(`${BASE_URL}/${id}`);
+  return mapBackendToFrontend(res);
 };
 
 export const createCompilation = async (data: Partial<Compilation>) => {
-  return new Promise<string>((resolve) => {
-    setTimeout(() => {
-      const newId = `c${Date.now()}`;
-      compilations.unshift({
-        ...data,
-        id: newId,
-        status: "Idle",
-        createdAt: new Date().toISOString(),
-        createdBy: "Admin", // Mock user
-        globalConfigs: data.globalConfigs || [],
-        moduleConfigs: data.moduleConfigs || [],
-      } as Compilation);
-      resolve(newId);
-    }, 500);
+  const payload = mapFrontendToBackend(data);
+  const res = await request<any>(BASE_URL, {
+    method: "POST",
+    data: payload,
   });
+  return res.id;
 };
 
 export const updateCompilation = async (
   id: string,
   data: Partial<Compilation>
 ) => {
-  return new Promise<void>((resolve, reject) => {
-    setTimeout(() => {
-      const idx = compilations.findIndex((c) => c.id === id);
-      if (idx !== -1) {
-        compilations[idx] = { ...compilations[idx], ...data };
-        resolve();
-      } else {
-        reject(new Error("Not found"));
-      }
-    }, 500);
+  const payload = mapFrontendToBackend(data);
+  await request(`${BASE_URL}/${id}`, {
+    method: "PATCH",
+    data: payload,
   });
 };
 
 export const deleteCompilation = async (id: string) => {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      compilations = compilations.filter((c) => c.id !== id);
-      resolve();
-    }, 300);
+  await request(`${BASE_URL}/${id}`, {
+    method: "DELETE",
   });
 };

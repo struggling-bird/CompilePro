@@ -295,6 +295,7 @@ export interface Compilation {
   name: string;
   templateId: string;
   templateVersion: string;
+  templateVersionId: string;
   customerId: string;
   environmentId: string;
 
