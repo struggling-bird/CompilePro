@@ -33,6 +33,8 @@ import { StorageConfigModule } from './storage-config/storage-config.module';
 import { StorageConfig } from './storage-config/entities/storage-config.entity';
 import { StorageConfigHistory } from './storage-config/entities/storage-config-history.entity';
 import { TemplatesModule } from './templates/templates.module';
+import { CompilationsModule } from './compilations/compilations.module';
+import { Compilation } from './compilations/entities/compilation.entity';
 import { Template } from './templates/entities/template.entity';
 import { TemplateVersion } from './templates/entities/template-version.entity';
 import { TemplateGlobalConfig } from './templates/entities/template-global-config.entity';
@@ -110,6 +112,7 @@ import { APP_GUARD } from '@nestjs/core';
           TemplateGlobalConfig,
           TemplateModuleEntity,
           TemplateModuleConfig,
+          Compilation,
         ],
         synchronize: (config.get<string>('DB_SYNC') ?? 'false') === 'true',
         migrationsRun:
@@ -140,6 +143,7 @@ import { APP_GUARD } from '@nestjs/core';
     WorkspaceModule,
     StorageModule,
     TemplatesModule,
+    CompilationsModule,
   ],
   controllers: [],
   providers: [
