@@ -310,6 +310,7 @@ export interface Compilation {
 
   createdBy: string;
   createdAt: string;
+  updatedAt?: string;
 
   // Configuration Values
   globalConfigs: CompilationGlobalConfig[];
