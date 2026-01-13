@@ -7,7 +7,6 @@ import {
   Space,
   Typography,
   Popconfirm,
-  Input,
   Tooltip,
   Select,
 } from "antd";
@@ -15,7 +14,6 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  EyeOutlined,
 } from "@ant-design/icons";
 import {
   TemplateModule,
@@ -24,8 +22,6 @@ import {
   CompilationModuleConfig,
   CompilationGlobalConfig,
 } from "../../types";
-import { getFile, FileItem } from "../../services/storageAnalysis";
-import FilePreviewModal from "../FilePreview/FilePreviewModal";
 import styles from "./index.module.less";
 
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -44,8 +40,6 @@ interface ModuleTabsProps {
   onSwitchVersion?: (moduleId: string) => void;
   // Instance Mode Props
   values?: CompilationModuleConfig[];
-  globalConfigValues?: CompilationGlobalConfig[];
-  onValueChange?: (moduleId: string, configId: string, value: string) => void;
 }
 
 const ModuleTabs: React.FC<ModuleTabsProps> = ({
@@ -57,12 +51,8 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
   onAddModule,
   onSwitchVersion,
   values = [],
-  globalConfigValues = [],
-  onValueChange,
 }) => {
   const { t } = useLanguage();
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
 
   // Instance mode: Manually added hidden configs, per module
   const [shownHiddenConfigs, setShownHiddenConfigs] = useState<
@@ -76,13 +66,6 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
     }, {} as Record<string, string>);
   }, [values]);
 
-  const globalValueMap = useMemo(() => {
-    return globalConfigValues.reduce((acc, cur) => {
-      acc[cur.configId] = cur.value;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [globalConfigValues]);
-
   const getGlobalConfigName = (id: string) => {
     const gc = globalConfigs.find((g) => g.id === id);
     return gc ? (
@@ -92,32 +75,6 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
     ) : (
       <Tag color="error">Unknown</Tag>
     );
-  };
-
-  const getGlobalConfigRawName = (id: string) => {
-    const gc = globalConfigs.find((g) => g.id === id);
-    return gc ? gc.name : id;
-  };
-
-  const isGlobalConfigFile = (id: string) => {
-    const gc = globalConfigs.find((g) => g.id === id);
-    return gc?.type === "FILE";
-  };
-
-  const getGlobalConfigDefaultValue = (id: string) => {
-    const gc = globalConfigs.find((g) => g.id === id);
-    return gc?.defaultValue;
-  };
-
-  const handlePreview = async (fileId: string) => {
-    if (!fileId) return;
-    try {
-      const file = await getFile(fileId);
-      setPreviewFile(file);
-      setPreviewVisible(true);
-    } catch (e) {
-      console.error(e);
-    }
   };
 
   const renderConfigs = (module: TemplateModule) => {
@@ -309,11 +266,6 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
             </Button>
           )
         }
-      />
-      <FilePreviewModal
-        visible={previewVisible}
-        file={previewFile}
-        onCancel={() => setPreviewVisible(false)}
       />
     </>
   );

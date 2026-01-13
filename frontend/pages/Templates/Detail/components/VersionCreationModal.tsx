@@ -177,7 +177,7 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
       open={visible}
       onCancel={onCancel}
       onOk={handleOk}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" onValuesChange={handleValuesChange} autoComplete="off">
         {isInitialVersion && (

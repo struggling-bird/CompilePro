@@ -87,7 +87,7 @@ const AddModuleModal: React.FC<AddModuleModalProps> = ({
       onOk={handleOk}
       okText={t.templateDetail.add}
       cancelText={t.templateDetail.cancel}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item

@@ -59,8 +59,8 @@ const CompilationDetail: React.FC = () => {
       setModuleConfigs(data.moduleConfigs || []);
 
       // Fetch Template Version Details (Schema)
-      if (data.templateVersion) {
-        await fetchAndSetVersionDetails(data.templateVersion);
+      if (data.templateVersionId) {
+        await fetchAndSetVersionDetails(data.templateVersionId);
       }
     } catch (e) {
       message.error(t.compilationDetail.loadDataFailed);
@@ -235,9 +235,7 @@ const CompilationDetail: React.FC = () => {
                 modules={selectedTemplateVersion.modules}
                 globalConfigs={selectedTemplateVersion.globalConfigs}
                 mode="INSTANCE"
-                globalConfigValues={globalConfigs}
                 values={moduleConfigs}
-                onValueChange={handleModuleConfigChange}
               />
             ) : (
               <div className={styles.emptyState}>

@@ -146,7 +146,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
       title={getTitle()}
       onCancel={onCancel}
       onOk={handleOk}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item
