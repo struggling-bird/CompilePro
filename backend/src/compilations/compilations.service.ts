@@ -9,8 +9,7 @@ import { CompilationListQueryDto } from './dto/list-query.dto';
 import { TemplateVersion } from '../templates/entities/template-version.entity';
 import { TemplateGlobalConfig } from '../templates/entities/template-global-config.entity';
 import { TemplateModule } from '../templates/entities/template-module.entity';
-import { UpdateGlobalConfigsDto } from './dto/update-global-configs.dto';
-import { UpdateModuleConfigsDto } from './dto/update-module-configs.dto';
+import { UpdateConfigValueDto } from './dto/update-config-value.dto';
 
 @Injectable()
 export class CompilationsService {
@@ -169,30 +168,20 @@ export class CompilationsService {
     return compilation.globalConfigs || [];
   }
 
-  async updateGlobalConfigs(id: string, dto: UpdateGlobalConfigsDto) {
+  async updateGlobalConfig(
+    id: string,
+    configId: string,
+    dto: UpdateConfigValueDto,
+  ) {
     const compilation = await this.findOne(id);
-
-    // Merge strategy: Update existing, Add new
     const currentConfigs = compilation.globalConfigs || [];
-    const newConfigsMap = new Map(
-      dto.configs.map((c) => [c.configId, c.value]),
-    );
+    const index = currentConfigs.findIndex((c) => c.configId === configId);
 
-    // Update existing
-    currentConfigs.forEach((c) => {
-      if (newConfigsMap.has(c.configId)) {
-        const newVal = newConfigsMap.get(c.configId);
-        if (newVal !== undefined) {
-          c.value = newVal;
-        }
-        newConfigsMap.delete(c.configId); // Remove handled
-      }
-    });
-
-    // Add remaining new configs
-    newConfigsMap.forEach((value, configId) => {
-      currentConfigs.push({ configId, value });
-    });
+    if (index !== -1) {
+      currentConfigs[index].value = dto.value;
+    } else {
+      currentConfigs.push({ configId, value: dto.value });
+    }
 
     compilation.globalConfigs = currentConfigs;
     await this.compilationRepo.save(compilation);
@@ -215,42 +204,23 @@ export class CompilationsService {
     return compilation.moduleConfigs || [];
   }
 
-  async updateModuleConfigs(id: string, dto: UpdateModuleConfigsDto) {
+  async updateModuleConfig(
+    id: string,
+    moduleId: string,
+    configId: string,
+    dto: UpdateConfigValueDto,
+  ) {
     const compilation = await this.findOne(id);
-
     const currentConfigs = compilation.moduleConfigs || [];
-    // Key needs to be composite: moduleId + configId
-    const getKey = (mId: string, cId: string) => `${mId}::${cId}`;
+    const index = currentConfigs.findIndex(
+      (c) => c.moduleId === moduleId && c.configId === configId,
+    );
 
-    const newConfigsMap = new Map<string, string>();
-    dto.configs.forEach((c) => {
-      newConfigsMap.set(getKey(c.moduleId, c.configId), c.value);
-    });
-
-    // Update existing
-    currentConfigs.forEach((c) => {
-      const key = getKey(c.moduleId, c.configId);
-      if (newConfigsMap.has(key)) {
-        const newVal = newConfigsMap.get(key);
-        if (newVal !== undefined) {
-          c.value = newVal;
-        }
-        newConfigsMap.delete(key);
-      }
-    });
-
-    // Add remaining
-    dto.configs.forEach((c) => {
-      const key = getKey(c.moduleId, c.configId);
-      if (newConfigsMap.has(key)) {
-        // Only if not deleted (handled)
-        currentConfigs.push({
-          moduleId: c.moduleId,
-          configId: c.configId,
-          value: c.value,
-        });
-      }
-    });
+    if (index !== -1) {
+      currentConfigs[index].value = dto.value;
+    } else {
+      currentConfigs.push({ moduleId, configId, value: dto.value });
+    }
 
     compilation.moduleConfigs = currentConfigs;
     await this.compilationRepo.save(compilation);

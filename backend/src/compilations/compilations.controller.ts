@@ -22,8 +22,7 @@ import { CompilationsService } from './compilations.service';
 import { CreateCompilationDto } from './dto/create-compilation.dto';
 import { UpdateCompilationDto } from './dto/update-compilation.dto';
 import { CompilationListQueryDto } from './dto/list-query.dto';
-import { UpdateGlobalConfigsDto } from './dto/update-global-configs.dto';
-import { UpdateModuleConfigsDto } from './dto/update-module-configs.dto';
+import { UpdateConfigValueDto } from './dto/update-config-value.dto';
 import {
   CompilationResponseDto,
   CompilationListResponseDto,
@@ -125,19 +124,21 @@ export class CompilationsController {
     return this.compilationsService.getGlobalConfigs(id);
   }
 
-  @Put(':id/global-configs')
-  @ApiOperation({ summary: '更新全局配置值 (批量)' })
+  @Put(':id/global-configs/:configId')
+  @ApiOperation({ summary: '更新全局配置值 (单个)' })
   @ApiParam({ name: 'id', description: '任务ID' })
+  @ApiParam({ name: 'configId', description: '配置项ID' })
   @ApiResponse({
     status: 200,
     description: '更新成功',
     type: GlobalConfigListResponseDto,
   })
-  updateGlobalConfigs(
+  updateGlobalConfig(
     @Param('id') id: string,
-    @Body() dto: UpdateGlobalConfigsDto,
+    @Param('configId') configId: string,
+    @Body() dto: UpdateConfigValueDto,
   ) {
-    return this.compilationsService.updateGlobalConfigs(id, dto);
+    return this.compilationsService.updateGlobalConfig(id, configId, dto);
   }
 
   @Delete(':id/global-configs/:configId')
@@ -170,19 +171,28 @@ export class CompilationsController {
     return this.compilationsService.getModuleConfigs(id);
   }
 
-  @Put(':id/module-configs')
-  @ApiOperation({ summary: '更新模块配置值 (批量)' })
+  @Put(':id/module-configs/:moduleId/:configId')
+  @ApiOperation({ summary: '更新模块配置值 (单个)' })
   @ApiParam({ name: 'id', description: '任务ID' })
+  @ApiParam({ name: 'moduleId', description: '模块ID' })
+  @ApiParam({ name: 'configId', description: '配置项ID' })
   @ApiResponse({
     status: 200,
     description: '更新成功',
     type: ModuleConfigListResponseDto,
   })
-  updateModuleConfigs(
+  updateModuleConfig(
     @Param('id') id: string,
-    @Body() dto: UpdateModuleConfigsDto,
+    @Param('moduleId') moduleId: string,
+    @Param('configId') configId: string,
+    @Body() dto: UpdateConfigValueDto,
   ) {
-    return this.compilationsService.updateModuleConfigs(id, dto);
+    return this.compilationsService.updateModuleConfig(
+      id,
+      moduleId,
+      configId,
+      dto,
+    );
   }
 
   @Delete(':id/module-configs/:moduleId/:configId')
