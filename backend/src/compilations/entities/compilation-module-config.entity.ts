@@ -8,7 +8,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Compilation } from './compilation.entity';
 import { TemplateModule } from '../../templates/entities/template-module.entity';
-import { MappingType } from '../../templates/entities/template-module-config.entity';
+import { TemplateModuleConfig } from '../../templates/entities/template-module-config.entity';
 
 @Entity('compilation_module_configs')
 export class CompilationModuleConfig {
@@ -32,38 +32,6 @@ export class CompilationModuleConfig {
   @JoinColumn({ name: 'module_id' })
   module: TemplateModule;
 
-  @ApiProperty({ description: '配置名称' })
-  @Column({ length: 100 })
-  name: string;
-
-  @ApiProperty({ description: '文件位置' })
-  @Column({ length: 255 })
-  fileLocation: string;
-
-  @ApiProperty({ enum: MappingType, description: '映射类型' })
-  @Column({ type: 'enum', enum: MappingType })
-  mappingType: MappingType;
-
-  @ApiProperty({ description: '映射值', required: false })
-  @Column({ type: 'text', nullable: true })
-  mappingValue: string;
-
-  @ApiProperty({ description: '正则匹配', required: false })
-  @Column({ length: 255, nullable: true })
-  regex: string;
-
-  @ApiProperty({ description: '描述', required: false })
-  @Column({ length: 500, nullable: true })
-  description: string;
-
-  @ApiProperty({ description: '是否隐藏', default: false })
-  @Column({ default: false })
-  isHidden: boolean;
-
-  @ApiProperty({ description: '是否选中', default: true })
-  @Column({ default: true })
-  isSelected: boolean;
-
   @ApiProperty({ description: '当前值', required: false })
   @Column({ type: 'text', nullable: true })
   value: string;
@@ -71,4 +39,8 @@ export class CompilationModuleConfig {
   @ApiProperty({ description: '来源模板配置ID', required: false })
   @Column({ name: 'template_config_id', nullable: true })
   templateConfigId: string;
+
+  @ManyToOne(() => TemplateModuleConfig)
+  @JoinColumn({ name: 'template_config_id' })
+  templateConfig: TemplateModuleConfig;
 }

@@ -106,14 +106,6 @@ export class CompilationsService {
         const entity = this.compilationModuleRepo.create({
           compilationId: compilation.id,
           moduleId: mod.id,
-          name: c.name,
-          fileLocation: c.fileLocation,
-          mappingType,
-          mappingValue,
-          regex: c.regex,
-          description: c.description,
-          isHidden: c.isHidden ?? false,
-          isSelected: c.isSelected ?? true,
           value,
           templateConfigId: c.id,
         });
@@ -235,19 +227,31 @@ export class CompilationsService {
     await this.findOne(id);
     const items = await this.compilationModuleRepo.find({
       where: { compilationId: id },
-      order: { moduleId: 'ASC', name: 'ASC' } as any,
+      relations: ['templateConfig'],
     });
+
+    // Sort in memory since we need to sort by related entity field
+    items.sort((a, b) => {
+      if (a.moduleId !== b.moduleId) {
+        return a.moduleId.localeCompare(b.moduleId);
+      }
+      return (a.templateConfig?.name || '').localeCompare(
+        b.templateConfig?.name || '',
+      );
+    });
+
     return items.map((e) => ({
       moduleId: e.moduleId,
       configId: e.id,
-      name: e.name,
-      fileLocation: e.fileLocation,
-      mappingType: e.mappingType,
-      mappingValue: e.mappingValue,
-      regex: e.regex,
-      description: e.description,
-      isHidden: e.isHidden,
-      isSelected: e.isSelected,
+      templateConfigId: e.templateConfigId,
+      name: e.templateConfig?.name,
+      fileLocation: e.templateConfig?.fileLocation,
+      mappingType: e.templateConfig?.mappingType,
+      mappingValue: e.templateConfig?.mappingValue,
+      regex: e.templateConfig?.regex,
+      description: e.templateConfig?.description,
+      isHidden: e.templateConfig?.isHidden,
+      isSelected: e.templateConfig?.isSelected,
       value: e.value || '',
     }));
   }
