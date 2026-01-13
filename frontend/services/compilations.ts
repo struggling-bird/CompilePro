@@ -62,9 +62,62 @@ export const listCompilations = async (query: any) => {
   };
 };
 
+// New: fetch compilation basic info via list API by paging until found
+const fetchCompilationBasic = async (id: string) => {
+  const pageSize = 100;
+  let page = 1;
+  // Avoid infinite loops with a sane max pages cap
+  const MAX_PAGES = 100;
+  while (page <= MAX_PAGES) {
+    const res = await request<{ items: any[]; meta: any }>(BASE_URL, {
+      params: { page, pageSize },
+    });
+    const items = res.items || [];
+    const found = items.find((it) => it.id === id);
+    if (found) return mapBackendToFrontend(found);
+    const meta = res.meta || { total: 0 };
+    if (!meta.total || page * pageSize >= meta.total) break;
+    page += 1;
+  }
+  throw new Error("Compilation not found");
+};
+
+// New: instance config endpoints
+export const getCompilationGlobalConfigs = async (
+  compilationId: string
+): Promise<Array<{ configId: string; value: string }>> => {
+  const res = await request<any>(`${BASE_URL}/${compilationId}/global-configs`);
+  const list = (res as any)?.data || res || [];
+  return (list as any[]).map((i) => ({
+    configId: i.configId,
+    value: i.value ?? "",
+  }));
+};
+
+export const getCompilationModuleConfigs = async (
+  compilationId: string
+): Promise<Array<{ moduleId: string; configId: string; value: string }>> => {
+  const res = await request<any>(`${BASE_URL}/${compilationId}/module-configs`);
+  const list = res || [];
+  return (list as any[]).map((i) => ({
+    moduleId: i.moduleId,
+    configId: i.configId,
+    value: i.value ?? "",
+  }));
+};
+
+// Adapted: aggregate detail from list + two config endpoints
 export const getCompilation = async (id: string) => {
-  const res = await request<any>(`${BASE_URL}/${id}`);
-  return mapBackendToFrontend(res);
+  const basic = await fetchCompilationBasic(id);
+  const [globals, modules] = await Promise.all([
+    getCompilationGlobalConfigs(id),
+    getCompilationModuleConfigs(id),
+  ]);
+  return {
+    ...basic,
+    globalConfigs: globals,
+    moduleConfigs: modules,
+  } as Compilation;
 };
 
 export const createCompilation = async (data: Partial<Compilation>) => {

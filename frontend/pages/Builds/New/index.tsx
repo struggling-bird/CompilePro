@@ -122,8 +122,8 @@ const BuildWizard: React.FC = () => {
     try {
       const comp = await getCompilation(compId);
       setSelectedCompilation(comp);
-      if (comp.templateVersion) {
-        const mods = await listModules(comp.templateVersion);
+      if (comp.templateVersionId) {
+        const mods = await listModules(comp.templateVersionId);
         setModules((mods as any).data || mods || []);
       }
     } catch (e) {
