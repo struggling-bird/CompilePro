@@ -74,18 +74,6 @@ export class CompilationsController {
     return this.compilationsService.findAll(query);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: '获取编译任务详情' })
-  @ApiParam({ name: 'id', description: '任务ID' })
-  @ApiResponse({
-    status: 200,
-    description: '获取成功',
-    type: CompilationResponseDto,
-  })
-  findOne(@Param('id') id: string) {
-    return this.compilationsService.findOne(id);
-  }
-
   @Patch(':id')
   @ApiOperation({ summary: '更新编译任务基础信息' })
   @ApiParam({ name: 'id', description: '任务ID' })

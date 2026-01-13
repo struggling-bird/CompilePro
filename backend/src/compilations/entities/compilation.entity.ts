@@ -36,14 +36,6 @@ export class Compilation {
   })
   status: CompilationStatus;
 
-  @ApiProperty({ description: '全局配置值', type: 'array' })
-  @Column({ type: 'json', nullable: true })
-  globalConfigs: { configId: string; value: string }[];
-
-  @ApiProperty({ description: '模块配置值', type: 'array' })
-  @Column({ type: 'json', nullable: true })
-  moduleConfigs: { moduleId: string; configId: string; value: string }[];
-
   @ApiProperty({ description: '最后构建时间', required: false })
   @Column({ type: 'timestamp', nullable: true })
   lastBuildTime: Date;

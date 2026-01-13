@@ -38,6 +38,15 @@ export class GlobalConfigItemDto {
   @ApiProperty({ description: '配置项ID' })
   configId: string;
 
+  @ApiProperty({ description: '配置名称' })
+  name: string;
+
+  @ApiProperty({ description: '配置类型' })
+  type: string;
+
+  @ApiProperty({ description: '描述', required: false })
+  description?: string;
+
   @ApiProperty({ description: '配置值' })
   value: string;
 }
@@ -55,6 +64,30 @@ export class ModuleConfigItemDto {
 
   @ApiProperty({ description: '配置项ID' })
   configId: string;
+
+  @ApiProperty({ description: '配置名称' })
+  name: string;
+
+  @ApiProperty({ description: '文件位置' })
+  fileLocation: string;
+
+  @ApiProperty({ description: '映射类型' })
+  mappingType: string;
+
+  @ApiProperty({ description: '映射值', required: false })
+  mappingValue?: string;
+
+  @ApiProperty({ description: '正则匹配', required: false })
+  regex?: string;
+
+  @ApiProperty({ description: '描述', required: false })
+  description?: string;
+
+  @ApiProperty({ description: '是否隐藏' })
+  isHidden: boolean;
+
+  @ApiProperty({ description: '是否选中' })
+  isSelected: boolean;
 
   @ApiProperty({ description: '配置值' })
   value: string;

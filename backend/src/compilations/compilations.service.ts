@@ -10,6 +10,9 @@ import { TemplateVersion } from '../templates/entities/template-version.entity';
 import { TemplateGlobalConfig } from '../templates/entities/template-global-config.entity';
 import { TemplateModule } from '../templates/entities/template-module.entity';
 import { UpdateConfigValueDto } from './dto/update-config-value.dto';
+import { CompilationGlobalConfig } from './entities/compilation-global-config.entity';
+import { CompilationModuleConfig } from './entities/compilation-module-config.entity';
+import { MappingType } from '../templates/entities/template-module-config.entity';
 
 @Injectable()
 export class CompilationsService {
@@ -25,6 +28,10 @@ export class CompilationsService {
 
     @InjectRepository(TemplateModule)
     private readonly moduleRepo: Repository<TemplateModule>,
+    @InjectRepository(CompilationGlobalConfig)
+    private readonly compilationGlobalRepo: Repository<CompilationGlobalConfig>,
+    @InjectRepository(CompilationModuleConfig)
+    private readonly compilationModuleRepo: Repository<CompilationModuleConfig>,
   ) {}
 
   async create(createDto: CreateCompilationDto, creator: string) {
@@ -37,62 +44,85 @@ export class CompilationsService {
       throw new NotFoundException('Template Version not found');
     }
 
-    // 2. Inherit Global Configs
-    // Fetch all global configs for this version
+    // 2. Create Compilation Entity (basic info)
+    const compilation = await this.compilationRepo.save(
+      this.compilationRepo.create({
+        ...createDto,
+        createdBy: creator,
+      }),
+    );
 
-    const templateGlobalConfigs: any[] = await this.globalConfigRepo.find({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      where: { versionId: version.id },
-    });
+    // 3. Inherit Global Configs from Template Version
+    const templateGlobalConfigs: TemplateGlobalConfig[] =
+      await this.globalConfigRepo.find({
+        where: { versionId: (version as TemplateVersion).id },
+      });
 
-    const initialGlobalConfigs = templateGlobalConfigs.map((config) => ({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      configId: config.id as string,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      value: (config.defaultValue || '') as string,
-    }));
+    const inheritedGlobalConfigs: CompilationGlobalConfig[] = [];
+    const globalIdMap = new Map<string, string>();
+    for (const gc of templateGlobalConfigs) {
+      const entity = this.compilationGlobalRepo.create({
+        compilationId: compilation.id,
+        name: gc.name,
+        type: gc.type,
+        description: gc.description,
+        value: gc.defaultValue || '',
+        templateConfigId: gc.id,
+      });
+      const saved = await this.compilationGlobalRepo.save(entity);
+      inheritedGlobalConfigs.push(saved);
+      globalIdMap.set(gc.id, saved.id);
+    }
 
-    // 3. Inherit Module Configs
-    // Fetch all modules and their configs for this version
-
-    const templateModules: any[] = await this.moduleRepo.find({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      where: { versionId: version.id },
+    // 4. Inherit Module Configs for all modules within version
+    const templateModules: TemplateModule[] = await this.moduleRepo.find({
+      where: { versionId: (version as TemplateVersion).id },
       relations: ['configs'],
     });
 
-    const initialModuleConfigs: {
-      moduleId: string;
-      configId: string;
-      value: string;
-    }[] = [];
+    const inheritedModuleConfigs: CompilationModuleConfig[] = [];
+    for (const mod of templateModules) {
+      const configs = mod.configs || [];
+      for (const c of configs) {
+        const mappingType: MappingType = c.mappingType;
+        let mappingValue: string = c.mappingValue || '';
+        let value = '';
 
-    templateModules.forEach((mod) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (mod.configs) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        mod.configs.forEach((config: any) => {
-          initialModuleConfigs.push({
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            moduleId: mod.id as string,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            configId: config.id as string,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            value: (config.mappingValue || '') as string,
-          });
+        if (mappingType === MappingType.GLOBAL && mappingValue) {
+          const compGlobalId = globalIdMap.get(mappingValue);
+          if (compGlobalId) {
+            mappingValue = compGlobalId;
+            const target = inheritedGlobalConfigs.find(
+              (i) => i.id === compGlobalId,
+            );
+            value = target?.value ?? '';
+          }
+        } else if (mappingType === MappingType.FIXED) {
+          value = mappingValue || '';
+        } else {
+          value = '';
+        }
+
+        const entity = this.compilationModuleRepo.create({
+          compilationId: compilation.id,
+          moduleId: mod.id,
+          name: c.name,
+          fileLocation: c.fileLocation,
+          mappingType,
+          mappingValue,
+          regex: c.regex,
+          description: c.description,
+          isHidden: c.isHidden ?? false,
+          isSelected: c.isSelected ?? true,
+          value,
+          templateConfigId: c.id,
         });
+        const saved = await this.compilationModuleRepo.save(entity);
+        inheritedModuleConfigs.push(saved);
       }
-    });
+    }
 
-    // 4. Create Compilation Entity
-    const compilation = this.compilationRepo.create({
-      ...createDto,
-      createdBy: creator,
-      globalConfigs: initialGlobalConfigs,
-      moduleConfigs: initialModuleConfigs,
-    });
-
-    return this.compilationRepo.save(compilation);
+    return compilation;
   }
 
   async findAll(query: CompilationListQueryDto) {
@@ -139,7 +169,6 @@ export class CompilationsService {
   async findOne(id: string) {
     const compilation = await this.compilationRepo.findOne({
       where: { id },
-      relations: ['template', 'templateVersion', 'customer', 'environment'],
     });
     if (!compilation) {
       throw new NotFoundException('Compilation not found');
@@ -164,8 +193,18 @@ export class CompilationsService {
   // --- Configuration Management ---
 
   async getGlobalConfigs(id: string) {
-    const compilation = await this.findOne(id);
-    return compilation.globalConfigs || [];
+    await this.findOne(id);
+    const items = await this.compilationGlobalRepo.find({
+      where: { compilationId: id },
+      order: { name: 'ASC' },
+    });
+    return items.map((e) => ({
+      configId: e.id,
+      name: e.name,
+      type: e.type,
+      description: e.description,
+      value: e.value || '',
+    }));
   }
 
   async updateGlobalConfig(
@@ -173,35 +212,44 @@ export class CompilationsService {
     configId: string,
     dto: UpdateConfigValueDto,
   ) {
-    const compilation = await this.findOne(id);
-    const currentConfigs = compilation.globalConfigs || [];
-    const index = currentConfigs.findIndex((c) => c.configId === configId);
-
-    if (index !== -1) {
-      currentConfigs[index].value = dto.value;
-    } else {
-      currentConfigs.push({ configId, value: dto.value });
-    }
-
-    compilation.globalConfigs = currentConfigs;
-    await this.compilationRepo.save(compilation);
-    return compilation.globalConfigs;
+    await this.findOne(id);
+    const config = await this.compilationGlobalRepo.findOne({
+      where: { id: configId, compilationId: id },
+    });
+    if (!config) throw new NotFoundException('Global config not found');
+    config.value = dto.value;
+    await this.compilationGlobalRepo.save(config);
+    return this.getGlobalConfigs(id);
   }
 
   async deleteGlobalConfig(id: string, configId: string) {
-    const compilation = await this.findOne(id);
-    if (compilation.globalConfigs) {
-      compilation.globalConfigs = compilation.globalConfigs.filter(
-        (c) => c.configId !== configId,
-      );
-      await this.compilationRepo.save(compilation);
-    }
+    await this.findOne(id);
+    await this.compilationGlobalRepo.delete({
+      id: configId,
+      compilationId: id,
+    });
     return { success: true };
   }
 
   async getModuleConfigs(id: string) {
-    const compilation = await this.findOne(id);
-    return compilation.moduleConfigs || [];
+    await this.findOne(id);
+    const items = await this.compilationModuleRepo.find({
+      where: { compilationId: id },
+      order: { moduleId: 'ASC', name: 'ASC' } as any,
+    });
+    return items.map((e) => ({
+      moduleId: e.moduleId,
+      configId: e.id,
+      name: e.name,
+      fileLocation: e.fileLocation,
+      mappingType: e.mappingType,
+      mappingValue: e.mappingValue,
+      regex: e.regex,
+      description: e.description,
+      isHidden: e.isHidden,
+      isSelected: e.isSelected,
+      value: e.value || '',
+    }));
   }
 
   async updateModuleConfig(
@@ -210,31 +258,23 @@ export class CompilationsService {
     configId: string,
     dto: UpdateConfigValueDto,
   ) {
-    const compilation = await this.findOne(id);
-    const currentConfigs = compilation.moduleConfigs || [];
-    const index = currentConfigs.findIndex(
-      (c) => c.moduleId === moduleId && c.configId === configId,
-    );
-
-    if (index !== -1) {
-      currentConfigs[index].value = dto.value;
-    } else {
-      currentConfigs.push({ moduleId, configId, value: dto.value });
-    }
-
-    compilation.moduleConfigs = currentConfigs;
-    await this.compilationRepo.save(compilation);
-    return compilation.moduleConfigs;
+    await this.findOne(id);
+    const config = await this.compilationModuleRepo.findOne({
+      where: { id: configId, compilationId: id, moduleId },
+    });
+    if (!config) throw new NotFoundException('Module config not found');
+    config.value = dto.value;
+    await this.compilationModuleRepo.save(config);
+    return this.getModuleConfigs(id);
   }
 
   async deleteModuleConfig(id: string, moduleId: string, configId: string) {
-    const compilation = await this.findOne(id);
-    if (compilation.moduleConfigs) {
-      compilation.moduleConfigs = compilation.moduleConfigs.filter(
-        (c) => !(c.moduleId === moduleId && c.configId === configId),
-      );
-      await this.compilationRepo.save(compilation);
-    }
+    await this.findOne(id);
+    await this.compilationModuleRepo.delete({
+      id: configId,
+      compilationId: id,
+      moduleId,
+    });
     return { success: true };
   }
 }
