@@ -137,6 +137,10 @@ export default {
     manualUpload: "Manual Upload",
     selectGlobalFileConfig: "Select a global file config",
     targetFile: "Target File",
+    targetGroup: "Target Group",
+    targetGroupTooltip: "Select which capture group to replace. 0 means the whole match.",
+    group0: "Group 0 (Whole Match)",
+    groupN: "Group {{n}}",
   },
 
   settings: {

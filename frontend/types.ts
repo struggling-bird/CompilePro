@@ -144,6 +144,8 @@ export interface TemplateModuleConfig {
   mappingType: "GLOBAL" | "FIXED" | "MANUAL";
   mappingValue: string; // If GLOBAL, holds globalConfig ID. If FIXED, holds string value.
   regex: string;
+  matchIndex?: number;
+  groupIndex?: number;
   description: string;
   isHidden: boolean;
   isSelected: boolean;

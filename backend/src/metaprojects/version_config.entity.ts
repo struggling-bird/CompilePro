@@ -33,6 +33,9 @@ export class VersionConfig {
   @Column({ type: 'int', nullable: true, default: 0 })
   matchIndex?: number;
 
+  @Column({ type: 'int', nullable: true, default: 0 })
+  groupIndex?: number;
+
   @Column({ type: 'varchar', length: 255, nullable: true })
   fileOriginPath?: string;
 

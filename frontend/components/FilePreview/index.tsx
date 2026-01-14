@@ -7,6 +7,7 @@ interface FilePreviewProps {
   fileName?: string;
   regexPattern?: string;
   matchIndex?: number;
+  groupIndex?: number;
   onMatchCountChange?: (count: number) => void;
 }
 
@@ -15,6 +16,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   fileName = "",
   regexPattern,
   matchIndex = 0,
+  groupIndex = 0,
   onMatchCountChange,
 }) => {
   const language = useMemo(() => {
@@ -49,7 +51,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
       default:
         return "text";
     }
-  }, [fileName]);
+  }, [fileName, regexPattern]);
 
   const { matchCount } = useMemo(() => {
     if (!regexPattern || !content) {
@@ -82,85 +84,176 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   // Reset counter before each render pass
   globalMatchCounter.current = 0;
 
-  const renderNode = (
-    node: any,
-    key: string | number,
+  const renderHighlightedRow = (
+    row: any,
+    i: number,
     stylesheet?: any
   ): React.ReactNode => {
-    if (node.type === "text") {
-      const text = node.value;
-      if (!text) return null;
-      if (!regexPattern) return text;
+    // Reconstruct the full text of the line from the row's children
+    // In "text" mode, children are typically simple text nodes, but we aggregate just in case.
+    const lineText = row.children
+      .map((child: any) => {
+        if (child.type === "text") return child.value;
+        if (child.children && child.children[0] && child.children[0].value)
+          return child.children[0].value;
+        return "";
+      })
+      .join("");
 
+    if (!regexPattern || !lineText) {
+      return (
+        <div key={i} style={row.properties?.style}>
+          {lineText}
+        </div>
+      );
+    }
+
+    try {
+      let pattern = regexPattern;
+      let flags = "g";
+      const match = regexPattern.match(/^\/(.*?)\/([gimsuy]*)$/);
+      if (match) {
+        pattern = match[1];
+        flags = match[2] || "g";
+      }
+
+      let hasIndices = false;
       try {
-        let pattern = regexPattern;
-        let flags = "g";
-        const match = regexPattern.match(/^\/(.*?)\/([gimsuy]*)$/);
-        if (match) {
-          pattern = match[1];
-          flags = match[2] || "g";
+        if (groupIndex > 0) {
+          new RegExp(pattern, flags + "d");
+          flags += "d";
+          hasIndices = true;
         }
-        const regex = new RegExp(`(${pattern})`, flags);
-        const parts = text.split(regex);
+      } catch (e) {
+        // 'd' flag not supported
+      }
 
-        if (parts.length === 1) return text;
+      const regex = new RegExp(pattern, flags);
+      const matches = [...lineText.matchAll(regex)];
 
-        return parts.map((part: string, k: number) => {
-          if (k % 2 === 1) {
-            const currentMatchIdx = globalMatchCounter.current;
-            globalMatchCounter.current += 1;
-            
-            const isSelected = currentMatchIdx === matchIndex;
-            return (
+      if (matches.length === 0) {
+        return (
+          <div key={i} style={row.properties?.style}>
+            {lineText}
+          </div>
+        );
+      }
+
+      const nodes: React.ReactNode[] = [];
+      let lastIndex = 0;
+
+      matches.forEach((m, idx) => {
+        const matchIndexInFile = globalMatchCounter.current;
+        globalMatchCounter.current++;
+
+        // Text before match
+        if (m.index! > lastIndex) {
+          nodes.push(
+            <span key={`${i}-${idx}-pre-text`}>
+              {lineText.slice(lastIndex, m.index)}
+            </span>
+          );
+        }
+
+        const isSelectedMatch = matchIndexInFile === matchIndex;
+        const matchStr = m[0];
+        const matchStart = m.index!;
+        const matchEnd = matchStart + matchStr.length;
+
+        // Highlight logic
+        if (
+          isSelectedMatch &&
+          groupIndex > 0 &&
+          hasIndices &&
+          (m as any).indices &&
+          (m as any).indices[groupIndex]
+        ) {
+          const indices = (m as any).indices;
+          const [gStart, gEnd] = indices[groupIndex];
+
+          // Indices are relative to the original lineText
+          // Pre-group (inside match)
+          if (gStart > matchStart) {
+            nodes.push(
               <span
-                key={`${key}-${k}`}
-                style={{ 
-                    backgroundColor: isSelected ? "#ffaa00" : "#ffe58f", // Distinct highlight for selected vs others
-                    color: "#000",
-                    border: isSelected ? "2px solid #d46b08" : "none",
-                    fontWeight: isSelected ? "bold" : "normal"
-                }}
+                key={`${i}-${idx}-g-pre`}
+                style={{ backgroundColor: "#ffe58f", color: "#000" }}
               >
-                {part}
+                {lineText.slice(matchStart, gStart)}
               </span>
             );
           }
-          return part;
-        });
-      } catch (e) {
-        return text;
-      }
-    }
 
-    if (node.type === "element") {
-      const { tagName, properties, children } = node;
-      let style = properties?.style;
-      const className = properties?.className;
-      const Tag = tagName as any;
+          // The Group (Target)
+          nodes.push(
+            <span
+              key={`${i}-${idx}-g-target`}
+              style={{
+                backgroundColor: "#ffaa00",
+                color: "#000",
+                border: "2px solid #d46b08",
+                fontWeight: "bold",
+              }}
+            >
+              {lineText.slice(gStart, gEnd)}
+            </span>
+          );
 
-      if (
-        (!style || Object.keys(style).length === 0) &&
-        className &&
-        stylesheet
-      ) {
-        style = className.reduce((acc: any, cls: string) => {
-          return { ...acc, ...(stylesheet[cls] || {}) };
-        }, {});
+          // Post-group (inside match)
+          if (gEnd < matchEnd) {
+            nodes.push(
+              <span
+                key={`${i}-${idx}-g-post`}
+                style={{ backgroundColor: "#ffe58f", color: "#000" }}
+              >
+                {lineText.slice(gEnd, matchEnd)}
+              </span>
+            );
+          }
+        } else {
+          // Standard Highlight
+          const style = isSelectedMatch
+            ? {
+                backgroundColor: "#ffaa00",
+                color: "#000",
+                border: "2px solid #d46b08",
+                fontWeight: "bold",
+              }
+            : {
+                backgroundColor: "#ffe58f",
+                color: "#000",
+                border: "none",
+                fontWeight: "normal",
+              };
+
+          nodes.push(
+            <span key={`${i}-${idx}-match`} style={style}>
+              {matchStr}
+            </span>
+          );
+        }
+
+        lastIndex = matchEnd;
+      });
+
+      if (lastIndex < lineText.length) {
+        nodes.push(
+          <span key={`${i}-last`}>{lineText.slice(lastIndex)}</span>
+        );
       }
 
       return (
-        <Tag
-          key={key}
-          style={style}
-          className={className ? className.join(" ") : undefined}
-        >
-          {children.map((child: any, i: number) =>
-            renderNode(child, i, stylesheet)
-          )}
-        </Tag>
+        <div key={i} style={row.properties?.style}>
+          {nodes}
+        </div>
+      );
+    } catch (e) {
+      return (
+        <div key={i} style={row.properties?.style}>
+          {lineText}
+        </div>
       );
     }
-    return null;
   };
 
   return (
@@ -179,15 +272,9 @@ const FilePreview: React.FC<FilePreviewProps> = ({
           ? ({ rows, stylesheet }) => {
               // Reset counter at start of render
               globalMatchCounter.current = 0;
-              return rows.map((row: any, i: number) => {
-                return (
-                  <div key={i} style={row.properties?.style}>
-                    {row.children.map((child: any, j: number) =>
-                      renderNode(child, j, stylesheet)
-                    )}
-                  </div>
-                );
-              });
+              return rows.map((row: any, i: number) =>
+                renderHighlightedRow(row, i, stylesheet)
+              );
             }
           : undefined
       }
@@ -196,5 +283,6 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     </SyntaxHighlighter>
   );
 };
+
 
 export default FilePreview;

@@ -134,6 +134,10 @@ export default {
     manualUpload: "手动上传",
     selectGlobalFileConfig: "选择一个全局文件配置",
     targetFile: "目标文件",
+    targetGroup: "目标分组",
+    targetGroupTooltip: "选择要替换的捕获组。0 表示整个匹配。",
+    group0: "分组 0 (整个匹配)",
+    groupN: "分组 {{n}}",
   },
 
   settings: {

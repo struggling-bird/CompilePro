@@ -443,6 +443,8 @@ export class TemplatesService {
           mappingType: MappingType.MANUAL,
           mappingValue: '',
           regex: c.textOrigin || '',
+          matchIndex: c.matchIndex || 0,
+          groupIndex: c.groupIndex || 0,
           description: c.description || '',
           isHidden: false,
           isSelected: true,

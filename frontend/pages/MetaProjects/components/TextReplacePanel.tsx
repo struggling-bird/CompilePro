@@ -11,6 +11,7 @@ interface TextReplacePanelProps {
   loadingContent: boolean;
   matchCount: number;
   matchIndex: number;
+  groupIndex: number;
   regexPattern: string;
   isTargetEditEnabled: boolean;
   onMatchCountChange: (count: number) => void;
@@ -24,6 +25,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
   loadingContent,
   matchCount,
   matchIndex,
+  groupIndex,
   regexPattern,
   isTargetEditEnabled,
   onMatchCountChange,
@@ -34,6 +36,22 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
     form: form,
     preserve: true,
   });
+
+  const groupCount = React.useMemo(() => {
+    if (!regexPattern) return 0;
+    try {
+      let pattern = regexPattern;
+      const match = regexPattern.match(/^\/(.*?)\/([gimsuy]*)$/);
+      if (match) {
+        pattern = match[1];
+      }
+      const r = new RegExp(pattern + '|');
+      const m = r.exec('');
+      return m ? m.length - 1 : 0;
+    } catch {
+      return 0;
+    }
+  }, [regexPattern]);
 
   return (
     <div
@@ -100,6 +118,26 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
               />
             </Form.Item>
           </Col>
+          {groupCount > 0 && (
+            <Col span={24}>
+              <Form.Item
+                name="groupIndex"
+                label={t.projectDetail.targetGroup}
+                initialValue={0}
+                style={{ marginBottom: 6 }}
+                tooltip={t.projectDetail.targetGroupTooltip}
+              >
+                <Select disabled={isTargetEditEnabled}>
+                  <Select.Option value={0}>{t.projectDetail.group0}</Select.Option>
+                  {Array.from({ length: groupCount }).map((_, i) => (
+                    <Select.Option key={i + 1} value={i + 1}>
+                      {t.projectDetail.groupN.replace("{{n}}", String(i + 1))}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          )}
         </Row>
         {isTargetEditEnabled && (
           <div
@@ -155,7 +193,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
                     name="textTarget"
                     label={t.projectDetail.targetValue}
                   >
-                    <Input placeholder="Replacement Value" />
+                    <Input placeholder={t.projectDetail.replacementLabel} />
                   </Form.Item>
                 );
               }}
@@ -201,6 +239,7 @@ const TextReplacePanel: React.FC<TextReplacePanelProps> = ({
             fileName={selectedFile}
             regexPattern={regexPattern}
             matchIndex={matchIndex}
+            groupIndex={groupIndex}
             onMatchCountChange={onMatchCountChange}
           />
         </Spin>

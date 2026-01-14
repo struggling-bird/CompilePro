@@ -235,6 +235,7 @@ export class MetaprojectsService {
     c.type = dto.type;
     c.textOrigin = dto.textOrigin ?? undefined;
     c.matchIndex = dto.matchIndex ?? 0;
+    c.groupIndex = dto.groupIndex ?? 0;
     c.fileOriginPath = dto.fileOriginPath ?? undefined;
     c.description = dto.description ?? undefined;
     const saved = await this.configs.save(c);

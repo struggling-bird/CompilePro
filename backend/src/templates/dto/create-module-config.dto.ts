@@ -33,6 +33,14 @@ export class CreateModuleConfigDto {
   @IsOptional()
   regex?: string;
 
+  @ApiPropertyOptional({ description: '匹配项索引', default: 0 })
+  @IsOptional()
+  matchIndex?: number;
+
+  @ApiPropertyOptional({ description: '分组索引', default: 0 })
+  @IsOptional()
+  groupIndex?: number;
+
   @ApiPropertyOptional({ description: '描述' })
   @IsString()
   @IsOptional()

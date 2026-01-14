@@ -43,6 +43,14 @@ export class TemplateModuleConfig {
   @Column({ length: 255, nullable: true })
   regex: string;
 
+  @ApiProperty({ description: '匹配项索引', required: false, default: 0 })
+  @Column({ type: 'int', nullable: true, default: 0 })
+  matchIndex: number;
+
+  @ApiProperty({ description: '分组索引', required: false, default: 0 })
+  @Column({ type: 'int', nullable: true, default: 0 })
+  groupIndex: number;
+
   @ApiProperty({ description: '描述', required: false })
   @Column({ length: 500, nullable: true })
   description: string;

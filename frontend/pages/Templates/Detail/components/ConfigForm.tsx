@@ -4,6 +4,7 @@ import {
   Modal,
   Form,
   Input,
+  InputNumber,
   Select,
   Switch,
   Radio,
@@ -223,6 +224,55 @@ const ConfigForm: React.FC<ConfigFormProps> = ({
 
             <Form.Item name="regex" label={t.templateDetail.regex}>
               <Input placeholder={t.templateDetail.regex} />
+            </Form.Item>
+
+            <Form.Item name="matchIndex" label={t.projectDetail.matchIndex} initialValue={0}>
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item
+              noStyle
+              shouldUpdate={(prev, curr) => prev.regex !== curr.regex}
+            >
+              {({ getFieldValue }) => {
+                const regex = getFieldValue("regex");
+                let groupCount = 0;
+                if (regex) {
+                  try {
+                    let pattern = regex;
+                    const match = regex.match(/^\/(.*?)\/([gimsuy]*)$/);
+                    if (match) {
+                      pattern = match[1];
+                    }
+                    const r = new RegExp(pattern + '|');
+                    const m = r.exec('');
+                    groupCount = m ? m.length - 1 : 0;
+                  } catch {
+                    groupCount = 0;
+                  }
+                }
+
+                if (groupCount > 0) {
+                  return (
+                    <Form.Item
+                      name="groupIndex"
+                      label={t.projectDetail.targetGroup}
+                      initialValue={0}
+                      tooltip={t.projectDetail.targetGroupTooltip}
+                    >
+                      <Select>
+                        <Select.Option value={0}>{t.projectDetail.group0}</Select.Option>
+                        {Array.from({ length: groupCount }).map((_, i) => (
+                          <Select.Option key={i + 1} value={i + 1}>
+                            {t.projectDetail.groupN.replace("{{n}}", String(i + 1))}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  );
+                }
+                return null;
+              }}
             </Form.Item>
 
             <Form.Item name="mappingType" label={t.templateDetail.mapping}>

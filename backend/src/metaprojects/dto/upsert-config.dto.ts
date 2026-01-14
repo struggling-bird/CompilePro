@@ -31,6 +31,12 @@ export class UpsertConfigDto {
   @Min(0)
   matchIndex?: number;
 
+  @ApiPropertyOptional({ description: '分组索引', default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  groupIndex?: number;
+
   @ApiPropertyOptional({ description: '文件原始路径' })
   @IsOptional()
   @IsString()

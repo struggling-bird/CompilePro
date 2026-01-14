@@ -50,6 +50,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
   const regexPattern = Form.useWatch("textOrigin", form);
   const [matchCount, setMatchCount] = useState(0);
   const matchIndex = Form.useWatch("matchIndex", form) || 0;
+  const groupIndex = Form.useWatch("groupIndex", form) || 0;
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("");
   const [uploadedTargetFile, setUploadedTargetFile] = useState<File | null>(
     null
@@ -221,6 +222,7 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
             loadingContent={loadingContent}
             matchCount={matchCount}
             matchIndex={matchIndex}
+            groupIndex={groupIndex}
             regexPattern={regexPattern}
             isTargetEditEnabled={isTargetEditEnabled}
             onMatchCountChange={setMatchCount}
@@ -264,14 +266,14 @@ const ConfigEditorDrawer: React.FC<ConfigEditorDrawerProps> = ({
       open={visible}
       extra={
         <Space>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t.projectDetail.cancel}</Button>
           <Button
             type="primary"
             icon={<SaveOutlined />}
             onClick={handleSave}
             loading={saving}
           >
-            保存
+            {t.projectDetail.save}
           </Button>
         </Space>
       }
