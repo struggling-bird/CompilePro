@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
@@ -34,4 +34,4 @@ export class CreateGlobalConfigDto {
   isHidden?: boolean;
 }
 
-export class UpdateGlobalConfigDto extends CreateGlobalConfigDto {}
+export class UpdateGlobalConfigDto extends PartialType(CreateGlobalConfigDto) {}

@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
@@ -62,4 +62,4 @@ export class CreateTemplateVersionDto {
   parentId?: string;
 }
 
-export class UpdateTemplateVersionDto extends CreateTemplateVersionDto {}
+export class UpdateTemplateVersionDto extends PartialType(CreateTemplateVersionDto) {}

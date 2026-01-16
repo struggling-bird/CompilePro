@@ -9,6 +9,7 @@ import {
   Popconfirm,
   Tooltip,
   Select,
+  Switch,
 } from "antd";
 import {
   PlusOutlined,
@@ -36,6 +37,7 @@ interface ModuleTabsProps {
   // Schema Mode Props
   onEditConfig?: (moduleId: string, config: TemplateModuleConfig) => void;
   onDeleteConfig?: (moduleId: string, configId: string) => void;
+  onToggleHidden?: (moduleId: string, config: TemplateModuleConfig, hidden: boolean) => void;
   onAddModule?: () => void;
   onSwitchVersion?: (moduleId: string) => void;
   // Instance Mode Props
@@ -48,6 +50,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
   mode = "SCHEMA",
   onEditConfig,
   onDeleteConfig,
+  onToggleHidden,
   onAddModule,
   onSwitchVersion,
   values = [],
@@ -146,8 +149,12 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
               title: t.templateDetail.isHidden,
               dataIndex: "isHidden",
               key: "isHidden",
-              render: (v: boolean) =>
-                v ? t.templateDetail.yes : t.templateDetail.no,
+              render: (v: boolean, r: TemplateModuleConfig) => (
+                <Switch
+                  checked={v}
+                  onChange={(checked) => onToggleHidden?.(module.id, r, checked)}
+                />
+              ),
             },
           ]
         : []),

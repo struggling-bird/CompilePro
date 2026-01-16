@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
@@ -57,4 +57,4 @@ export class CreateModuleConfigDto {
   isSelected?: boolean;
 }
 
-export class UpdateModuleConfigDto extends CreateModuleConfigDto {}
+export class UpdateModuleConfigDto extends PartialType(CreateModuleConfigDto) {}

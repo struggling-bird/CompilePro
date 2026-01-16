@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsOptional,
@@ -30,7 +30,7 @@ export class CreateTemplateDto {
   initialVersion?: CreateTemplateVersionDto;
 }
 
-export class UpdateTemplateDto extends CreateTemplateDto {
+export class UpdateTemplateDto extends PartialType(CreateTemplateDto) {
   @ApiPropertyOptional({ description: '是否启用' })
   @IsBoolean()
   @IsOptional()

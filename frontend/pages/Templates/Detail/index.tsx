@@ -407,6 +407,49 @@ const TemplateDetailPage: React.FC = () => {
     }
   };
 
+  const handleModuleToggleHidden = async (
+    moduleId: string,
+    config: TemplateModuleConfig,
+    hidden: boolean
+  ) => {
+    if (!currentVersion || !template) return;
+
+    // Optimistic update
+    const updatedModules = currentVersion.modules.map((m) => {
+      if (m.id === moduleId) {
+        return {
+          ...m,
+          configs: m.configs.map((c) =>
+            c.id === config.id ? { ...c, isHidden: hidden } : c
+          ),
+        };
+      }
+      return m;
+    });
+    updateCurrentVersion({ ...currentVersion, modules: updatedModules });
+
+    try {
+      await updateModuleConfig(config.id, { isHidden: hidden });
+      message.success(t.common.success);
+    } catch (e) {
+      console.error(e);
+      message.error(t.templateDetail.saveModuleFailed);
+      // Revert on failure
+      const revertedModules = currentVersion.modules.map((m) => {
+        if (m.id === moduleId) {
+          return {
+            ...m,
+            configs: m.configs.map((c) =>
+              c.id === config.id ? { ...c, isHidden: !hidden } : c
+            ),
+          };
+        }
+        return m;
+      });
+      updateCurrentVersion({ ...currentVersion, modules: revertedModules });
+    }
+  };
+
   const handleModuleDrawerSave = async (values: any) => {
     if (!currentVersion || !activeModuleId) return;
 
@@ -817,6 +860,7 @@ const TemplateDetailPage: React.FC = () => {
                 onDeleteConfig={(mid, cid) =>
                   handleModuleConfig(mid, "DELETE", { id: cid } as any)
                 }
+                onToggleHidden={handleModuleToggleHidden}
                 onSwitchVersion={handleSwitchVersionOpen}
               />
             </div>
