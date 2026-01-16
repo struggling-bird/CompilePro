@@ -344,19 +344,41 @@ export class WorkspaceService {
   async cloneStatus(userId: string, projectId: string) {
     const key = `workspace:clone:${userId}:${projectId}`;
     const raw = await this.redis.get(key);
-    if (!raw) return { status: 'idle' };
-    try {
-      const parsed = JSON.parse(raw) as {
-        status?: string;
-        message?: string;
-      };
-      return {
-        status: parsed.status ?? 'idle',
-        message: parsed.message,
-      };
-    } catch {
-      return { status: 'idle' };
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as {
+          status?: string;
+          message?: string;
+        };
+        return {
+          status: parsed.status ?? 'idle',
+          message: parsed.message,
+        };
+      } catch {
+        // ignore parse error
+      }
     }
+
+    // If no status in redis, check file system
+    const root = await this.ensureUserDir(userId);
+    const targetDir = this.safeJoin(root, projectId);
+    try {
+      await stat(targetDir);
+      const ok = await this.isGitRepo(targetDir);
+      if (ok) {
+        // Restore success status to redis to avoid fs check next time
+        await this.redis.set(
+          key,
+          JSON.stringify({ status: 'success', message: '已就绪' }),
+          3600,
+        );
+        return { status: 'success', message: '已就绪' };
+      }
+    } catch {
+      // ignore
+    }
+
+    return { status: 'idle' };
   }
 
   async scanWorkspace() {
