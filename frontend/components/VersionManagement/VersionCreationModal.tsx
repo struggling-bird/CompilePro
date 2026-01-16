@@ -1,24 +1,31 @@
 import React, { useState, useEffect } from "react";
+/**
+ * VersionCreationModal Component
+ *
+ * A modal form for creating new versions (Major, Minor, Patch, Hotfix, Branch).
+ *
+ * Props:
+ * @param visible - Whether the modal is visible
+ * @param onCancel - Handler for cancellation
+ * @param onCreate - Handler for form submission, receives VersionCreationValues
+ * @param versions - List of existing versions for parent selection and validation
+ * @param currentVersionId - The ID of the current context version
+ * @param isParentTerminal - Logic to determine if the parent version allows creating specific types
+ * @param initialVersionFormItems - Optional ReactNode to render extra fields when creating the first version (e.g. Project Name)
+ */
 import { Modal, Form, Input, Select, Space } from "antd";
-import { useLanguage } from "../../../../contexts/LanguageContext";
-import { TemplateVersion } from "../../../../types";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { VersionNode, VersionCreationValues } from "./types";
 
 interface VersionCreationModalProps {
   visible: boolean;
   onCancel: () => void;
   onCreate: (values: VersionCreationValues) => void;
-  versions: TemplateVersion[];
+  versions: VersionNode[];
   currentVersionId: string;
   isParentTerminal?: boolean;
-}
-
-export interface VersionCreationValues {
-  parentVersionId: string;
-  versionType: "Major" | "Minor" | "Patch" | "Hotfix" | "Branch";
-  version: string;
-  description: string;
-  templateName?: string;
-  templateDescription?: string;
+  // Content to render for initial version (e.g. Template Name)
+  initialVersionFormItems?: React.ReactNode;
 }
 
 const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
@@ -28,10 +35,10 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
   versions,
   currentVersionId,
   isParentTerminal = true,
+  initialVersionFormItems,
 }) => {
   const { t } = useLanguage();
   const [form] = Form.useForm();
-  // selectedParentId was unused
   const [selectedType, setSelectedType] =
     useState<VersionCreationValues["versionType"]>("Patch");
   const [branchSuffix, setBranchSuffix] = useState<string>("branch");
@@ -48,8 +55,7 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
           versionType: "Major",
           version: "1.0.0",
           description: "Initial version",
-          templateName: "",
-          templateDescription: "",
+          // Reset other fields if any
         });
       } else {
         const initialParent =
@@ -59,7 +65,6 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
         const defaultType = isParentTerminal ? "Patch" : "Branch";
         setSelectedType(defaultType);
 
-        // Removed setSelectedParentId
         form.setFieldsValue({
           parentVersionId: initialParent,
           versionType: defaultType,
@@ -88,15 +93,6 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
 
     let newVer = "";
 
-    if (parent.isBranch) {
-      // ... (Existing branch increment logic - simplified for now as user focuses on New Branch creation)
-      // If creating a New Branch FROM a Branch, usually we append another suffix or just increment?
-      // User requirement focuses on "Select New Branch type -> Edit Suffix".
-      // Let's keep standard logic for non-New-Branch types.
-      // If type is Branch (creating sub-branch), we handle it in switch below or here?
-      // Actually, if parent is branch, and we select "Branch", it's a sub-branch.
-    }
-
     // Reset base prefix
     setBaseVersionPrefix(parent.version);
 
@@ -107,19 +103,13 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
       newVer = `${parent.version}-branch`;
     } else {
       // Standard SemVer logic for non-branch parents (or incrementing existing branch)
-      // ... (Existing logic)
       const versionParts = parent.version.split(/[-.]/);
       const major = parseInt(versionParts[0]) || 0;
       const minor = parseInt(versionParts[1]) || 0;
       const patch = parseInt(versionParts[2]) || 0;
 
-      // If parent is branch (e.g. 1.0.0-branch), we need to parse carefully.
-      // But for simple types:
-
       if (parent.isBranch) {
         // Heuristic for branch increment
-        // ... (Reuse existing logic or simplify)
-        // For now let's just use existing logic for non-Branch types
         const lastDotIndex = parent.version.lastIndexOf(".");
         const lastPart = parent.version.substring(lastDotIndex + 1);
         if (/^\d+$/.test(lastPart) && lastDotIndex !== -1) {
@@ -180,28 +170,7 @@ const VersionCreationModal: React.FC<VersionCreationModalProps> = ({
       destroyOnHidden
     >
       <Form form={form} layout="vertical" onValuesChange={handleValuesChange} autoComplete="off">
-        {isInitialVersion && (
-          <>
-            <Form.Item
-              name="templateName"
-              label={t.templateList.name || "Template Name"}
-              rules={[
-                { required: true, message: "Please input template name" },
-              ]}
-            >
-              <Input placeholder="Enter template name" />
-            </Form.Item>
-            <Form.Item
-              name="templateDescription"
-              label={t.templateList.description || "Template Description"}
-            >
-              <Input.TextArea
-                rows={2}
-                placeholder="Enter template description"
-              />
-            </Form.Item>
-          </>
-        )}
+        {isInitialVersion && initialVersionFormItems}
 
         {!isInitialVersion && (
           <Form.Item

@@ -10,6 +10,7 @@ import {
   Modal,
   Drawer,
   Input,
+  Form,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -22,13 +23,14 @@ import {
   TemplateGlobalConfig,
   TemplateModuleConfig,
 } from "../../../types";
-import VersionTimeline from "./components/VersionTimeline";
+import {
+  VersionTimeline,
+  VersionCreationModal,
+  VersionCreationValues,
+} from "../../../components/VersionManagement";
 import GlobalConfigTable from "../../../components/GlobalConfigTable";
 import ModuleTabs from "../../../components/ModuleTabs";
 import ConfigForm from "./components/ConfigForm";
-import VersionCreationModal, {
-  VersionCreationValues,
-} from "./components/VersionCreationModal";
 import AddModuleModal from "./components/AddModuleModal";
 import SwitchModuleVersionModal from "./components/SwitchModuleVersionModal";
 import ConfigEditorDrawer from "../../MetaProjects/components/ConfigEditorDrawer";
@@ -975,6 +977,28 @@ const TemplateDetailPage: React.FC = () => {
           currentVersionId={currentVersionId}
           isParentTerminal={
             !currentVersion?.children?.some((c) => c.versionType !== "Branch")
+          }
+          initialVersionFormItems={
+            <>
+              <Form.Item
+                name="templateName"
+                label={t.templateList.name || "Template Name"}
+                rules={[
+                  { required: true, message: "Please input template name" },
+                ]}
+              >
+                <Input placeholder="Enter template name" />
+              </Form.Item>
+              <Form.Item
+                name="templateDescription"
+                label={t.templateList.description || "Template Description"}
+              >
+                <Input.TextArea
+                  rows={2}
+                  placeholder="Enter template description"
+                />
+              </Form.Item>
+            </>
           }
         />
       )}
