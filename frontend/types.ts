@@ -83,6 +83,7 @@ export interface VersionConfig {
   type: "TEXT" | "FILE";
   textOrigin?: string;
   matchIndex?: number;
+  groupIndex?: number;
   fileOriginPath?: string;
   description?: string;
   textTarget?: string;

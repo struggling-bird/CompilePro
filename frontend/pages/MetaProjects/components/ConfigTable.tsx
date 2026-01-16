@@ -56,6 +56,11 @@ const ConfigTable: React.FC<ConfigTableProps> = ({
                   (Idx: {record.matchIndex})
                 </span>
               )}
+              {record.groupIndex !== undefined && record.groupIndex > 0 && (
+                <span style={{ marginLeft: 8, color: "#52c41a", fontSize: 12 }}>
+                  (Grp: {record.groupIndex})
+                </span>
+              )}
             </span>
           );
         }
