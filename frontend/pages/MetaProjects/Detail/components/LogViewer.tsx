@@ -8,6 +8,7 @@ import {
   Progress,
   Tooltip,
   theme,
+  Tag,
 } from 'antd';
 import {
   PauseCircleOutlined,
@@ -36,7 +37,7 @@ interface ParsedLog {
   progress?: number;
 }
 
-const ROW_HEIGHT = 24;
+const ROW_HEIGHT = 28; // Increased slightly for Tag
 
 const parseLog = (log: string, index: number): ParsedLog => {
   // Regex to extract timestamp [YYYY-MM-DD...] and event [type]
@@ -97,20 +98,44 @@ const parseLog = (log: string, index: number): ParsedLog => {
 };
 
 // Extracted Row component for performance
-const LogRow = memo(({ index, style, data }: { index: number; style: React.CSSProperties; data: ParsedLog[] }) => {
-  const log = data[index];
+const LogRow = memo((props: any) => {
+  const { index, style, data } = props;
+  // console.log('LogRow render', index, !!data);
+  const log = data?.[index];
   const { token } = theme.useToken();
   
+  if (!log) return null; // Safety check
+
   let color = token.colorText; // Default text
-  if (log.level === 'error') color = token.colorError;
-  if (log.level === 'warn') color = token.colorWarning;
-  if (log.level === 'success') color = token.colorSuccess;
-  if (log.level === 'progress') color = token.colorPrimary;
+  let tagColor = 'default';
+  let tagText = 'INFO';
+
+  if (log.level === 'error') {
+    color = token.colorError;
+    tagColor = 'error';
+    tagText = 'ERROR';
+  }
+  if (log.level === 'warn') {
+    color = token.colorWarning;
+    tagColor = 'warning';
+    tagText = 'WARN';
+  }
+  if (log.level === 'success') {
+    color = token.colorSuccess;
+    tagColor = 'success';
+    tagText = 'SUCCESS';
+  }
+  if (log.level === 'progress') {
+    color = token.colorPrimary;
+    tagColor = 'processing';
+    tagText = 'PROGRESS';
+  }
 
   return (
     <div style={{ ...style, lineHeight: `${ROW_HEIGHT}px`, padding: '0 8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color }}>
-      <Space size={8}>
-        {log.timestamp && <span style={{ color: token.colorTextSecondary, fontSize: '0.85em' }}>[{log.timestamp}]</span>}
+      <Space size={8} align="center">
+        {log.timestamp && <span style={{ color: token.colorTextSecondary, fontSize: '0.85em', minWidth: 140 }}>[{log.timestamp}]</span>}
+        <Tag color={tagColor} bordered={false} style={{ margin: 0, fontSize: 10, lineHeight: '18px' }}>{tagText}</Tag>
         <span style={{ color }}>{log.message}</span>
       </Space>
     </div>
@@ -173,6 +198,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       parsed.push(p);
     });
 
+    console.log('Filtered logs:', parsed.length);
     // Calculate ETA
     let eta = '';
     if (latestProgress < 100 && latestProgress > 0 && lastProgressTime > firstProgressTime && lastProgressVal > firstProgressVal) {
@@ -200,14 +226,13 @@ export const LogViewer: React.FC<LogViewerProps> = ({
     if (autoScroll && listRef.current && filteredLogs.length > 0) {
       // Use a small timeout to ensure render is complete
       setTimeout(() => {
-        // v2 uses scrollToRow instead of scrollToItem
-        listRef.current?.scrollToRow({ index: filteredLogs.length - 1, align: 'end' });
+        // v1 uses scrollToItem
+        listRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
       }, 50);
     }
   }, [filteredLogs.length, autoScroll]);
 
   // 3. Handle Scroll to detect manual intervention
-  // v2 List onScroll is native UIEvent, so we need to track scroll position manually to detect direction
   const lastScrollTop = useRef(0);
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const scrollTop = e.currentTarget.scrollTop;
@@ -215,10 +240,6 @@ export const LogViewer: React.FC<LogViewerProps> = ({
     if (scrollTop < lastScrollTop.current - 5) { // -5 buffer
       setAutoScroll(false);
     }
-    // If scrolled to bottom (approx), we could re-enable auto-scroll, but usually explicit button is better.
-    // However, if user scrolls to bottom manually, we can set autoScroll=true?
-    // Let's stick to explicit button for re-enabling to avoid jumping.
-    
     lastScrollTop.current = scrollTop;
   }, []);
 
@@ -287,19 +308,23 @@ export const LogViewer: React.FC<LogViewerProps> = ({
         position: 'relative',
         color: token.colorText
       }}>
-        <AutoSizer>
-          {({ height, width }) => (
-            <List
-              listRef={listRef}
-              style={{ height, width, overflowX: 'hidden' }}
-              rowCount={filteredLogs.length}
-              rowHeight={ROW_HEIGHT}
-              rowProps={{ data: filteredLogs }}
-              rowComponent={LogRow}
-              onScroll={handleScroll}
-            />
-          )}
-        </AutoSizer>
+        <AutoSizer renderProp={({ height, width }) => {
+            console.log('AutoSizer dims:', height, width);
+            if (!height || !width) {
+               return <div style={{ padding: 16, color: token.colorTextSecondary }}>Initializing...</div>;
+            }
+            return (
+              <List
+                listRef={listRef}
+                style={{ height: height!, width: width!, overflowX: 'hidden' }}
+                rowCount={filteredLogs.length}
+                rowHeight={ROW_HEIGHT}
+                rowProps={{ data: filteredLogs }}
+                rowComponent={LogRow}
+                onScroll={handleScroll as any}
+              />
+            );
+          }} />
 
         {/* Scroll to Bottom Button */}
         {!autoScroll && (
@@ -310,7 +335,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             style={{ position: 'absolute', bottom: 16, right: 16, zIndex: 10 }}
             onClick={() => {
               setAutoScroll(true);
-              listRef.current?.scrollToRow({ index: filteredLogs.length - 1, align: 'end' });
+              listRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
             }}
           />
         )}
