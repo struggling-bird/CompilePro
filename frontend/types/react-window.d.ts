@@ -14,7 +14,7 @@ declare module 'react-window' {
     height?: number | string;
     width?: number | string;
     rowCount?: number;
-    rowHeight?: number | ((index: number) => number);
+    rowHeight?: number | ((index: number) => number) | any;
     rowProps?: any;
     rowComponent?: React.ComponentType<any>;
     itemCount?: number;
@@ -31,4 +31,9 @@ declare module 'react-window' {
   
   // v2 exports
   export const List: React.ComponentType<ListProps>;
+
+  export function useDynamicRowHeight(options: {
+    defaultRowHeight: number;
+    key?: string | number;
+  }): any;
 }

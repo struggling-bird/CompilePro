@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback, memo } from 'react';
-import { List, ListImperativeAPI } from 'react-window';
+import { List, ListImperativeAPI, useDynamicRowHeight } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import {
   Input,
@@ -37,7 +37,7 @@ interface ParsedLog {
   progress?: number;
 }
 
-const ROW_HEIGHT = 28; // Increased slightly for Tag
+const ROW_HEIGHT = 28; // Default height
 
 const parseLog = (log: string, index: number): ParsedLog => {
   // Regex to extract timestamp [YYYY-MM-DD...] and event [type]
@@ -132,12 +132,46 @@ const LogRow = memo((props: any) => {
   }
 
   return (
-    <div style={{ ...style, lineHeight: `${ROW_HEIGHT}px`, padding: '0 8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color }}>
-      <Space size={8} align="center">
-        {log.timestamp && <span style={{ color: token.colorTextSecondary, fontSize: '0.85em', minWidth: 140 }}>[{log.timestamp}]</span>}
-        <Tag color={tagColor} bordered={false} style={{ margin: 0, fontSize: 10, lineHeight: '18px' }}>{tagText}</Tag>
-        <span style={{ color }}>{log.message}</span>
-      </Space>
+    <div style={{ 
+      ...style, 
+      height: 'auto', 
+      minHeight: ROW_HEIGHT,
+      width: '100%',
+      padding: '4px 8px',
+      overflow: 'visible',
+      boxSizing: 'border-box',
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'flex-start', 
+        gap: 8,
+        lineHeight: '1.5',
+      }}>
+        {log.timestamp && (
+          <span style={{ 
+            color: token.colorTextSecondary, 
+            fontSize: '0.85em', 
+            minWidth: 150, 
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            fontFamily: 'monospace'
+          }}>
+            [{log.timestamp}]
+          </span>
+        )}
+        <Tag color={tagColor} bordered={false} style={{ margin: 0, fontSize: 10, lineHeight: '18px', flexShrink: 0 }}>
+          {tagText}
+        </Tag>
+        <span style={{ 
+          color, 
+          whiteSpace: 'pre-wrap', 
+          wordBreak: 'break-all', 
+          wordWrap: 'break-word',
+          flex: 1 
+        }}>
+          {log.message}
+        </span>
+      </div>
     </div>
   );
 });
@@ -153,6 +187,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showProgressLogs, setShowProgressLogs] = useState(true);
   const listRef = useRef<ListImperativeAPI>(null);
+  const rowHeight = useDynamicRowHeight({ defaultRowHeight: ROW_HEIGHT });
 
   // 1. Parse and Filter Logs
   const { filteredLogs, progressState } = useMemo(() => {
@@ -198,7 +233,6 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       parsed.push(p);
     });
 
-    console.log('Filtered logs:', parsed.length);
     // Calculate ETA
     let eta = '';
     if (latestProgress < 100 && latestProgress > 0 && lastProgressTime > firstProgressTime && lastProgressVal > firstProgressVal) {
@@ -309,7 +343,6 @@ export const LogViewer: React.FC<LogViewerProps> = ({
         color: token.colorText
       }}>
         <AutoSizer renderProp={({ height, width }) => {
-            console.log('AutoSizer dims:', height, width);
             if (!height || !width) {
                return <div style={{ padding: 16, color: token.colorTextSecondary }}>Initializing...</div>;
             }
@@ -318,7 +351,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 listRef={listRef}
                 style={{ height: height!, width: width!, overflowX: 'hidden' }}
                 rowCount={filteredLogs.length}
-                rowHeight={ROW_HEIGHT}
+                rowHeight={rowHeight}
                 rowProps={{ data: filteredLogs }}
                 rowComponent={LogRow}
                 onScroll={handleScroll as any}
