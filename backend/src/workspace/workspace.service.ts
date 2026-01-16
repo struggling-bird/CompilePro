@@ -65,6 +65,20 @@ export class WorkspaceService {
     return userPath;
   }
 
+  async deleteProjectDir(userId: string, projectId: string): Promise<void> {
+    const root = this.rootDir();
+    const userPath = this.safeJoin(root, userId);
+    const targetDir = this.safeJoin(userPath, projectId);
+    try {
+      await rm(targetDir, { recursive: true, force: true });
+    } catch (e) {
+      this.logger.error(
+        `Failed to delete project dir for user ${userId} project ${projectId}`,
+        e,
+      );
+    }
+  }
+
   async cloneProject(
     userId: string,
     projectId: string,

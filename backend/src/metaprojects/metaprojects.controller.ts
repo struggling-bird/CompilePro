@@ -224,7 +224,7 @@ export class MetaprojectsController {
   }
 
   @Delete(':projectId')
-  @ApiOperation({ summary: '删除元项目（软删除）' })
+  @ApiOperation({ summary: '删除元项目' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiResponse({ status: 200, description: '成功' })
   async deleteProject(

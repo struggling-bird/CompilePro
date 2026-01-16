@@ -1,7 +1,6 @@
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
@@ -60,9 +59,6 @@ export class ProjectVersion {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @OneToMany(() => VersionConfig, (c) => c.version)
   configs: VersionConfig[];

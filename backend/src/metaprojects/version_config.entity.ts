@@ -1,7 +1,6 @@
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -47,7 +46,4 @@ export class VersionConfig {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date | null;
 }

@@ -1,7 +1,6 @@
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -27,9 +26,6 @@ export class MetaProject {
 
   @CreateDateColumn()
   createdAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @OneToMany(() => ProjectVersion, (v) => v.project)
   versions: ProjectVersion[];

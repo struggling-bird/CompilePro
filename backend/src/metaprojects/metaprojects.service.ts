@@ -71,10 +71,8 @@ export class MetaprojectsService {
   }
 
   async listProjects(query: { page: number; pageSize: number; q?: string }) {
-    const qb = this.projects
-      .createQueryBuilder('p')
-      .where('p.deletedAt IS NULL');
-    if (query.q) qb.andWhere('p.name LIKE :q', { q: `%${query.q}%` });
+    const qb = this.projects.createQueryBuilder('p');
+    if (query.q) qb.where('p.name LIKE :q', { q: `%${query.q}%` });
     qb.orderBy('p.createdAt', 'DESC')
       .skip((query.page - 1) * query.pageSize)
       .take(query.pageSize);
@@ -330,7 +328,8 @@ export class MetaprojectsService {
   async deleteProject(projectId: string, actorId: string) {
     const p = await this.projects.findOne({ where: { id: projectId } });
     if (!p) throw new HttpException('项目不存在', 404);
-    await this.projects.softRemove(p);
+    await this.workspace.deleteProjectDir(p.createdBy, projectId);
+    await this.projects.remove(p);
     await this.audit.log({
       action: 'project_delete',
       userId: actorId,
