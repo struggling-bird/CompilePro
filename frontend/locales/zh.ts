@@ -277,6 +277,8 @@ export default {
     namePlaceholder: "模板名称",
     creatorPlaceholder: "创建人",
     descPlaceholder: "描述",
+    deleteConfirmForceTitle: "强制删除确认",
+    deleteConfirmForceContent: "该模板被编译任务引用，强制删除将同时删除关联的编译任务，是否继续？",
   },
   templateDetail: {
     back: "返回",

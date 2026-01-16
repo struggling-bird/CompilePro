@@ -15,6 +15,7 @@ import {
   Popconfirm,
   Row,
   Col,
+  Modal,
 } from "antd";
 import {
   PlusOutlined,
@@ -173,9 +174,29 @@ const TemplateListPage: React.FC = () => {
                 message.success(t.templateList.deleteSuccess);
                 const values = form.getFieldsValue();
                 fetchTemplates(values, current, pageSize);
-              } catch (e) {
-                console.error(e);
-                message.error(t.templateList.deleteFailed);
+              } catch (e: any) {
+                if (e?.response?.status === 409) {
+                  Modal.confirm({
+                    title: t.templateList.deleteConfirmForceTitle,
+                    content: t.templateList.deleteConfirmForceContent,
+                    okText: t.templateDetail.confirm,
+                    cancelText: t.templateDetail.cancel,
+                    onOk: async () => {
+                      try {
+                        await deleteTemplate(record.id, true);
+                        message.success(t.templateList.deleteSuccess);
+                        const values = form.getFieldsValue();
+                        fetchTemplates(values, current, pageSize);
+                      } catch (err) {
+                        console.error(err);
+                        message.error(t.templateList.deleteFailed);
+                      }
+                    },
+                  });
+                } else {
+                  console.error(e);
+                  message.error(t.templateList.deleteFailed);
+                }
               }
             }}
             okText={t.templateDetail.yes || "Yes"}

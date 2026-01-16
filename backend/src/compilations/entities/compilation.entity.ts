@@ -72,9 +72,7 @@ export class Compilation {
 
   @ManyToOne(() => TemplateVersion)
   @JoinColumn({ name: 'template_version_id' })
-  templateVersion: TemplateVersion;
-
-  @ApiProperty({ description: '所属客户ID' })
+  templateVersion: TemplateVersion;@ApiProperty({ description: '所属客户ID' })
   @Column({ name: 'customer_id' })
   customerId: string;
 

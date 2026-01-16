@@ -280,6 +280,8 @@ export default {
     namePlaceholder: "Template Name",
     creatorPlaceholder: "Creator",
     descPlaceholder: "Description",
+    deleteConfirmForceTitle: "Force Delete Confirmation",
+    deleteConfirmForceContent: "This template is used by compilations. Force delete will also delete associated compilations. Continue?",
   },
   templateDetail: {
     back: "Back",

@@ -8,6 +8,7 @@ import { TemplateGlobalConfig } from './entities/template-global-config.entity';
 import { TemplateModule } from './entities/template-module.entity';
 import { TemplateModuleConfig } from './entities/template-module-config.entity';
 import { User } from '../users/user.entity';
+import { Compilation } from '../compilations/entities/compilation.entity';
 import { StorageModule } from '../storage/storage.module';
 import { FileEntity } from '../storage/file.entity';
 import { MetaprojectsModule } from '../metaprojects/metaprojects.module';
@@ -22,6 +23,7 @@ import { MetaprojectsModule } from '../metaprojects/metaprojects.module';
       TemplateModuleConfig,
       User,
       FileEntity,
+      Compilation,
     ]),
     StorageModule,
     MetaprojectsModule,

@@ -83,9 +83,10 @@ export const updateTemplate = async (id: string, payload: any) => {
   });
 };
 
-export const deleteTemplate = async (id: string) => {
+export const deleteTemplate = async (id: string, force = false) => {
   return request(`/apis/templates/${id}`, {
     method: "DELETE",
+    params: { force },
   });
 };
 

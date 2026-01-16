@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Template } from './entities/template.entity';
+import { Compilation } from '../compilations/entities/compilation.entity';
 import {
   TemplateVersion,
   TemplateVersionStatus,
@@ -51,6 +52,8 @@ export class TemplatesService {
     private readonly moduleConfigRepository: Repository<TemplateModuleConfig>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Compilation)
+    private readonly compilationRepository: Repository<Compilation>,
     private readonly storageService: StorageService,
     private readonly metaprojectsService: MetaprojectsService,
   ) {}
@@ -209,8 +212,22 @@ export class TemplatesService {
     return this.templateRepository.save(template);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, force = false): Promise<void> {
     const template = await this.findOne(id);
+
+    if (force) {
+      await this.compilationRepository.delete({ templateId: id });
+    } else {
+      const count = await this.compilationRepository.count({
+        where: { templateId: id },
+      });
+      if (count > 0) {
+        throw new ConflictException(
+          `该模板被 ${count} 个编译任务引用，无法直接删除。`,
+        );
+      }
+    }
+
     await this.templateRepository.remove(template);
   }
 

@@ -15,13 +15,16 @@ interface RequestOptions extends Omit<RequestInit, "body" | "method"> {
   params?: Record<string, string | number | boolean | null | undefined>;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   code: number;
-  body: unknown;
-  constructor(message: string, code: number, body: unknown) {
+  response: {
+    status: number;
+    data: unknown;
+  };
+  constructor(message: string, code: number, data: unknown) {
     super(message);
     this.code = code;
-    this.body = body;
+    this.response = { status: code, data };
   }
 }
 

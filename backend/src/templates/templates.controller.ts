@@ -16,6 +16,7 @@ import {
   ApiParam,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { TemplatesService } from './templates.service';
 import {
@@ -125,9 +126,16 @@ export class TemplatesController {
   @Delete(':id')
   @ApiOperation({ summary: '删除模版' })
   @ApiParam({ name: 'id', description: '模版ID' })
+  @ApiQuery({
+    name: 'force',
+    required: false,
+    description: '是否强制删除（关联删除编译任务）',
+    type: Boolean,
+  })
   @ApiResponse({ status: 200, description: '删除成功' })
-  remove(@Param('id') id: string) {
-    return this.templatesService.remove(id);
+  remove(@Param('id') id: string, @Query('force') force?: boolean) {
+    const isForce = force === true || String(force) === 'true';
+    return this.templatesService.remove(id, isForce);
   }
 
   // --- Version Endpoints ---
