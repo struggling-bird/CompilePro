@@ -14,12 +14,15 @@ const readdir = promisify(fs.readdir);
 const lstat = promisify(fs.lstat);
 const rm = promisify(fs.rm);
 
+import { SocketService } from '../socket/socket.service';
+
 @Injectable()
 export class WorkspaceService {
   constructor(
     private readonly config: ConfigService,
     private readonly redis: RedisService,
     private readonly logger: WinstonLogger,
+    private readonly socketService: SocketService,
   ) {}
 
   rootDir(): string {
@@ -79,6 +82,11 @@ export class WorkspaceService {
     }
   }
 
+  async getCloneLogs(userId: string, projectId: string) {
+    const logsKey = `workspace:clone:logs:${userId}:${projectId}`;
+    return this.redis.lrange(logsKey, 0, -1);
+  }
+
   async cloneProject(
     userId: string,
     projectId: string,
@@ -90,6 +98,18 @@ export class WorkspaceService {
     const projDirName = projectId;
     const targetDir = this.safeJoin(root, projDirName);
     const progressKey = `workspace:clone:${userId}:${projectId}`;
+    const logsKey = `workspace:clone:logs:${userId}:${projectId}`;
+    const room = `room:project:${projectId}`;
+
+    // Helper to log to socket and redis
+    const logToClient = (event: string, message: string) => {
+      const payload = { event, message, timestamp: new Date().toISOString() };
+      const json = JSON.stringify(payload);
+      this.socketService.emitToRoom(room, 'clone:log', payload);
+      this.redis.rpush(logsKey, json).catch(() => undefined);
+      this.redis.expire(logsKey, 3600).catch(() => undefined);
+    };
+
     try {
       await stat(targetDir);
       const ok = await this.isGitRepo(targetDir);
@@ -99,6 +119,9 @@ export class WorkspaceService {
           JSON.stringify({ status: 'success', message: '已存在' }),
           3600,
         );
+        this.socketService.emitToRoom(room, 'clone:success', {
+          message: '已存在',
+        });
         return;
       } else {
         await rm(targetDir, { recursive: true, force: true });
@@ -106,28 +129,27 @@ export class WorkspaceService {
     } catch {
       void 0;
     }
+
+    // Clear old logs
+    await this.redis.del(logsKey);
+
     const args: string[] = [];
     const isHttp = this.isHttpUrl(gitUrl);
     if (isHttp) {
       const basic = await this.getUserGitBasicAuth(userId);
       if (!basic) {
+        const msg = 'HTTP 仓库需要配置用户名密码';
         await this.redis.set(
           progressKey,
           JSON.stringify({
             status: 'error',
-            message: 'HTTP 仓库需要配置用户名密码',
+            message: msg,
             event: 'credential_required',
           }),
           3600,
         );
-        this.logger.warn(
-          JSON.stringify({
-            event: 'git_clone_blocked_no_credentials',
-            gitUrl,
-            targetDir,
-          }),
-          'Workspace',
-        );
+        logToClient('credential_required', msg);
+        this.socketService.emitToRoom(room, 'clone:error', { message: msg });
         return;
       }
       const base64 = Buffer.from(
@@ -135,66 +157,44 @@ export class WorkspaceService {
       ).toString('base64');
       args.push('-c', `http.extraHeader=Authorization: Basic ${base64}`);
     }
-    args.push('clone');
+    args.push('clone', '--progress'); // Add --progress for more output
     if (sourceType === 'branch' && sourceValue) {
       args.push('--branch', sourceValue);
     }
     args.push(gitUrl, targetDir);
+
     const sanitizedArgs = args.map((a) =>
       a.startsWith('http.extraHeader=Authorization: Basic ')
         ? 'http.extraHeader=Authorization: Basic ***'
         : a,
     );
+
     const child = spawn('git', args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
     });
-    this.logger.log(
-      JSON.stringify({
-        event: 'git_clone_start',
-        gitUrl,
-        targetDir,
-        args: sanitizedArgs,
-      }),
-      'Workspace',
-    );
+
+    logToClient('start', `开始克隆: git ${sanitizedArgs.join(' ')}`);
+
     await this.redis.set(
       progressKey,
       JSON.stringify({ status: 'running', message: '开始克隆' }),
       3600,
     );
-    let lastStderr = '';
+
     const rlOut = readline.createInterface({ input: child.stdout });
     const rlErr = readline.createInterface({ input: child.stderr });
+
     rlOut.on('line', (line: string) => {
-      const msg = line;
-      this.logger.log(
-        JSON.stringify({ event: 'git_clone_stdout', message: msg }),
-        'Workspace',
-      );
-      this.redis
-        .set(
-          progressKey,
-          JSON.stringify({ status: 'running', message: msg }),
-          3600,
-        )
-        .catch(() => undefined);
+      logToClient('stdout', line);
     });
+
+    let lastStderr = '';
     rlErr.on('line', (line: string) => {
-      const msg = line;
-      lastStderr = msg.trim();
-      this.logger.warn(
-        JSON.stringify({ event: 'git_clone_stderr', message: msg }),
-        'Workspace',
-      );
-      this.redis
-        .set(
-          progressKey,
-          JSON.stringify({ status: 'running', message: msg }),
-          3600,
-        )
-        .catch(() => undefined);
+      lastStderr = line.trim();
+      logToClient('stderr', line);
     });
+
     await new Promise<void>((resolve) => {
       let done = false;
       const finish = () => {
@@ -205,7 +205,9 @@ export class WorkspaceService {
       child.on('close', (code) => {
         if (code === 0) {
           if (sourceType === 'tag' && sourceValue) {
-            this.checkoutTag(targetDir, sourceValue).catch(() => undefined);
+            this.checkoutTag(targetDir, sourceValue, logToClient).catch(
+              () => undefined,
+            );
           }
           this.redis
             .set(
@@ -214,10 +216,10 @@ export class WorkspaceService {
               3600,
             )
             .catch(() => undefined);
-          this.logger.log(
-            JSON.stringify({ event: 'git_clone_done', code }),
-            'Workspace',
-          );
+          logToClient('success', '克隆完成');
+          this.socketService.emitToRoom(room, 'clone:success', {
+            message: '克隆完成',
+          });
         } else {
           const mapped = this.mapGitError(lastStderr, code ?? undefined);
           this.redis
@@ -231,11 +233,10 @@ export class WorkspaceService {
               3600,
             )
             .catch(() => undefined);
-          this.logger.error(
-            JSON.stringify({ event: 'git_clone_fail', code, mapped }),
-            undefined,
-            'Workspace',
-          );
+          logToClient('error', `失败: ${mapped.message}`);
+          this.socketService.emitToRoom(room, 'clone:error', {
+            message: mapped.message,
+          });
         }
         finish();
       });
@@ -253,11 +254,10 @@ export class WorkspaceService {
             3600,
           )
           .catch(() => undefined);
-        this.logger.error(
-          JSON.stringify({ event: 'git_clone_spawn_error', raw: emsg, mapped }),
-          err?.stack,
-          'Workspace',
-        );
+        logToClient('error', `Spawn Error: ${emsg}`);
+        this.socketService.emitToRoom(room, 'clone:error', {
+          message: mapped.message,
+        });
         finish();
       });
     });
@@ -284,15 +284,16 @@ export class WorkspaceService {
     }
   }
 
-  private async checkoutTag(dir: string, tag: string): Promise<void> {
+  private async checkoutTag(
+    dir: string,
+    tag: string,
+    logger?: (event: string, msg: string) => void,
+  ): Promise<void> {
     await new Promise<void>((resolve) => {
       const child = spawn('git', ['-C', dir, 'checkout', `tags/${tag}`], {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
-      this.logger.log(
-        JSON.stringify({ event: 'git_checkout_tag_start', dir, tag }),
-        'Workspace',
-      );
+      if (logger) logger('tag', `Checking out tag: ${tag}`);
       child.on('close', () => resolve());
     });
   }

@@ -95,6 +95,18 @@ export class MetaprojectsController {
     return this.svc.retryClone(req.user.userId, projectId);
   }
 
+  @Get(':projectId/clone/logs')
+  @ApiOperation({ summary: '查询克隆日志' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async getCloneLogs(
+    @Param('projectId') projectId: string,
+    @Req() req: { user: { userId: string } },
+  ) {
+    const logs = await this.svc.getCloneLogs(req.user.userId, projectId);
+    return { list: logs };
+  }
+
   @Post(':projectId/versions')
   @ApiOperation({ summary: '版本新增' })
   @ApiParam({ name: 'projectId', description: '项目ID' })

@@ -145,6 +145,10 @@ export class MetaprojectsService {
     return this.workspace.cloneStatus(userId, projectId);
   }
 
+  async getCloneLogs(userId: string, projectId: string) {
+    return this.workspace.getCloneLogs(userId, projectId);
+  }
+
   async createVersion(
     projectId: string,
     userId: string,

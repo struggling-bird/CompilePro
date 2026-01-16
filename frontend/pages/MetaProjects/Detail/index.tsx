@@ -24,12 +24,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import AddVersionModal from "../components/AddVersionModal";
 import ConfigTable from "../components/ConfigTable";
 import ConfigEditorDrawer from "../components/ConfigEditorDrawer";
+import CloneStatusPage from "./components/CloneStatusPage";
 import CmdList from "../components/CmdList";
 import ArtifactList from "../components/ArtifactList";
 import {
   getProjectDetail,
   getCloneStatus,
-  retryClone,
   listConfigs,
   upsertConfig,
   deleteConfig,
@@ -47,8 +47,7 @@ const ProjectDetail: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [activeVersion, setActiveVersion] = useState<string>("");
   const [showAddVersionModal, setShowAddVersionModal] = useState(false);
-  const [cloneStatus, setCloneStatus] = useState<string>("idle");
-  const [cloneMessage, setCloneMessage] = useState<string>("");
+  const [cloneStatus, setCloneStatus] = useState<string>("checking"); // checking, success, cloning
   const [loading, setLoading] = useState<boolean>(false);
   const [configs, setConfigs] = useState<VersionConfig[]>([]);
   const [configsLoading, setConfigsLoading] = useState(false);
@@ -56,7 +55,6 @@ const ProjectDetail: React.FC = () => {
   const [editingConfig, setEditingConfig] = useState<VersionConfig | undefined>(
     undefined
   );
-  const pollRef = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -65,6 +63,7 @@ const ProjectDetail: React.FC = () => {
       try {
         setLoading(true);
         const res = await getProjectDetail(projectId);
+        // ... mapping logic ...
         const versions = (res.versions ?? []).map((v) => ({
           id: v.id,
           version: v.version,
@@ -86,9 +85,16 @@ const ProjectDetail: React.FC = () => {
           gitRepo: res.gitUrl,
           description: res.description ?? undefined,
         } as Project;
+        
         if (mounted) {
           setProject(proj);
           setActiveVersion(latest);
+        }
+
+        // Check clone status
+        const statusRes = await getCloneStatus(projectId);
+        if (mounted) {
+          setCloneStatus(statusRes.status);
         }
       } catch (err: any) {
         message.error(err?.message || "加载详情失败");
@@ -102,52 +108,16 @@ const ProjectDetail: React.FC = () => {
     };
   }, [projectId]);
 
-  const startPolling = () => {
-    if (!projectId) return;
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-    const tick = async () => {
-      try {
-        const s = await getCloneStatus(projectId);
-        setCloneStatus(s.status);
-        setCloneMessage(s.message || "");
-        if (
-          (s.status === "error" || s.status === "success") &&
-          pollRef.current
-        ) {
-          clearInterval(pollRef.current);
-          pollRef.current = null;
-        }
-      } catch (err: any) {
-        setCloneStatus("idle");
-        setCloneMessage(err?.message || "");
-      }
-    };
-    tick();
-    pollRef.current = window.setInterval(tick, 3000);
-  };
-
-  useEffect(() => {
-    startPolling();
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    };
-  }, [projectId]);
-
   const currentVersionId = useMemo(() => {
     return project?.versions.find((v) => v.version === activeVersion)?.id;
   }, [project, activeVersion]);
 
   useEffect(() => {
-    if (projectId && currentVersionId) {
+    if (projectId && currentVersionId && cloneStatus === 'success') {
       fetchConfigs();
     }
-  }, [projectId, currentVersionId]);
+  }, [projectId, currentVersionId, cloneStatus]);
+
 
   const fetchConfigs = async () => {
     if (!projectId || !currentVersionId) return;
@@ -228,6 +198,31 @@ const ProjectDetail: React.FC = () => {
 
   if (!project) return <div style={{ padding: 24 }}>项目不存在或加载中...</div>;
 
+  if (cloneStatus !== 'success') {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Space>
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate("/meta-projects")}
+            >
+              {t.projectDetail.back}
+            </Button>
+            <Title level={4} className={styles.title}>
+              {project.name}
+            </Title>
+          </Space>
+        </div>
+        <CloneStatusPage
+          projectId={projectId!}
+          onSuccess={() => setCloneStatus('success')}
+        />
+      </div>
+    );
+  }
+
   const handleAddVersion = (values: any) => {
     console.log("Adding version:", values);
     setShowAddVersionModal(false);
@@ -289,48 +284,6 @@ const ProjectDetail: React.FC = () => {
       </div>
 
       <div className={styles.content}>
-        {/* Clone Status */}
-        <Card size="small" className={styles.statusCard}>
-          <Space className={styles.statusContainer}>
-            <div>
-              <Text>克隆进度：</Text>
-              <Tag
-                color={
-                  cloneStatus === "success"
-                    ? "green"
-                    : cloneStatus === "error"
-                    ? "red"
-                    : "blue"
-                }
-              >
-                {cloneStatus}
-              </Tag>
-              {cloneMessage ? (
-                <Text type="secondary" className={styles.cloneMsg}>
-                  {cloneMessage}
-                </Text>
-              ) : null}
-            </div>
-            <Button
-              onClick={async () => {
-                if (!projectId) return;
-                try {
-                  await retryClone(projectId);
-                  message.success("已重新发起克隆");
-                  setCloneStatus("running");
-                  setCloneMessage("");
-                  startPolling();
-                } catch (err: any) {
-                  message.error(err?.message || "重试失败");
-                }
-              }}
-              disabled={cloneStatus === "running"}
-            >
-              重新尝试
-            </Button>
-          </Space>
-        </Card>
-
         {/* Config List */}
         <Card
           title="配置列表"

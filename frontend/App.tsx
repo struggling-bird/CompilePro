@@ -11,6 +11,7 @@ import Layout from "./components/Layout";
 import { publicRoutes, privateRoutes } from "./routes/config";
 import { TabView } from "./types";
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
+import { SocketProvider } from "./contexts/SocketContext";
 import { ConfigProvider } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import enUS from "antd/locale/en_US";
@@ -175,7 +176,9 @@ const App: React.FC = () => {
     return (
       <ConfigProvider locale={language === "zh" ? zhCN : enUS}>
         <Router>
-          <AppContent />
+          <SocketProvider>
+            <AppContent />
+          </SocketProvider>
         </Router>
       </ConfigProvider>
     );

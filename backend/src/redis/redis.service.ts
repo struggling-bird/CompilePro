@@ -35,4 +35,16 @@ export class RedisService implements OnModuleDestroy {
   async del(key: string): Promise<number> {
     return this.client.del(key);
   }
+
+  async rpush(key: string, ...values: string[]): Promise<number> {
+    return this.client.rpush(key, ...values);
+  }
+
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.client.lrange(key, start, stop);
+  }
+
+  async expire(key: string, seconds: number): Promise<number> {
+    return this.client.expire(key, seconds);
+  }
 }

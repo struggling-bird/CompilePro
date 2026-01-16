@@ -92,6 +92,14 @@ export const retryClone = async (
   });
 };
 
+export const getCloneLogs = async (
+  projectId: string
+): Promise<{ list: string[] }> => {
+  return request(`/apis/metaprojects/${projectId}/clone/logs`, {
+    method: "GET",
+  });
+};
+
 export const createVersion = async (
   projectId: string,
   payload: {

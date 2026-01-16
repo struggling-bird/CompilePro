@@ -45,9 +45,11 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CompilationGlobalConfig } from './compilations/entities/compilation-global-config.entity';
 import { CompilationModuleConfig } from './compilations/entities/compilation-module-config.entity';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
   imports: [
+    SocketModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'production' ? '.env' : '.env.dev',
