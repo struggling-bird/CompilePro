@@ -226,8 +226,8 @@ export const LogViewer: React.FC<LogViewerProps> = ({
     if (autoScroll && listRef.current && filteredLogs.length > 0) {
       // Use a small timeout to ensure render is complete
       setTimeout(() => {
-        // v1 uses scrollToItem
-        listRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
+        // v2 uses scrollToRow instead of scrollToItem
+        listRef.current?.scrollToRow({ index: filteredLogs.length - 1, align: 'end' });
       }, 50);
     }
   }, [filteredLogs.length, autoScroll]);
@@ -335,7 +335,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             style={{ position: 'absolute', bottom: 16, right: 16, zIndex: 10 }}
             onClick={() => {
               setAutoScroll(true);
-              listRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
+              listRef.current?.scrollToRow({ index: filteredLogs.length - 1, align: 'end' });
             }}
           />
         )}
