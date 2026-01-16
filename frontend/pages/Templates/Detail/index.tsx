@@ -900,6 +900,10 @@ const TemplateDetailPage: React.FC = () => {
                       .mappingType,
                     mappingValue: (editingConfig as TemplateModuleConfig)
                       .mappingValue,
+                      matchIndex: (editingConfig as TemplateModuleConfig)
+                        .matchIndex,
+                      groupIndex: (editingConfig as TemplateModuleConfig)
+                        .groupIndex,
                   }
                 : undefined
             }
