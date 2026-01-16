@@ -330,7 +330,7 @@ export default {
     select: "选择",
     fileLocation: "文件位置",
     fileLocationPlaceholder: "例如：/src/config.js",
-    regex: "正则表达式",
+    regex: "正则表达式 / 索引",
     mapping: "默认值",
     publishMethod: "发布方式",
     gitPush: "发布到git",

@@ -333,7 +333,7 @@ export default {
     select: "SELECT",
     fileLocation: "FILE LOCATION",
     fileLocationPlaceholder: "e.g., /src/config.js",
-    regex: "REGEX",
+    regex: "Regex / Index",
     mapping: "DEFAULT VALUE",
     publishMethod: "Publish Method",
     gitPush: "Publish to Git",

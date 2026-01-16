@@ -83,7 +83,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
         title: t.templateDetail.name,
         dataIndex: "name",
         key: "name",
-        width: mode === "INSTANCE" ? "20%" : undefined,
+        width: mode === "INSTANCE" ? "15%" : undefined,
         render: (t: string) => <Text strong>{t}</Text>,
       },
       {
@@ -92,7 +92,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
             ? t.compilationDetail?.targetValue || "Target Value"
             : t.templateDetail.mapping,
         key: "value",
-        width: mode === "INSTANCE" ? "30%" : undefined,
+        width: mode === "INSTANCE" ? "20%" : undefined,
         render: (_: any, r: TemplateModuleConfig) => {
           if (r.mappingType === "GLOBAL")
             return getGlobalConfigName(r.mappingValue);
@@ -108,12 +108,36 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
         title: t.templateDetail.desc,
         dataIndex: "description",
         key: "description",
-        width: mode === "INSTANCE" ? "35%" : undefined,
+        width: mode === "INSTANCE" ? "20%" : undefined,
       },
       {
         title: t.templateDetail.fileLocation,
         dataIndex: "fileLocation",
         key: "fileLocation",
+        width: mode === "INSTANCE" ? "15%" : undefined,
+      },
+      {
+        title: t.templateDetail.regex,
+        key: "regex",
+        width: mode === "INSTANCE" ? "20%" : undefined,
+        render: (_: any, r: TemplateModuleConfig) => {
+          if (!r.regex) return "-";
+          return (
+            <span>
+              {r.regex}
+              {r.matchIndex !== undefined && r.matchIndex > 0 && (
+                <span style={{ marginLeft: 8, color: "#faad14", fontSize: 12 }}>
+                  (Idx: {r.matchIndex})
+                </span>
+              )}
+              {r.groupIndex !== undefined && r.groupIndex > 0 && (
+                <span style={{ marginLeft: 8, color: "#52c41a", fontSize: 12 }}>
+                  (Grp: {r.groupIndex})
+                </span>
+              )}
+            </span>
+          );
+        },
       },
       // Schema Only Columns
       ...(mode === "SCHEMA"
@@ -130,7 +154,7 @@ const ModuleTabs: React.FC<ModuleTabsProps> = ({
       {
         title: t.templateDetail.action,
         key: "action",
-        width: mode === "INSTANCE" ? "15%" : undefined,
+        width: mode === "INSTANCE" ? "10%" : undefined,
         render: (_: any, r: TemplateModuleConfig) => {
           return (
             <Space>
